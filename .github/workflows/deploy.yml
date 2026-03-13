@@ -22,25 +22,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --if-present
-
-      - name: Validate HTML
-        run: |
-          if [ -f "src/index.html" ]; then
-            npx htmlhint src/**/*.html || true
-          fi
-
       - name: Check for secrets in code
         run: |
-          # Basic check to prevent accidental secret commits
-          if grep -rn "SUPABASE_SERVICE_ROLE_KEY\s*=" src/ 2>/dev/null; then
+          # Basic check to prevent accidental service role key commits
+          if grep -rn "service_role" index.html js/ css/ 2>/dev/null; then
             echo "ERROR: Possible service role key in source!"
             exit 1
           fi
@@ -93,20 +78,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
       - name: Build static assets
         run: |
-          if [ -f "package.json" ] && grep -q '"build"' package.json; then
-            npm ci && npm run build
-          else
-            echo "No build step — using src/ as-is"
-            cp -r src/ dist/
-          fi
+          mkdir -p dist
+          # Copy all frontend files from root to dist
+          cp index.html dist/
+          cp -r css dist/
+          cp -r js dist/
+          cp login.html dist/
+          cp dashboard.html dist/
+          [ -f robots.txt ] && cp robots.txt dist/ || true
+          [ -f sitemap.xml ] && cp sitemap.xml dist/ || true
+          [ -d img ] && cp -r img dist/ || true
+          echo "Build complete."
 
       - name: Add build metadata
         run: |
