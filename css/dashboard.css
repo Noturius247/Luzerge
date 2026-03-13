@@ -2,6 +2,9 @@
    Luzerge — Dashboard & Auth Styles
    ============================================================ */
 
+/* Ensure [hidden] always wins over display:flex/grid overrides */
+[hidden] { display: none !important; }
+
 /* ─── Auth page ────────────────────────────────────────────────────────────── */
 
 .auth-page {
