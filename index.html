@@ -62,31 +62,6 @@
 <body>
   <div class="grid-overlay" aria-hidden="true"></div>
 
-  <!-- Scroll-driven rocket -->
-  <div class="rocket" id="scrollRocket" aria-hidden="true">
-    <svg viewBox="0 0 64 64" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4c-6 8-10 20-10 32h20C42 24 38 12 32 4z" fill="url(#rk-body)"/>
-      <path d="M22 36c-6 2-10 8-10 12h10V36z" fill="url(#rk-fin)"/>
-      <path d="M42 36c6 2 10 8 10 12H42V36z" fill="url(#rk-fin)"/>
-      <circle cx="32" cy="26" r="4" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.5"/>
-      <path d="M26 48c2 6 4 10 6 14 2-4 4-8 6-14H26z" fill="url(#rk-flame)"/>
-      <defs>
-        <linearGradient id="rk-body" x1="32" y1="4" x2="32" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#e2e8f0"/><stop offset="1" stop-color="#94a3b8"/>
-        </linearGradient>
-        <linearGradient id="rk-fin" x1="0" y1="36" x2="0" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#3b82f6"/><stop offset="1" stop-color="#06b6d4"/>
-        </linearGradient>
-        <linearGradient id="rk-flame" x1="32" y1="48" x2="32" y2="62" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#f59e0b"/><stop offset=".5" stop-color="#ef4444"/><stop offset="1" stop-color="transparent"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  </div>
-
-  <!-- Scroll progress bar -->
-  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
-
   <!-- ─── Navigation ──────────────────────────────────────────────────── -->
   <nav class="nav">
     <div class="nav__container">
@@ -558,6 +533,31 @@
       </div>
     </div>
   </footer>
+
+  <!-- Scroll-driven rocket (fixed position, won't affect layout) -->
+  <div class="rocket" id="scrollRocket" aria-hidden="true">
+    <svg viewBox="0 0 64 64" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M32 4c-6 8-10 20-10 32h20C42 24 38 12 32 4z" fill="url(#rk-body)"/>
+      <path d="M22 36c-6 2-10 8-10 12h10V36z" fill="url(#rk-fin)"/>
+      <path d="M42 36c6 2 10 8 10 12H42V36z" fill="url(#rk-fin)"/>
+      <circle cx="32" cy="26" r="4" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.5"/>
+      <path d="M26 48c2 6 4 10 6 14 2-4 4-8 6-14H26z" fill="url(#rk-flame)"/>
+      <defs>
+        <linearGradient id="rk-body" x1="32" y1="4" x2="32" y2="48" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#e2e8f0"/><stop offset="1" stop-color="#94a3b8"/>
+        </linearGradient>
+        <linearGradient id="rk-fin" x1="0" y1="36" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#3b82f6"/><stop offset="1" stop-color="#06b6d4"/>
+        </linearGradient>
+        <linearGradient id="rk-flame" x1="32" y1="48" x2="32" y2="62" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#f59e0b"/><stop offset=".5" stop-color="#ef4444"/><stop offset="1" stop-color="transparent"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Scroll progress bar -->
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
   <script src="/js/app.js"></script>
 </body>

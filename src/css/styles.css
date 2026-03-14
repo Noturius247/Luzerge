@@ -110,28 +110,32 @@ ul[role="list"] { list-style: none; }
   height: 3px;
   width: 0%;
   background: linear-gradient(90deg, var(--color-brand), var(--color-accent), var(--color-accent-2));
-  z-index: 200;
+  z-index: 201;
   transition: width 50ms linear;
   box-shadow: 0 0 10px var(--color-brand-glow);
+  pointer-events: none;
 }
 
 /* ─── Scroll-driven rocket ─────────────────────────────────── */
 .rocket {
   position: fixed;
   right: 2rem;
-  bottom: -80px;
+  bottom: 10%;
   z-index: 50;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  visibility: hidden;
+  transition: opacity 0.4s ease, bottom 0.15s linear;
   filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.5));
   pointer-events: none;
 }
 
 .rocket.is-visible {
   opacity: 1;
+  visibility: visible;
 }
 
 .rocket svg {
+  display: block;
   transform: rotate(-15deg);
   animation: rocket-float 3s ease-in-out infinite;
 }
