@@ -355,16 +355,16 @@ function initScrollEffects() {
         }
       }
 
-      // ── Rocket flies up as you scroll (uses translateY for GPU acceleration)
+      // ── Rocket flies from bottom-right to top-right as you scroll
       if (rocket && !reducedMotion) {
         if (scrollPercent > 0.03) {
           rocket.classList.add('is-visible')
-          // Move rocket from bottom of viewport to top: 0% scroll = 0px up, 100% scroll = full viewport height up
-          var travel = scrollPercent * window.innerHeight * 0.9
-          rocket.style.transform = 'translateY(-' + travel + 'px)'
+          // Map scroll progress to bottom position: starts at 5%, ends at 90%
+          var bottomPos = 5 + (scrollPercent * 85)
+          rocket.style.bottom = bottomPos + '%'
         } else {
           rocket.classList.remove('is-visible')
-          rocket.style.transform = 'translateY(0)'
+          rocket.style.bottom = '5%'
         }
       }
 
