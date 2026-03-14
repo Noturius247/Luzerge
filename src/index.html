@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- SEO -->
-  <title>Luzerge — Fast Websites for Cebu Businesses</title>
-  <meta name="description" content="Professional CDN-powered websites for Cebu SMEs. Sub-200ms load times, free SSL, and automatic deployments. Starter plans from ₱2,500/mo." />
-  <meta name="keywords" content="web design Cebu, website Cebu Philippines, CDN hosting Philippines, Cebu web developer" />
+  <title>Luzerge — Affordable Websites for Cebu SMEs</title>
+  <meta name="description" content="Get a professional website for your Cebu business starting at ₱99/month. No setup fees. Fast, secure, and mobile-friendly. Free consultation." />
+  <meta name="keywords" content="web design Cebu, affordable website Philippines, website para sa negosyo Cebu, Cebu web developer, mura website Cebu" />
   <link rel="canonical" href="https://luzerge.com/" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://luzerge.com/" />
-  <meta property="og:title" content="Luzerge — Fast Websites for Cebu Businesses" />
-  <meta property="og:description" content="Get a professional, CDN-powered website for your Cebu business. Free SSL, DDoS protection, and 24/7 uptime." />
+  <meta property="og:title" content="Luzerge — Affordable Websites for Cebu SMEs" />
+  <meta property="og:description" content="Professional website for your Cebu business starting at ₱99/month. No setup fees. Fast, secure, mobile-friendly." />
   <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Luzerge — Fast Websites for Cebu Businesses" />
-  <meta name="twitter:description" content="Professional CDN-powered websites for Cebu SMEs from ₱2,500/mo." />
+  <meta name="twitter:title" content="Luzerge — Affordable Websites for Cebu SMEs" />
+  <meta name="twitter:description" content="Professional website for your Cebu business from ₱99/mo. No setup fees." />
 
   <!-- Schema.org LocalBusiness -->
   <script type="application/ld+json">
@@ -41,7 +41,7 @@
       "latitude": 10.3157,
       "longitude": 123.8854
     },
-    "priceRange": "₱₱",
+    "priceRange": "₱",
     "openingHours": "Mo-Fr 09:00-18:00",
     "serviceArea": {
       "@type": "Place",
@@ -50,23 +50,18 @@
   }
   </script>
 
-  <!-- Preload critical assets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
   <link rel="preload" href="/css/styles.css" as="style" />
   <link rel="preload" href="/js/app.js" as="script" />
-
-  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
-
-  <!-- Styles -->
   <link rel="stylesheet" href="/css/styles.css" />
-
-  <!-- Cloudflare Web Analytics (privacy-friendly) -->
-  <!-- Replace TOKEN with your Cloudflare Analytics token -->
-  <!-- <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
-    data-cf-beacon='{"token": "YOUR_CF_ANALYTICS_TOKEN"}'></script> -->
 </head>
 
 <body>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
   <!-- ─── Navigation ──────────────────────────────────────────────────── -->
   <nav class="nav">
     <div class="nav__container">
@@ -75,12 +70,14 @@
         Luzerge
       </a>
       <ul class="nav__links" role="list">
+        <li><a href="#problems">Why Us</a></li>
         <li><a href="#services">Services</a></li>
-        <li><a href="#how-it-works">How It Works</a></li>
         <li><a href="#pricing">Pricing</a></li>
-        <li><a href="#contact" class="btn btn--outline">Get Started</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#contact" class="btn btn--outline">Free Consultation</a></li>
+        <li><a href="/login.html" class="btn btn--primary">Login</a></li>
       </ul>
-      <button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false">
+      <button type="button" class="nav__toggle" aria-label="Toggle menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </div>
@@ -88,39 +85,81 @@
 
   <!-- ─── Hero ────────────────────────────────────────────────────────── -->
   <section class="hero" aria-labelledby="hero-heading">
+    <canvas id="heroStarfield" class="hero__starfield" aria-hidden="true"></canvas>
     <div class="hero__container">
       <div class="hero__badge">
-        <span class="badge">🇵🇭 Cebu-Based · Global Performance</span>
+        <span class="badge">🇵🇭 Cebu-Based · Serving SMEs Since 2026</span>
       </div>
       <h1 class="hero__heading" id="hero-heading">
-        Your Cebu Business,<br />
-        <span class="hero__accent">Blazing Fast Online</span>
+        Your Cebu Business Deserves<br />
+        <span class="hero__accent">A Real Website</span>
       </h1>
       <p class="hero__subheading">
-        Professional websites powered by Cloudflare CDN — delivering your pages
-        in under 200ms to customers across the Philippines and beyond.
-        Free SSL included. No hidden fees.
+        We build fast, professional websites for Cebu small businesses —
+        restaurants, salons, clinics, shops, and more.
+        Starting at <strong>₱99/month</strong>. No setup fees. No tech knowledge needed.
+        <strong>First month FREE</strong> — try it risk-free!
       </p>
       <div class="hero__actions">
-        <a href="#contact" class="btn btn--primary">Get a Free Audit</a>
-        <a href="#how-it-works" class="btn btn--ghost">See How It Works →</a>
+        <a href="#contact" class="btn btn--primary">Get a Free Consultation</a>
+        <a href="#pricing" class="btn btn--ghost">View Pricing →</a>
       </div>
       <div class="hero__stats">
         <div class="stat">
-          <span class="stat__value">&lt;200ms</span>
-          <span class="stat__label">Load Time (PH)</span>
+          <span class="stat__value">₱99</span>
+          <span class="stat__label">Starting Price/mo</span>
         </div>
         <div class="stat">
-          <span class="stat__value">99.9%</span>
-          <span class="stat__label">Uptime SLA</span>
+          <span class="stat__value">3–5</span>
+          <span class="stat__label">Days to Go Live</span>
         </div>
         <div class="stat">
           <span class="stat__value">Free</span>
-          <span class="stat__label">SSL + DDoS Protection</span>
+          <span class="stat__label">SSL + Security</span>
         </div>
         <div class="stat">
-          <span class="stat__value">₱0</span>
-          <span class="stat__label">Setup for First 5 Clients</span>
+          <span class="stat__value">1 Month</span>
+          <span class="stat__label">Free Trial</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Problems We Solve ───────────────────────────────────────────── -->
+  <section class="problems" id="problems" aria-labelledby="problems-heading">
+    <div class="container">
+      <h2 class="section__heading" id="problems-heading">Sound Familiar?</h2>
+      <p class="section__subheading">These are the most common problems Cebu SMEs face online.</p>
+      <div class="problems__grid">
+        <div class="problem-card">
+          <span class="problem-card__icon" aria-hidden="true">😩</span>
+          <h3>"My website is too slow — customers leave before it loads."</h3>
+          <p class="problem-card__solution">We fix this. Our sites load in under 2 seconds anywhere in the Philippines.</p>
+        </div>
+        <div class="problem-card">
+          <span class="problem-card__icon" aria-hidden="true">📵</span>
+          <h3>"My website doesn't look good on mobile phones."</h3>
+          <p class="problem-card__solution">Every site we build is 100% mobile-first — perfect on any phone.</p>
+        </div>
+        <div class="problem-card">
+          <span class="problem-card__icon" aria-hidden="true">😰</span>
+          <h3>"I paid a big upfront fee and got nothing after."</h3>
+          <p class="problem-card__solution">We charge monthly — no big setup fees. If you're not happy, cancel anytime.</p>
+        </div>
+        <div class="problem-card">
+          <span class="problem-card__icon" aria-hidden="true">🔍</span>
+          <h3>"Customers can't find my business on Google."</h3>
+          <p class="problem-card__solution">We set up Google Business, SEO basics, and Google Analytics so you show up.</p>
+        </div>
+        <div class="problem-card">
+          <span class="problem-card__icon" aria-hidden="true">🔒</span>
+          <h3>"My website shows 'Not Secure' in the browser."</h3>
+          <p class="problem-card__solution">Free SSL certificate on every plan. Your site will always show the padlock.</p>
+        </div>
+        <div class="problem-card">
+          <span class="problem-card__icon" aria-hidden="true">🛠️</span>
+          <h3>"I can't update my website — I have to call someone every time."</h3>
+          <p class="problem-card__solution">Content updates are included in every plan. Just message us on Viber.</p>
         </div>
       </div>
     </div>
@@ -130,46 +169,48 @@
   <section class="services" id="services" aria-labelledby="services-heading">
     <div class="container">
       <h2 class="section__heading" id="services-heading">What We Build</h2>
-      <p class="section__subheading">Everything your Cebu business needs to compete online.</p>
+      <p class="section__subheading">Simple solutions for real Cebu businesses.</p>
       <div class="services__grid">
         <article class="service-card">
-          <div class="service-card__icon" aria-hidden="true">🚀</div>
-          <h3 class="service-card__title">Starter Landing Page</h3>
-          <p class="service-card__desc">A fast, mobile-first landing page with your branding, contact form, and Google Maps integration. Perfect for new businesses.</p>
+          <div class="service-card__icon" aria-hidden="true">🏪</div>
+          <h3 class="service-card__title">Business Profile Page</h3>
+          <p class="service-card__desc">Perfect for sari-sari stores, salons, clinics, food stalls — any business that needs to be found online fast.</p>
           <ul class="service-card__features" role="list">
-            <li>Cloudflare CDN delivery</li>
-            <li>Free SSL certificate</li>
-            <li>Contact form with email alerts</li>
-            <li>Google Analytics setup</li>
+            <li>1 page with your info & photos</li>
+            <li>Contact form + Google Maps</li>
+            <li>Mobile-friendly design</li>
+            <li>Free SSL (padlock icon)</li>
           </ul>
-          <a href="#pricing" class="btn btn--outline">From ₱2,500/mo</a>
+          <a href="#pricing" class="btn btn--outline">From ₱99/mo · 1st Month Free</a>
         </article>
 
         <article class="service-card service-card--featured">
           <div class="service-card__badge">Most Popular</div>
           <div class="service-card__icon" aria-hidden="true">🏢</div>
-          <h3 class="service-card__title">Business Website</h3>
-          <p class="service-card__desc">A full multi-page website with a database backend for leads, products, or bookings. Built to scale with your business.</p>
+          <h3 class="service-card__title">Full Business Website</h3>
+          <p class="service-card__desc">For restaurants, hotels, clinics, and shops that need multiple pages, online booking, or a product catalog.</p>
           <ul class="service-card__features" role="list">
-            <li>5–10 pages with CMS editing</li>
-            <li>Supabase database backend</li>
-            <li>Cloudflare WAF protection</li>
-            <li>Business email setup</li>
+            <li>Up to 5 pages</li>
+            <li>Online inquiry / booking form</li>
+            <li>Google Analytics + SEO setup</li>
+            <li>Viber / Facebook chat button</li>
+            <li>2 free updates per month</li>
           </ul>
-          <a href="#pricing" class="btn btn--primary">From ₱5,500/mo</a>
+          <a href="#pricing" class="btn btn--primary">From ₱199/mo · 1st Month Free</a>
         </article>
 
         <article class="service-card">
-          <div class="service-card__icon" aria-hidden="true">🛍️</div>
-          <h3 class="service-card__title">E-Commerce / App</h3>
-          <p class="service-card__desc">Custom web application with product catalog, PayMongo payments, and a full CI/CD pipeline via GitHub Actions.</p>
+          <div class="service-card__icon" aria-hidden="true">🛒</div>
+          <h3 class="service-card__title">Online Store</h3>
+          <p class="service-card__desc">Sell your products online with GCash and Maya payments. Perfect for ukay-ukay, food delivery, and retail shops.</p>
           <ul class="service-card__features" role="list">
-            <li>PayMongo payment integration</li>
-            <li>Real-time inventory updates</li>
-            <li>Automated deployments</li>
-            <li>Weekly database backups</li>
+            <li>Product catalog with photos</li>
+            <li>GCash / Maya / COD checkout</li>
+            <li>Order management system</li>
+            <li>Unlimited products</li>
+            <li>Priority Viber support</li>
           </ul>
-          <a href="#pricing" class="btn btn--outline">From ₱12,000/mo</a>
+          <a href="#pricing" class="btn btn--outline">From ₱299/mo · 1st Month Free</a>
         </article>
       </div>
     </div>
@@ -179,34 +220,34 @@
   <section class="how-it-works" id="how-it-works" aria-labelledby="how-heading">
     <div class="container">
       <h2 class="section__heading" id="how-heading">How It Works</h2>
-      <p class="section__subheading">From domain to live site in 3–5 business days.</p>
+      <p class="section__subheading">We handle everything. You just provide the content.</p>
       <ol class="steps" role="list">
         <li class="step">
           <span class="step__number" aria-hidden="true">01</span>
           <div class="step__content">
-            <h3>Buy Your Domain</h3>
-            <p>We register your .com domain through Cloudflare Registrar at cost (~$8.57/yr). You own it fully.</p>
+            <h3>Free Consultation</h3>
+            <p>Fill out the form below or message us on Viber. We'll call you within 24 hours to understand your business and what you need.</p>
           </div>
         </li>
         <li class="step">
           <span class="step__number" aria-hidden="true">02</span>
           <div class="step__content">
-            <h3>Connect Cloudflare CDN</h3>
-            <p>We configure DNS, SSL, caching rules, and WAF protection. Cebu users hit the Singapore edge node — under 60ms.</p>
+            <h3>We Design & Build</h3>
+            <p>Send us your logo, photos, and text — or we'll help you create them. We build your site in 3–5 business days.</p>
           </div>
         </li>
         <li class="step">
           <span class="step__number" aria-hidden="true">03</span>
           <div class="step__content">
-            <h3>Deploy Your Site</h3>
-            <p>We build and push your site to GitHub. Every future update auto-deploys and purges the CDN cache.</p>
+            <h3>Review & Go Live</h3>
+            <p>You review the site. We make changes until you're happy. Then we go live — your customers can find you online.</p>
           </div>
         </li>
         <li class="step">
           <span class="step__number" aria-hidden="true">04</span>
           <div class="step__content">
-            <h3>Go Live & Grow</h3>
-            <p>You get a monthly performance report showing cache hit rates, speed scores, and leads captured.</p>
+            <h3>We Maintain It For You</h3>
+            <p>We handle hosting, security, and updates every month. Just message us on Viber when you need changes.</p>
           </div>
         </li>
       </ol>
@@ -216,23 +257,24 @@
   <!-- ─── Pricing ─────────────────────────────────────────────────────── -->
   <section class="pricing" id="pricing" aria-labelledby="pricing-heading">
     <div class="container">
-      <h2 class="section__heading" id="pricing-heading">Transparent Pricing</h2>
-      <p class="section__subheading">No hidden fees. Cancel anytime after 3 months.</p>
+      <h2 class="section__heading" id="pricing-heading">Simple, Honest Pricing</h2>
+      <p class="section__subheading">No setup fees. No hidden charges. <strong class="text-accent">First month FREE</strong> — try it risk-free, cancel anytime.</p>
       <div class="pricing__grid">
         <article class="pricing-card">
           <h3 class="pricing-card__name">Starter</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount">₱2,500</span>
+            <span class="pricing-card__amount">₱99</span>
             <span class="pricing-card__period">/month</span>
           </div>
-          <p class="pricing-card__setup">+ ₱8,000 one-time setup</p>
+          <p class="pricing-card__setup">1st month FREE · No setup fee</p>
           <ul class="pricing-card__features" role="list">
-            <li>✅ 1-page landing site</li>
-            <li>✅ Custom domain connection</li>
-            <li>✅ Cloudflare CDN + SSL</li>
+            <li>✅ 1-page business profile</li>
+            <li>✅ Your own .com domain</li>
+            <li>✅ Mobile-friendly design</li>
+            <li>✅ Free SSL (padlock)</li>
             <li>✅ Contact form</li>
-            <li>✅ Google Analytics</li>
-            <li>✅ 1 content update/month</li>
+            <li>✅ Google Maps embed</li>
+            <li>✅ 1 update/month via Viber</li>
           </ul>
           <a href="#contact" class="btn btn--outline">Get Started</a>
         </article>
@@ -241,40 +283,87 @@
           <div class="pricing-card__badge">Best Value</div>
           <h3 class="pricing-card__name">Business</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount">₱5,500</span>
+            <span class="pricing-card__amount">₱199</span>
             <span class="pricing-card__period">/month</span>
           </div>
-          <p class="pricing-card__setup">+ ₱20,000 one-time setup</p>
+          <p class="pricing-card__setup">1st month FREE · No setup fee</p>
           <ul class="pricing-card__features" role="list">
-            <li>✅ 5–10 page website</li>
-            <li>✅ Database backend (leads/bookings)</li>
-            <li>✅ Cloudflare WAF rules</li>
-            <li>✅ Business email setup</li>
-            <li>✅ SEO on-page optimization</li>
-            <li>✅ 2 content updates/month</li>
+            <li>✅ Up to 5 pages</li>
+            <li>✅ Online booking / inquiry form</li>
+            <li>✅ Google Analytics</li>
+            <li>✅ Basic SEO setup</li>
+            <li>✅ Facebook / Viber chat button</li>
+            <li>✅ Google Business setup</li>
+            <li>✅ 2 updates/month via Viber</li>
             <li>✅ Monthly performance report</li>
           </ul>
           <a href="#contact" class="btn btn--primary">Get Started</a>
         </article>
 
         <article class="pricing-card">
-          <h3 class="pricing-card__name">E-Commerce</h3>
+          <h3 class="pricing-card__name">Online Store</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount">₱12,000</span>
+            <span class="pricing-card__amount">₱299</span>
             <span class="pricing-card__period">/month</span>
           </div>
-          <p class="pricing-card__setup">+ ₱50,000+ setup</p>
+          <p class="pricing-card__setup">1st month FREE · No setup fee</p>
           <ul class="pricing-card__features" role="list">
-            <li>✅ Custom web application</li>
-            <li>✅ PayMongo payments (PH)</li>
-            <li>✅ Product catalog + inventory</li>
-            <li>✅ Full CI/CD pipeline</li>
-            <li>✅ Weekly DB backups</li>
-            <li>✅ Priority support</li>
-            <li>✅ Unlimited content updates</li>
+            <li>✅ Product catalog (unlimited)</li>
+            <li>✅ GCash / Maya payments</li>
+            <li>✅ Order management</li>
+            <li>✅ Inventory tracking</li>
+            <li>✅ Customer order notifications</li>
+            <li>✅ Priority Viber support</li>
+            <li>✅ Unlimited updates</li>
           </ul>
-          <a href="#contact" class="btn btn--outline">Contact Us</a>
+          <a href="#contact" class="btn btn--outline">Get Started</a>
         </article>
+      </div>
+      <p class="pricing__note">
+        All plans include: free hosting, free SSL, DDoS protection, and daily backups.
+        Prices are in Philippine Peso. Domain renewal (~₱500/yr) is separate.
+      </p>
+    </div>
+  </section>
+
+  <!-- ─── FAQ ──────────────────────────────────────────────────────────── -->
+  <section class="faq" id="faq" aria-labelledby="faq-heading">
+    <div class="container">
+      <h2 class="section__heading" id="faq-heading">Common Questions</h2>
+      <p class="section__subheading">From Cebu business owners like you.</p>
+      <div class="faq__list">
+        <details class="faq__item">
+          <summary class="faq__question">Kailangan ba nako mag-alam sa tech para mag-avail?</summary>
+          <p class="faq__answer">Dili! Kami bahala sa tanan. Mag-send lang ug imong logo, photos, ug imong gusto isulti sa imong website — kami na ang bahala sa uban.</p>
+        </details>
+        <details class="faq__item">
+          <summary class="faq__question">Do I need technical knowledge to get a website?</summary>
+          <p class="faq__answer">No. We handle everything from design to launch. Just send us your business info, photos, and logo — we do the rest.</p>
+        </details>
+        <details class="faq__item">
+          <summary class="faq__question">Why is there no setup fee?</summary>
+          <p class="faq__answer">We removed setup fees because we know it's a big barrier for small businesses. Instead, we earn through the monthly subscription — so we're motivated to keep you happy long-term.</p>
+        </details>
+        <details class="faq__item">
+          <summary class="faq__question">Can I cancel anytime?</summary>
+          <p class="faq__answer">Yes! Your first month is completely free — no payment needed upfront. After that, cancel anytime. No lock-in contracts. If you're not happy, just let us know and we'll stop billing you. You keep your domain.</p>
+        </details>
+        <details class="faq__item">
+          <summary class="faq__question">What if I already have a website that's slow?</summary>
+          <p class="faq__answer">We can migrate your existing website and speed it up — often cutting load time by 50–80%. Contact us for a free speed audit.</p>
+        </details>
+        <details class="faq__item">
+          <summary class="faq__question">How do I pay? GCash ba?</summary>
+          <p class="faq__answer">Yes! We accept GCash, Maya, bank transfer (BDO/BPI/UnionBank), and cash. Monthly billing — pay when you're satisfied each month.</p>
+        </details>
+        <details class="faq__item">
+          <summary class="faq__question">How long does it take to build my website?</summary>
+          <p class="faq__answer">3–5 business days for Starter and Business plans. Online stores take 7–10 days. We'll keep you updated throughout.</p>
+        </details>
+        <details class="faq__item">
+          <summary class="faq__question">Do you serve clients outside Cebu?</summary>
+          <p class="faq__answer">Yes! We work with businesses all over the Philippines. We communicate via Viber, email, and Zoom — no need to meet in person.</p>
+        </details>
       </div>
     </div>
   </section>
@@ -282,15 +371,15 @@
   <!-- ─── Contact Form ─────────────────────────────────────────────────── -->
   <section class="contact" id="contact" aria-labelledby="contact-heading">
     <div class="container">
-      <h2 class="section__heading" id="contact-heading">Get a Free Website Audit</h2>
+      <h2 class="section__heading" id="contact-heading">Get a Free Consultation</h2>
       <p class="section__subheading">
-        We'll analyze your current online presence and show you exactly how
-        much faster your site could load with CDN optimization.
+        Tell us about your business and we'll call you back within 24 hours.
+        No commitment required.
       </p>
       <div class="contact__layout">
         <form class="contact-form" id="contactForm" novalidate aria-label="Contact form">
           <div class="form-group">
-            <label for="name" class="form-label">Full Name *</label>
+            <label for="name" class="form-label">Your Name *</label>
             <input type="text" id="name" name="name" class="form-input"
               placeholder="Juan dela Cruz" required minlength="2" maxlength="100"
               autocomplete="name" />
@@ -305,39 +394,39 @@
           </div>
 
           <div class="form-group">
-            <label for="phone" class="form-label">Phone (Optional)</label>
+            <label for="phone" class="form-label">Phone / Viber Number</label>
             <input type="tel" id="phone" name="phone" class="form-input"
               placeholder="+63 917 000 0000" autocomplete="tel" />
           </div>
 
           <div class="form-group">
-            <label for="service" class="form-label">Service Interested In</label>
+            <label for="service" class="form-label">What do you need?</label>
             <select id="service" name="service" class="form-input">
               <option value="">Select a service...</option>
-              <option value="starter">Starter Landing Page</option>
-              <option value="business">Business Website</option>
-              <option value="ecommerce">E-Commerce / App</option>
-              <option value="custom">Custom Project</option>
-              <option value="other">Just Exploring</option>
+              <option value="starter">Starter — Business Profile (₱99/mo)</option>
+              <option value="business">Business Website (₱199/mo)</option>
+              <option value="ecommerce">Online Store (₱299/mo)</option>
+              <option value="speedup">Speed up my existing website</option>
+              <option value="other">Not sure yet — just exploring</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="message" class="form-label">Tell Us About Your Business *</label>
+            <label for="message" class="form-label">Tell us about your business *</label>
             <textarea id="message" name="message" class="form-input form-textarea"
-              placeholder="What does your business do? Do you have an existing website? What are your goals?"
+              placeholder="What type of business do you have? Do you already have a website? What problem are you trying to solve?"
               required minlength="10" maxlength="2000" rows="4"></textarea>
             <span class="form-error" id="messageError" role="alert"></span>
             <span class="form-hint" id="charCount">0 / 2000</span>
           </div>
 
           <button type="submit" class="btn btn--primary btn--full" id="submitBtn">
-            Send Message →
+            Send Message — It's Free →
           </button>
 
           <div class="form-success" id="formSuccess" role="alert" hidden>
             <span aria-hidden="true">✅</span>
-            Thank you! We'll contact you within 24 hours.
+            Salamat! We'll contact you within 24 hours.
           </div>
           <div class="form-error-global" id="formError" role="alert" hidden>
             <span aria-hidden="true">❌</span>
@@ -361,17 +450,24 @@
             </div>
           </div>
           <div class="contact-info-item">
-            <span class="contact-info-item__icon" aria-hidden="true">⏱️</span>
+            <span class="contact-info-item__icon" aria-hidden="true">💬</span>
             <div>
-              <strong>Response Time</strong>
-              <p>Within 24 hours (Mon–Fri)</p>
+              <strong>Viber / WhatsApp</strong>
+              <p>Message us anytime</p>
             </div>
           </div>
           <div class="contact-info-item">
-            <span class="contact-info-item__icon" aria-hidden="true">🌏</span>
+            <span class="contact-info-item__icon" aria-hidden="true">⏱️</span>
             <div>
-              <strong>CDN Edge</strong>
-              <p>Cloudflare Singapore PoP<br />~30ms from Cebu</p>
+              <strong>Response Time</strong>
+              <p>Within 24 hours (Mon–Sat)</p>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-item__icon" aria-hidden="true">💳</span>
+            <div>
+              <strong>Payment</strong>
+              <p>GCash · Maya · Bank Transfer · Cash</p>
             </div>
           </div>
         </div>
@@ -385,13 +481,14 @@
       <div class="footer__top">
         <div class="footer__brand">
           <span class="footer__logo">⚡ Luzerge</span>
-          <p>CDN-powered web services for Cebu businesses.</p>
-          <p>Built with Cloudflare + Supabase + GitHub.</p>
+          <p>Affordable websites for Cebu small businesses.</p>
+          <p>Fast, secure, and maintained monthly.</p>
         </div>
         <nav class="footer__links" aria-label="Footer navigation">
           <ul role="list">
             <li><a href="#services">Services</a></li>
             <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#faq">FAQ</a></li>
             <li><a href="#contact">Contact</a></li>
             <li><a href="/privacy.html">Privacy Policy</a></li>
           </ul>

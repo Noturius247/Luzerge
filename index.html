@@ -50,6 +50,9 @@
   }
   </script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
   <link rel="preload" href="/css/styles.css" as="style" />
   <link rel="preload" href="/js/app.js" as="script" />
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
@@ -57,6 +60,8 @@
 </head>
 
 <body>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
   <!-- ─── Navigation ──────────────────────────────────────────────────── -->
   <nav class="nav">
     <div class="nav__container">
@@ -80,6 +85,7 @@
 
   <!-- ─── Hero ────────────────────────────────────────────────────────── -->
   <section class="hero" aria-labelledby="hero-heading">
+    <canvas id="heroStarfield" class="hero__starfield" aria-hidden="true"></canvas>
     <div class="hero__container">
       <div class="hero__badge">
         <span class="badge">🇵🇭 Cebu-Based · Serving SMEs Since 2026</span>

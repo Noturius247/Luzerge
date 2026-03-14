@@ -1,6 +1,7 @@
 /**
  * Luzerge.com — Frontend JavaScript
- * Handles: contact form, nav mobile menu, analytics, char count
+ * Handles: contact form, nav mobile menu, analytics, char count,
+ *          starfield, scroll animations, parallax, hero reveal
  */
 
 'use strict'
@@ -188,7 +189,7 @@ function setFooterYear() {
   if (el) el.textContent = new Date().getFullYear()
 }
 
-// ─── Intersection Observer for subtle animations ──────────────────────────────
+// ─── Enhanced scroll animations with stagger ─────────────────────────────────
 
 function initScrollAnimations() {
   if (!('IntersectionObserver' in window)) return
@@ -196,19 +197,181 @@ function initScrollAnimations() {
 
   const style = document.createElement('style')
   style.textContent = `
-    .animate-in { opacity: 0; transform: translateY(20px); transition: opacity .5s ease, transform .5s ease; }
-    .animate-in.visible { opacity: 1; transform: none; }
+    .animate-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .animate-in[data-animate="left"] {
+      transform: translateX(-40px);
+    }
+    .animate-in[data-animate="right"] {
+      transform: translateX(40px);
+    }
+    .animate-in.visible {
+      opacity: 1;
+      transform: none;
+    }
   `
   document.head.appendChild(style)
 
   const observer = new IntersectionObserver(
-    (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
-    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const parent = entry.target.parentElement
+          const siblings = Array.from(parent.children).filter(c => c.classList.contains('animate-in'))
+          const index = siblings.indexOf(entry.target)
+          entry.target.style.transitionDelay = `${index * 100}ms`
+          entry.target.classList.add('visible')
+        }
+      })
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
   )
 
-  document.querySelectorAll('.service-card, .step, .pricing-card').forEach(el => {
+  document.querySelectorAll(
+    '.service-card, .step, .pricing-card, .problem-card, .faq__item, .contact-info-item'
+  ).forEach(el => {
     el.classList.add('animate-in')
     observer.observe(el)
+  })
+}
+
+// ─── Hero starfield canvas animation ──────────────────────────────────────────
+
+function initStarfield() {
+  const canvas = document.getElementById('heroStarfield')
+  if (!canvas) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  const ctx = canvas.getContext('2d')
+  let stars = []
+  let animId = null
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect()
+    canvas.width = rect.width
+    canvas.height = rect.height
+  }
+
+  function createStars(count) {
+    count = count || 120
+    stars = []
+    for (let i = 0; i < count; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 1.5 + 0.5,
+        speed: Math.random() * 0.5 + 0.1,
+        opacity: Math.random() * 0.6 + 0.2,
+        twinkleSpeed: Math.random() * 0.02 + 0.005,
+        twinkleOffset: Math.random() * Math.PI * 2,
+      })
+    }
+  }
+
+  function draw(time) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    stars.forEach(function(star) {
+      const flicker = Math.sin(time * star.twinkleSpeed + star.twinkleOffset) * 0.3 + 0.7
+      ctx.beginPath()
+      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(255, 255, 255, ' + (star.opacity * flicker) + ')'
+      ctx.fill()
+
+      // Drift stars downward slowly
+      star.y += star.speed
+      if (star.y > canvas.height) {
+        star.y = 0
+        star.x = Math.random() * canvas.width
+      }
+    })
+    animId = requestAnimationFrame(draw)
+  }
+
+  resize()
+  createStars()
+  animId = requestAnimationFrame(draw)
+
+  window.addEventListener('resize', function() {
+    resize()
+    createStars()
+  })
+
+  // Pause when hero is offscreen for performance
+  const observer = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) {
+      if (!animId) animId = requestAnimationFrame(draw)
+    } else {
+      if (animId) {
+        cancelAnimationFrame(animId)
+        animId = null
+      }
+    }
+  })
+  observer.observe(canvas)
+}
+
+// ─── Parallax effect on hero stats ────────────────────────────────────────────
+
+function initParallax() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  const hero = document.querySelector('.hero')
+  const stats = document.querySelector('.hero__stats')
+  if (!hero || !stats) return
+
+  let ticking = false
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      requestAnimationFrame(function() {
+        const scrolled = window.scrollY
+        const heroHeight = hero.offsetHeight
+        if (scrolled < heroHeight) {
+          const factor = scrolled / heroHeight
+          stats.style.transform = 'translateY(' + (factor * -20) + 'px)'
+          stats.style.opacity = 1 - factor * 0.3
+        }
+        ticking = false
+      })
+      ticking = true
+    }
+  })
+}
+
+// ─── Hero accent text reveal ──────────────────────────────────────────────────
+
+function initHeroReveal() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  const accent = document.querySelector('.hero__accent')
+  if (!accent) return
+
+  accent.style.opacity = '0'
+  accent.style.transition = 'opacity 0.8s ease, filter 0.8s ease'
+  accent.style.filter = 'blur(8px)'
+
+  setTimeout(function() {
+    accent.style.opacity = '1'
+    accent.style.filter = 'blur(0)'
+  }, 300)
+}
+
+// ─── Navbar scroll effect ─────────────────────────────────────────────────────
+
+function initNavScroll() {
+  const nav = document.querySelector('.nav')
+  if (!nav) return
+
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 50) {
+      nav.style.background = 'rgba(10, 14, 26, 0.95)'
+      nav.style.borderBottomColor = 'rgba(59, 130, 246, 0.2)'
+    } else {
+      nav.style.background = 'rgba(10, 14, 26, 0.85)'
+      nav.style.borderBottomColor = 'rgba(255, 255, 255, 0.1)'
+    }
   })
 }
 
@@ -225,6 +388,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileNav()
   initContactForm()
   initScrollAnimations()
+  initStarfield()
+  initParallax()
+  initHeroReveal()
+  initNavScroll()
   setFooterYear()
   initPageTracking()
 })
