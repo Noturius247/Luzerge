@@ -132,20 +132,17 @@ async function loadAllDomains() {
 
   if (error) return
 
-  // Fetch user profiles
-  const userIds = [...new Set(domains.map(d => d.user_id))]
+  // Fetch ALL user profiles (not just those with domains)
   let profilesMap = {}
 
-  if (userIds.length) {
-    const { data: profiles } = await _supabase
-      .from('profiles')
-      .select('id, email, full_name, avatar_url, role')
-      .in('id', userIds)
+  const { data: profiles } = await _supabase
+    .from('profiles')
+    .select('id, email, full_name, avatar_url, role')
+    .order('created_at', { ascending: false })
 
-    if (profiles) {
-      allProfiles = profiles
-      profiles.forEach(p => { profilesMap[p.id] = p })
-    }
+  if (profiles) {
+    allProfiles = profiles
+    profiles.forEach(p => { profilesMap[p.id] = p })
   }
 
   // Enrich
@@ -163,7 +160,7 @@ async function loadAllDomains() {
   document.getElementById('statPendingAdmin').textContent = pending
   document.getElementById('statActiveAdmin').textContent = active
   document.getElementById('statRejectedAdmin').textContent = rejected
-  document.getElementById('statUsersAdmin').textContent = userIds.length
+  document.getElementById('statUsersAdmin').textContent = allProfiles.length
 
   // Sidebar badge
   const badge = document.getElementById('sidebarPendingCount')
