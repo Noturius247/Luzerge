@@ -43,6 +43,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
 -- Auto-update updated_at
+DROP TRIGGER IF EXISTS trg_profiles_updated_at ON profiles;
 CREATE TRIGGER trg_profiles_updated_at
   BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -62,58 +63,59 @@ ALTER TABLE user_domains ADD COLUMN IF NOT EXISTS admin_notes TEXT;
 -- ─── RLS for profiles ────────────────────────────────────────────────────────
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Users can read their own profile
+-- Drop existing policies first to make migration idempotent
+DROP POLICY IF EXISTS "users read own profile" ON profiles;
+DROP POLICY IF EXISTS "admins read all profiles" ON profiles;
+DROP POLICY IF EXISTS "users update own profile" ON profiles;
+
 CREATE POLICY "users read own profile"
   ON profiles FOR SELECT
   USING (auth.uid() = id);
 
--- Admins can read all profiles
 CREATE POLICY "admins read all profiles"
   ON profiles FOR SELECT
   USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- Users can update their own profile (but not role)
 CREATE POLICY "users update own profile"
   ON profiles FOR UPDATE
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
 -- ─── Update user_domains RLS: admins can see & manage all domains ─────────────
--- Drop old policy and recreate with admin access
 DROP POLICY IF EXISTS "users own domains" ON user_domains;
+DROP POLICY IF EXISTS "users select own domains" ON user_domains;
+DROP POLICY IF EXISTS "users insert own domains" ON user_domains;
+DROP POLICY IF EXISTS "users delete own domains" ON user_domains;
+DROP POLICY IF EXISTS "admins select all domains" ON user_domains;
+DROP POLICY IF EXISTS "admins update all domains" ON user_domains;
+DROP POLICY IF EXISTS "admins delete all domains" ON user_domains;
 
--- Users can SELECT their own domains
 CREATE POLICY "users select own domains"
   ON user_domains FOR SELECT
   USING (auth.uid() = user_id);
 
--- Users can INSERT their own domains
 CREATE POLICY "users insert own domains"
   ON user_domains FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
--- Users can DELETE their own domains
 CREATE POLICY "users delete own domains"
   ON user_domains FOR DELETE
   USING (auth.uid() = user_id);
 
--- Admins can SELECT all domains
 CREATE POLICY "admins select all domains"
   ON user_domains FOR SELECT
   USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- Admins can UPDATE all domains (to set zone_id, api_token, status, notes)
 CREATE POLICY "admins update all domains"
   ON user_domains FOR UPDATE
   USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- Admins can DELETE any domain
 CREATE POLICY "admins delete all domains"
   ON user_domains FOR DELETE
   USING (
@@ -122,6 +124,10 @@ CREATE POLICY "admins delete all domains"
 
 -- ─── Update cache_purge_history RLS: admins can see all ───────────────────────
 DROP POLICY IF EXISTS "users own purge history" ON cache_purge_history;
+DROP POLICY IF EXISTS "users select own purge history" ON cache_purge_history;
+DROP POLICY IF EXISTS "users insert own purge history" ON cache_purge_history;
+DROP POLICY IF EXISTS "admins select all purge history" ON cache_purge_history;
+DROP POLICY IF EXISTS "admins insert all purge history" ON cache_purge_history;
 
 CREATE POLICY "users select own purge history"
   ON cache_purge_history FOR SELECT
