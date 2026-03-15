@@ -214,9 +214,9 @@ function renderApplicationsTable() {
 
   loading.hidden = true
 
-  const pending = allDomains.filter(d => d.status === 'pending')
+  const allPending = allDomains.filter(d => d.status === 'pending')
 
-  if (!pending.length) {
+  if (!allPending.length) {
     empty.hidden = false
     wrap.hidden = true
     count.textContent = ''
@@ -224,7 +224,9 @@ function renderApplicationsTable() {
   }
   empty.hidden = true
   wrap.hidden = false
-  count.textContent = `${pending.length} pending`
+  count.textContent = `${allPending.length} pending`
+
+  const { items: pending, page, totalPages, total } = paginate(allPending, 'applications')
 
   body.innerHTML = pending.map(d => `
     <tr class="admin-row admin-row--pending" data-id="${d.id}">
@@ -248,6 +250,7 @@ function renderApplicationsTable() {
   `).join('')
 
   bindTableEvents(document.getElementById('appTable'))
+  renderPagination(wrap, 'applications', total, page, totalPages, renderApplicationsTable)
 }
 
 // ─── Active table ─────────────────────────────────────────────────────────────
@@ -257,9 +260,9 @@ function renderActiveTable() {
   const empty = document.getElementById('activeEmpty')
   const count = document.getElementById('activeCount')
 
-  const active = allDomains.filter(d => d.status === 'active')
+  const allActive = allDomains.filter(d => d.status === 'active')
 
-  if (!active.length) {
+  if (!allActive.length) {
     empty.hidden = false
     if (container) container.hidden = true
     count.textContent = ''
@@ -269,7 +272,9 @@ function renderActiveTable() {
 
   if (!container) return
   container.hidden = false
-  count.textContent = `${active.length} domain${active.length !== 1 ? 's' : ''}`
+  count.textContent = `${allActive.length} domain${allActive.length !== 1 ? 's' : ''}`
+
+  const { items: active, page, totalPages, total } = paginate(allActive, 'active')
 
   container.innerHTML = active.map(d => `
     <div class="active-domain-card" data-id="${d.id}">
@@ -378,6 +383,8 @@ function renderActiveTable() {
       if (d) d.auto_purge_interval = select.value
     })
   })
+
+  renderPagination(container, 'active', total, page, totalPages, renderActiveTable)
 }
 
 // ─── Rejected table ───────────────────────────────────────────────────────────
@@ -388,16 +395,19 @@ function renderRejectedTable() {
   const empty = document.getElementById('rejectedEmpty')
   const count = document.getElementById('rejectedCount')
 
-  const rejected = allDomains.filter(d => d.status === 'rejected')
+  const allRejected = allDomains.filter(d => d.status === 'rejected')
 
-  if (!rejected.length) {
+  if (!allRejected.length) {
     empty.hidden = false
     wrap.hidden = true
+    count.textContent = ''
     return
   }
   empty.hidden = true
   wrap.hidden = false
-  count.textContent = `${rejected.length} domain${rejected.length !== 1 ? 's' : ''}`
+  count.textContent = `${allRejected.length} domain${allRejected.length !== 1 ? 's' : ''}`
+
+  const { items: rejected, page, totalPages, total } = paginate(allRejected, 'rejected')
 
   body.innerHTML = rejected.map(d => `
     <tr class="admin-row admin-row--rejected" data-id="${d.id}">
@@ -418,6 +428,7 @@ function renderRejectedTable() {
   `).join('')
 
   bindTableEvents(document.getElementById('rejectedTable'))
+  renderPagination(wrap, 'rejected', total, page, totalPages, renderRejectedTable)
 }
 
 // ─── Users table ──────────────────────────────────────────────────────────────
@@ -440,7 +451,9 @@ function renderUsersTable() {
     adminWrap.hidden = false
     adminCount.textContent = `${admins.length}`
 
-    adminBody.innerHTML = admins.map(p => {
+    const { items: pagedAdmins, page: aPage, totalPages: aTotalPages, total: aTotal } = paginate(admins, 'adminsTable')
+
+    adminBody.innerHTML = pagedAdmins.map(p => {
       const domainCount = allDomains.filter(d => d.user_id === p.id).length
       const status = p.status || 'active'
       return `
@@ -458,6 +471,8 @@ function renderUsersTable() {
         </tr>
       `
     }).join('')
+
+    renderPagination(adminWrap, 'adminsTable', aTotal, aPage, aTotalPages, renderUsersTable)
   }
 
   // ─── Users section ──────────────────────────────────────────────
@@ -474,7 +489,9 @@ function renderUsersTable() {
     userWrap.hidden = false
     userCount.textContent = `${users.length} user${users.length !== 1 ? 's' : ''}`
 
-    userBody.innerHTML = users.map(p => {
+    const { items: pagedUsers, page: uPage, totalPages: uTotalPages, total: uTotal } = paginate(users, 'usersTable')
+
+    userBody.innerHTML = pagedUsers.map(p => {
       const domainCount = allDomains.filter(d => d.user_id === p.id).length
       const status = p.status || 'active'
       return `
@@ -542,6 +559,8 @@ function renderUsersTable() {
         }
       })
     })
+
+    renderPagination(userWrap, 'usersTable', uTotal, uPage, uTotalPages, renderUsersTable)
   }
 }
 
@@ -1176,6 +1195,69 @@ function initScrollReveals() {
     })
   }, { threshold: 0.1 })
   els.forEach(el => observer.observe(el))
+}
+
+// ─── Pagination ──────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 10
+const pageState = {}
+
+function paginate(items, tableKey) {
+  if (!pageState[tableKey]) pageState[tableKey] = 1
+  const page = pageState[tableKey]
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
+  if (page > totalPages) pageState[tableKey] = totalPages
+  const start = (pageState[tableKey] - 1) * PAGE_SIZE
+  return {
+    items: items.slice(start, start + PAGE_SIZE),
+    page: pageState[tableKey],
+    totalPages,
+    total: items.length,
+  }
+}
+
+function renderPagination(containerEl, tableKey, total, page, totalPages, renderFn) {
+  const existing = containerEl.querySelector('.pagination')
+  if (existing) existing.remove()
+
+  if (totalPages <= 1) return
+
+  const pag = document.createElement('div')
+  pag.className = 'pagination'
+
+  const start = (page - 1) * PAGE_SIZE + 1
+  const end = Math.min(page * PAGE_SIZE, total)
+
+  let pageButtons = ''
+  const maxVisible = 5
+  let startPage = Math.max(1, page - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1)
+
+  for (let i = startPage; i <= endPage; i++) {
+    pageButtons += `<button class="pagination__btn ${i === page ? 'pagination__btn--active' : ''}" data-page="${i}" type="button">${i}</button>`
+  }
+
+  pag.innerHTML = `
+    <span class="pagination__info">Showing ${start}–${end} of ${total}</span>
+    <div class="pagination__buttons">
+      <button class="pagination__btn pagination__btn--nav" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''} type="button">&laquo; Prev</button>
+      ${pageButtons}
+      <button class="pagination__btn pagination__btn--nav" data-page="${page + 1}" ${page >= totalPages ? 'disabled' : ''} type="button">Next &raquo;</button>
+    </div>
+  `
+
+  pag.querySelectorAll('[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = parseInt(btn.dataset.page)
+      if (p >= 1 && p <= totalPages) {
+        pageState[tableKey] = p
+        renderFn()
+      }
+    })
+  })
+
+  containerEl.appendChild(pag)
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
