@@ -627,6 +627,9 @@ async function runDomainLookup(domain, showSubmit = false) {
       document.getElementById('reportSubmitDomain').textContent = domain
     }
 
+    // Scroll to show full report after content loads
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
   } catch (err) {
     document.getElementById('reportStatus').innerHTML =
       '<span class="status-badge status-badge--error">Error</span>'
@@ -727,6 +730,7 @@ async function loadStats(domainId) {
     </tr>
   `).join('')
   document.getElementById('historyTable').hidden = false
+  document.getElementById('detailPanel').scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 // ─── Purge ────────────────────────────────────────────────────────────────────
@@ -790,11 +794,13 @@ async function handlePurge(type) {
       ? 'Cache purged successfully! All pages will be refreshed from origin.'
       : `${body.urls?.length ?? 0} URL(s) purged successfully.`
     successEl.hidden = false
+    successEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     await loadStats(selectedDomainId)
   } else {
     const msg = data.cf_response?.errors?.[0]?.message ?? data.error ?? 'Purge failed'
     errorEl.textContent = `Error: ${msg}`
     errorEl.hidden = false
+    errorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
 }
 
