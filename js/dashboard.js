@@ -516,7 +516,10 @@ async function runDomainLookup(domain, showSubmit = false) {
 
   try {
     const res = await fetch(`${EDGE_BASE}/domain-lookup?domain=${encodeURIComponent(domain)}`, {
-      headers: { apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+      headers: {
+        Authorization: `Bearer ${__LUZERGE_CONFIG.SUPABASE_ANON_KEY}`,
+        apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY,
+      },
     })
     const data = await res.json()
 
