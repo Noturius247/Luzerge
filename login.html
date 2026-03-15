@@ -49,15 +49,19 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       // If already logged in, route by role
-      const session = await getSession()
-      if (session) {
-        const profile = await getProfile()
-        if (profile?.role === 'admin') {
-          window.location.replace('/admin.html')
-        } else {
-          window.location.replace('/dashboard.html')
+      try {
+        const session = await getSession()
+        if (session) {
+          const profile = await getProfile()
+          if (profile?.role === 'admin') {
+            window.location.replace('/admin.html')
+          } else {
+            window.location.replace('/dashboard.html')
+          }
+          return
         }
-        return
+      } catch (e) {
+        console.warn('Session check failed:', e)
       }
 
       document.getElementById('googleBtn').addEventListener('click', async () => {
