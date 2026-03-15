@@ -278,8 +278,9 @@ function renderActiveTable() {
 
   container.innerHTML = active.map(d => `
     <div class="active-domain-card" data-id="${d.id}">
-      <div class="active-domain-card__header">
+      <div class="active-domain-card__header" data-toggle-id="${d.id}">
         <div class="active-domain-card__title">
+          <svg class="active-domain-card__chevron" id="chevron-${d.id}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           <strong>${escHtml(d.domain)}</strong>
           <span class="status-badge status-badge--active">active</span>
         </div>
@@ -298,60 +299,86 @@ function renderActiveTable() {
           </button>
         </div>
       </div>
-      <div class="expand-grid">
-        <div class="expand-section">
-          <h4 class="expand-section__title">Domain Info</h4>
-          <div class="expand-meta">
-            <div class="expand-meta__item"><span class="expand-meta__label">Domain</span><span class="expand-meta__value">${escHtml(d.domain)}</span></div>
-            <div class="expand-meta__item"><span class="expand-meta__label">Submitted</span><span class="expand-meta__value">${formatDate(d.created_at)}</span></div>
-            <div class="expand-meta__item"><span class="expand-meta__label">Activated</span><span class="expand-meta__value">${formatDate(d.updated_at)}</span></div>
-            <div class="expand-meta__item"><span class="expand-meta__label">Last Purged</span><span class="expand-meta__value">${d.last_purged_at ? formatDate(d.last_purged_at) : '—'}</span></div>
-          </div>
-        </div>
-        <div class="expand-section">
-          <h4 class="expand-section__title">Customer</h4>
-          <div class="expand-meta">
-            <div class="expand-meta__item"><span class="expand-meta__label">Name</span><span class="expand-meta__value">${escHtml(d.user_name || '—')}</span></div>
-            <div class="expand-meta__item"><span class="expand-meta__label">Email</span><span class="expand-meta__value">${escHtml(d.user_email)}</span></div>
-          </div>
-        </div>
-        <div class="expand-section">
-          <h4 class="expand-section__title">Cloudflare</h4>
-          <div class="expand-meta">
-            <div class="expand-meta__item"><span class="expand-meta__label">Zone ID</span><span class="expand-meta__value">${d.cloudflare_zone_id ? escHtml(d.cloudflare_zone_id.slice(0, 12)) + '...' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
-            <div class="expand-meta__item"><span class="expand-meta__label">API Token</span><span class="expand-meta__value">${d.cloudflare_api_token ? '<span class="status-badge status-badge--active">Configured</span>' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
-          </div>
-        </div>
-        <div class="expand-section">
-          <h4 class="expand-section__title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            Auto-Purge
-          </h4>
-          <div class="auto-purge-controls">
-            <div class="auto-purge-toggle">
-              <label class="toggle-switch ${d.auto_purge_enabled ? 'toggle-switch--on' : ''}">
-                <input type="checkbox" class="admin-auto-toggle" data-id="${d.id}" ${d.auto_purge_enabled ? 'checked' : ''} />
-                <span class="toggle-slider"></span>
-              </label>
-              <span class="auto-purge-toggle__label" id="apLabel-${d.id}">${d.auto_purge_enabled ? '<strong>On</strong>' : '<strong>Off</strong>'}</span>
-            </div>
-            <div class="auto-purge-interval ${d.auto_purge_enabled ? '' : 'auto-purge-interval--disabled'}">
-              <label class="form-label">Frequency</label>
-              <select class="form-input form-select admin-auto-interval" data-id="${d.id}" ${d.auto_purge_enabled ? '' : 'disabled'}>
-                <option value="hourly" ${d.auto_purge_interval === 'hourly' ? 'selected' : ''}>Every hour</option>
-                <option value="every6h" ${d.auto_purge_interval === 'every6h' ? 'selected' : ''}>Every 6 hours</option>
-                <option value="every12h" ${d.auto_purge_interval === 'every12h' ? 'selected' : ''}>Every 12 hours</option>
-                <option value="daily" ${(d.auto_purge_interval || 'daily') === 'daily' ? 'selected' : ''}>Once a day</option>
-                <option value="weekly" ${d.auto_purge_interval === 'weekly' ? 'selected' : ''}>Once a week</option>
-              </select>
+      <div class="active-domain-card__body" id="cardBody-${d.id}" hidden>
+        <div class="expand-grid">
+          <div class="expand-section">
+            <h4 class="expand-section__title">Domain Info</h4>
+            <div class="expand-meta">
+              <div class="expand-meta__item"><span class="expand-meta__label">Domain</span><span class="expand-meta__value">${escHtml(d.domain)}</span></div>
+              <div class="expand-meta__item"><span class="expand-meta__label">Submitted</span><span class="expand-meta__value">${formatDate(d.created_at)}</span></div>
+              <div class="expand-meta__item"><span class="expand-meta__label">Activated</span><span class="expand-meta__value">${formatDate(d.updated_at)}</span></div>
+              <div class="expand-meta__item"><span class="expand-meta__label">Last Purged</span><span class="expand-meta__value">${d.last_purged_at ? formatDate(d.last_purged_at) : '—'}</span></div>
             </div>
           </div>
+          <div class="expand-section">
+            <h4 class="expand-section__title">Customer</h4>
+            <div class="expand-meta">
+              <div class="expand-meta__item"><span class="expand-meta__label">Name</span><span class="expand-meta__value">${escHtml(d.user_name || '—')}</span></div>
+              <div class="expand-meta__item"><span class="expand-meta__label">Email</span><span class="expand-meta__value">${escHtml(d.user_email)}</span></div>
+            </div>
+          </div>
+          <div class="expand-section">
+            <h4 class="expand-section__title">Cloudflare</h4>
+            <div class="expand-meta">
+              <div class="expand-meta__item"><span class="expand-meta__label">Zone ID</span><span class="expand-meta__value">${d.cloudflare_zone_id ? escHtml(d.cloudflare_zone_id.slice(0, 12)) + '...' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
+              <div class="expand-meta__item"><span class="expand-meta__label">API Token</span><span class="expand-meta__value">${d.cloudflare_api_token ? '<span class="status-badge status-badge--active">Configured</span>' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
+            </div>
+          </div>
+          <div class="expand-section">
+            <h4 class="expand-section__title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Auto-Purge
+            </h4>
+            <div class="auto-purge-controls">
+              <div class="auto-purge-toggle">
+                <label class="toggle-switch ${d.auto_purge_enabled ? 'toggle-switch--on' : ''}">
+                  <input type="checkbox" class="admin-auto-toggle" data-id="${d.id}" ${d.auto_purge_enabled ? 'checked' : ''} />
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="auto-purge-toggle__label" id="apLabel-${d.id}">${d.auto_purge_enabled ? '<strong>On</strong>' : '<strong>Off</strong>'}</span>
+              </div>
+              <div class="auto-purge-interval ${d.auto_purge_enabled ? '' : 'auto-purge-interval--disabled'}">
+                <label class="form-label">Frequency</label>
+                <select class="form-input form-select admin-auto-interval" data-id="${d.id}" ${d.auto_purge_enabled ? '' : 'disabled'}>
+                  <option value="hourly" ${d.auto_purge_interval === 'hourly' ? 'selected' : ''}>Every hour</option>
+                  <option value="every6h" ${d.auto_purge_interval === 'every6h' ? 'selected' : ''}>Every 6 hours</option>
+                  <option value="every12h" ${d.auto_purge_interval === 'every12h' ? 'selected' : ''}>Every 12 hours</option>
+                  <option value="daily" ${(d.auto_purge_interval || 'daily') === 'daily' ? 'selected' : ''}>Once a day</option>
+                  <option value="weekly" ${d.auto_purge_interval === 'weekly' ? 'selected' : ''}>Once a week</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
+        ${d.admin_notes ? `<div class="expand-section expand-section--full" style="margin-top:8px"><h4 class="expand-section__title">Admin Notes</h4><p class="expand-notes">${escHtml(d.admin_notes)}</p></div>` : ''}
+        <div class="expand-lookup" id="expandLookup-${d.id}"></div>
       </div>
-      ${d.admin_notes ? `<div class="expand-section expand-section--full" style="margin-top:8px"><h4 class="expand-section__title">Admin Notes</h4><p class="expand-notes">${escHtml(d.admin_notes)}</p></div>` : ''}
-      <div class="expand-lookup" id="expandLookup-${d.id}"></div>
     </div>
   `).join('')
+
+  // Bind expand/collapse on card headers
+  container.querySelectorAll('.active-domain-card__header[data-toggle-id]').forEach(header => {
+    header.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return
+      const id = header.dataset.toggleId
+      const body = document.getElementById(`cardBody-${id}`)
+      const chevron = document.getElementById(`chevron-${id}`)
+      if (!body) return
+
+      // Close all other cards
+      container.querySelectorAll('.active-domain-card__body').forEach(b => {
+        if (b.id !== `cardBody-${id}`) {
+          b.hidden = true
+          const otherId = b.id.replace('cardBody-', '')
+          const otherChevron = document.getElementById(`chevron-${otherId}`)
+          if (otherChevron) otherChevron.classList.remove('active-domain-card__chevron--open')
+        }
+      })
+
+      body.hidden = !body.hidden
+      if (chevron) chevron.classList.toggle('active-domain-card__chevron--open', !body.hidden)
+    })
+  })
 
   // Bind events on all cards
   bindTableEvents(container)
