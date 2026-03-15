@@ -250,7 +250,10 @@ function renderApplicationsTable() {
       </td>
     </tr>
     <tr class="admin-expand-row" id="expand-${d.id}" hidden>
-      <td colspan="5"><div class="admin-expand" id="expandContent-${d.id}"></div></td>
+      <td colspan="5">
+        <div class="admin-expand" id="expandContent-${d.id}"></div>
+        <div class="expand-lookup" id="expandLookup-${d.id}"></div>
+      </td>
     </tr>
   `).join('')
 
@@ -938,9 +941,19 @@ function toggleExpand(domainId) {
 // ─── Domain Lookup (Admin) ────────────────────────────────────────────────
 
 async function runAdminLookup(domain, domainId) {
-  // First make sure the row is expanded
+  // First make sure the row/card is expanded
   const expandRow = document.getElementById(`expand-${domainId}`)
-  if (expandRow?.hidden) toggleExpand(domainId)
+  if (expandRow) {
+    if (expandRow.hidden) toggleExpand(domainId)
+  } else {
+    // Active domain card — expand the card body
+    const cardBody = document.getElementById(`cardBody-${domainId}`)
+    const chevron = document.getElementById(`chevron-${domainId}`)
+    if (cardBody && cardBody.hidden) {
+      cardBody.hidden = false
+      if (chevron) chevron.classList.add('active-domain-card__chevron--open')
+    }
+  }
 
   const container = document.getElementById(`expandLookup-${domainId}`)
   if (!container) return
@@ -1011,9 +1024,11 @@ async function runAdminLookup(domain, domainId) {
       ${actionMsg}
     </div>`
     container.dataset.loaded = 'true'
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 
   } catch (err) {
     container.innerHTML = `<div class="dash-alert dash-alert--error" style="margin:12px 0">Lookup failed: ${escHtml(String(err))}</div>`
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
 }
 
