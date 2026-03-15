@@ -263,9 +263,40 @@
 
       <!-- ═══════════════════ USERS PANEL ═══════════════════ -->
       <div id="panelUsers" data-feature-panel hidden>
+
+        <!-- Admin accounts -->
         <section class="dash-panel" data-scroll-reveal>
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">All Users</h2>
+            <h2 class="dash-panel__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Administrators
+            </h2>
+            <span class="domain-count" id="adminCount"></span>
+          </div>
+          <div id="adminsEmpty" class="dash-empty dash-empty--sm" hidden>No admin accounts.</div>
+          <div class="admin-table-wrap" id="adminsTableWrap" hidden>
+            <table class="admin-table" id="adminsTable">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Domains</th>
+                  <th>Joined</th>
+                </tr>
+              </thead>
+              <tbody id="adminsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Regular users -->
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Users
+            </h2>
             <span class="domain-count" id="userCount"></span>
           </div>
           <div id="usersEmpty" class="dash-empty" hidden>
@@ -277,8 +308,10 @@
                 <tr>
                   <th>User</th>
                   <th>Email</th>
-                  <th>Role</th>
+                  <th>Status</th>
                   <th>Domains</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="usersTableBody"></tbody>

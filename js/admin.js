@@ -137,7 +137,7 @@ async function loadAllDomains() {
 
   const { data: profiles } = await _supabase
     .from('profiles')
-    .select('id, email, full_name, avatar_url, role')
+    .select('id, email, full_name, avatar_url, role, status, created_at')
     .order('created_at', { ascending: false })
 
   if (profiles) {
@@ -423,36 +423,126 @@ function renderRejectedTable() {
 // ─── Users table ──────────────────────────────────────────────────────────────
 
 function renderUsersTable() {
-  const body = document.getElementById('usersTableBody')
-  const wrap = document.getElementById('usersTableWrap')
-  const empty = document.getElementById('usersEmpty')
-  const count = document.getElementById('userCount')
+  const admins = allProfiles.filter(p => p.role === 'admin')
+  const users = allProfiles.filter(p => p.role !== 'admin')
 
-  if (!allProfiles.length) {
-    empty.hidden = false
-    wrap.hidden = true
-    return
+  // ─── Admins section ─────────────────────────────────────────────
+  const adminBody = document.getElementById('adminsTableBody')
+  const adminWrap = document.getElementById('adminsTableWrap')
+  const adminEmpty = document.getElementById('adminsEmpty')
+  const adminCount = document.getElementById('adminCount')
+
+  if (!admins.length) {
+    adminEmpty.hidden = false
+    adminWrap.hidden = true
+  } else {
+    adminEmpty.hidden = true
+    adminWrap.hidden = false
+    adminCount.textContent = `${admins.length}`
+
+    adminBody.innerHTML = admins.map(p => {
+      const domainCount = allDomains.filter(d => d.user_id === p.id).length
+      const status = p.status || 'active'
+      return `
+        <tr class="admin-row">
+          <td>
+            <div class="admin-user-cell">
+              <div class="admin-user-avatar admin-user-avatar--admin">${(p.full_name || p.email || '?')[0].toUpperCase()}</div>
+              <strong>${escHtml(p.full_name || '—')}</strong>
+            </div>
+          </td>
+          <td>${escHtml(p.email || '—')}</td>
+          <td><span class="status-badge status-badge--${status}">${status}</span></td>
+          <td>${domainCount}</td>
+          <td>${formatDate(p.created_at)}</td>
+        </tr>
+      `
+    }).join('')
   }
-  empty.hidden = true
-  wrap.hidden = false
-  count.textContent = `${allProfiles.length} user${allProfiles.length !== 1 ? 's' : ''}`
 
-  body.innerHTML = allProfiles.map(p => {
-    const domainCount = allDomains.filter(d => d.user_id === p.id).length
-    return `
-      <tr class="admin-row">
-        <td>
-          <div class="admin-user-cell">
-            <div class="admin-user-avatar">${(p.full_name || p.email || '?')[0].toUpperCase()}</div>
-            <strong>${escHtml(p.full_name || '—')}</strong>
-          </div>
-        </td>
-        <td>${escHtml(p.email)}</td>
-        <td><span class="status-badge ${p.role === 'admin' ? 'status-badge--active' : ''}">${p.role}</span></td>
-        <td>${domainCount}</td>
-      </tr>
-    `
-  }).join('')
+  // ─── Users section ──────────────────────────────────────────────
+  const userBody = document.getElementById('usersTableBody')
+  const userWrap = document.getElementById('usersTableWrap')
+  const userEmpty = document.getElementById('usersEmpty')
+  const userCount = document.getElementById('userCount')
+
+  if (!users.length) {
+    userEmpty.hidden = false
+    userWrap.hidden = true
+  } else {
+    userEmpty.hidden = true
+    userWrap.hidden = false
+    userCount.textContent = `${users.length} user${users.length !== 1 ? 's' : ''}`
+
+    userBody.innerHTML = users.map(p => {
+      const domainCount = allDomains.filter(d => d.user_id === p.id).length
+      const status = p.status || 'active'
+      return `
+        <tr class="admin-row" data-user-id="${p.id}">
+          <td>
+            <div class="admin-user-cell">
+              <div class="admin-user-avatar">${(p.full_name || p.email || '?')[0].toUpperCase()}</div>
+              <strong>${escHtml(p.full_name || '—')}</strong>
+            </div>
+          </td>
+          <td>${escHtml(p.email || '—')}</td>
+          <td><span class="status-badge status-badge--${status}" id="userStatus-${p.id}">${status}</span></td>
+          <td>${domainCount}</td>
+          <td>${formatDate(p.created_at)}</td>
+          <td class="admin-row__actions">
+            <select class="form-input form-select form-select--sm user-status-select" data-user-id="${p.id}">
+              <option value="active" ${status === 'active' ? 'selected' : ''}>Active</option>
+              <option value="inactive" ${status === 'inactive' ? 'selected' : ''}>Inactive</option>
+              <option value="suspended" ${status === 'suspended' ? 'selected' : ''}>Suspended</option>
+              <option value="blocked" ${status === 'blocked' ? 'selected' : ''}>Blocked</option>
+            </select>
+          </td>
+        </tr>
+      `
+    }).join('')
+
+    // Bind status change events
+    userWrap.querySelectorAll('.user-status-select').forEach(select => {
+      select.addEventListener('change', async () => {
+        const userId = select.dataset.userId
+        const newStatus = select.value
+        const { error } = await _supabase
+          .from('profiles')
+          .update({ status: newStatus })
+          .eq('id', userId)
+
+        if (error) {
+          const toast = document.getElementById('toast')
+          if (toast) {
+            toast.textContent = `Failed to update: ${error.message}`
+            toast.hidden = false
+            clearTimeout(toast._timer)
+            toast._timer = setTimeout(() => { toast.hidden = true }, 3000)
+          }
+          return
+        }
+
+        // Update badge
+        const badge = document.getElementById(`userStatus-${userId}`)
+        if (badge) {
+          badge.textContent = newStatus
+          badge.className = `status-badge status-badge--${newStatus}`
+        }
+
+        // Update local data
+        const profile = allProfiles.find(p => p.id === userId)
+        if (profile) profile.status = newStatus
+
+        const toast = document.getElementById('toast')
+        if (toast) {
+          toast.textContent = `User status changed to ${newStatus}`
+          toast.hidden = false
+          clearTimeout(toast._timer)
+          toast._timer = setTimeout(() => { toast.hidden = true }, 2000)
+        }
+      })
+    })
+  }
 }
 
 // ─── Bind table events (expandable rows + actions) ────────────────────────────
