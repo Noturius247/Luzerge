@@ -89,6 +89,13 @@ function initSidebar() {
     })
   })
 
+  // Collapsible sidebar sections
+  document.querySelectorAll('.sidebar-section-toggle').forEach(label => {
+    label.addEventListener('click', () => {
+      label.closest('.sidebar-section')?.classList.toggle('sidebar-section--collapsed')
+    })
+  })
+
   toggle?.addEventListener('click', () => {
     sidebar?.classList.toggle('is-open')
     overlay?.classList.toggle('is-open')

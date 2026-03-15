@@ -1218,18 +1218,56 @@
   gap: 2px;
 }
 
+.sidebar-section {
+  margin-top: 0.25rem;
+}
+.sidebar-section:first-child {
+  margin-top: 0;
+}
+
 .sidebar-section-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  background: none;
+  border: none;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(148, 163, 184, 0.4);
-  padding: 1rem 1.25rem 0.4rem;
+  padding: 0.75rem 1.25rem 0.4rem;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+.sidebar-section-label:hover {
+  color: rgba(148, 163, 184, 0.7);
+}
+.sidebar-section:first-child .sidebar-section-label {
+  padding-top: 0.5rem;
 }
 
-.sidebar-section-label:first-child {
-  padding-top: 0.5rem;
+.sidebar-section-chevron {
+  transition: transform 0.2s ease;
+  transform: rotate(90deg);
+  flex-shrink: 0;
+}
+.sidebar-section--collapsed .sidebar-section-chevron {
+  transform: rotate(0deg);
+}
+
+.sidebar-section-items {
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+  max-height: 200px;
+  opacity: 1;
+}
+.sidebar-section--collapsed .sidebar-section-items {
+  max-height: 0;
+  opacity: 0;
 }
 
 .sidebar-item {
@@ -1301,7 +1339,7 @@
 }
 
 /* Section labels slide in */
-.sidebar-section-label {
+.sidebar-section {
   animation: sidebarLabelIn 0.4s ease both;
 }
 
