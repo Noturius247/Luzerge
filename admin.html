@@ -17,11 +17,16 @@
 
   <!-- ─── Top Nav ─────────────────────────────────────────────────────────── -->
   <header class="dash-nav dash-nav--admin">
-    <a href="/" class="dash-nav__logo">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg>
-      Luzerge
-      <span class="nav-badge nav-badge--admin">Admin</span>
-    </a>
+    <div class="dash-nav__left">
+      <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="/" class="dash-nav__logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg>
+        Luzerge
+        <span class="nav-badge nav-badge--admin">Admin</span>
+      </a>
+    </div>
     <div class="dash-nav__right">
       <div class="dash-nav__avatar" id="navAvatar"></div>
       <span class="dash-nav__user" id="navUser"></span>
@@ -29,183 +34,387 @@
     </div>
   </header>
 
-  <!-- ─── Main ────────────────────────────────────────────────────────────── -->
-  <main class="dash-main dash-main--wide">
+  <!-- ─── Layout: Sidebar + Main ──────────────────────────────────────────── -->
+  <div class="dash-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Admin overview stats -->
-    <section class="dash-hero dash-hero--admin" data-scroll-reveal>
-      <div class="dash-hero__text">
-        <h1 class="dash-hero__title">Control Panel</h1>
-        <p class="dash-hero__sub">Manage domain submissions, configure Cloudflare credentials, and monitor all client websites.</p>
-      </div>
-      <div class="dash-hero__stats">
-        <div class="mini-stat mini-stat--amber">
-          <span class="mini-stat__value" id="statPendingAdmin">0</span>
-          <span class="mini-stat__label">Pending</span>
-        </div>
-        <div class="mini-stat mini-stat--green">
-          <span class="mini-stat__value" id="statActiveAdmin">0</span>
-          <span class="mini-stat__label">Active</span>
-        </div>
-        <div class="mini-stat mini-stat--red">
-          <span class="mini-stat__value" id="statRejectedAdmin">0</span>
-          <span class="mini-stat__label">Rejected</span>
-        </div>
-        <div class="mini-stat">
-          <span class="mini-stat__value" id="statUsersAdmin">0</span>
-          <span class="mini-stat__label">Total Users</span>
-        </div>
-      </div>
-    </section>
+    <aside class="dash-sidebar" id="dashSidebar">
+      <nav class="sidebar-nav">
+        <button type="button" class="sidebar-item sidebar-item--add" data-panel="addDomain">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Domain
+        </button>
 
-    <!-- Filter tabs -->
-    <div class="admin-filters" data-scroll-reveal>
-      <button class="filter-tab filter-tab--active" data-filter="all">All</button>
-      <button class="filter-tab filter-tab--pending" data-filter="pending">
-        <span class="filter-dot filter-dot--pending"></span> Pending
-        <span class="filter-count" id="filterPendingCount"></span>
-      </button>
-      <button class="filter-tab" data-filter="active">
-        <span class="filter-dot filter-dot--active"></span> Active
-      </button>
-      <button class="filter-tab" data-filter="rejected">
-        <span class="filter-dot filter-dot--rejected"></span> Rejected
-      </button>
-    </div>
+        <span class="sidebar-section-label">Overview</span>
+        <button type="button" class="sidebar-item sidebar-item--active" data-panel="overview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </button>
 
-    <!-- Domains table -->
-    <section class="dash-panel" id="adminDomainsPanel" data-scroll-reveal>
-      <div id="adminLoading" class="dash-loading">
-        <div class="loading-dots"><span></span><span></span><span></span></div>
-        Loading all domains...
-      </div>
-      <div id="adminEmpty" class="dash-empty" hidden>
-        <p>No domain submissions yet</p>
-      </div>
+        <span class="sidebar-section-label">Domains</span>
+        <button type="button" class="sidebar-item" data-panel="applications">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Applications
+          <span class="sidebar-badge" id="sidebarPendingCount"></span>
+        </button>
+        <button type="button" class="sidebar-item" data-panel="active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Active Domains
+        </button>
+        <button type="button" class="sidebar-item" data-panel="rejected">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          Rejected
+        </button>
 
-      <div class="admin-domains-list" id="adminDomainsList"></div>
-    </section>
+        <span class="sidebar-section-label">Management</span>
+        <button type="button" class="sidebar-item" data-panel="users">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Users
+        </button>
+      </nav>
+    </aside>
 
-    <!-- Domain setup modal -->
-    <div class="modal-backdrop" id="setupModal" hidden>
-      <div class="modal modal--wide">
-        <div class="modal__header">
-          <h3 class="modal__title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            Configure Domain
-          </h3>
-          <button class="btn btn--ghost btn--sm" id="setupCloseBtn" aria-label="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
+    <main class="dash-main">
 
-        <div class="setup-domain-info">
-          <span class="setup-domain-name" id="setupDomainName"></span>
-          <span class="setup-domain-user" id="setupDomainUser"></span>
-          <span class="setup-domain-date" id="setupDomainDate"></span>
-        </div>
-
-        <!-- Setup guide accordion -->
-        <details class="setup-guide" id="setupGuide">
-          <summary class="setup-guide__toggle">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            How to get these credentials
-          </summary>
-          <div class="setup-guide__content">
-            <div class="setup-guide__section">
-              <h4 class="setup-guide__heading">
-                <span class="setup-guide__step">1</span>
-                Get the Zone ID
-              </h4>
-              <ol class="setup-guide__steps">
-                <li>Go to <strong>dash.cloudflare.com</strong> and log in</li>
-                <li>Click on the <strong>domain</strong> you want to configure</li>
-                <li>On the <strong>Overview</strong> page, scroll down the right sidebar</li>
-                <li>Find <strong>"API"</strong> section — copy the <strong>Zone ID</strong></li>
-              </ol>
-            </div>
-            <div class="setup-guide__section">
-              <h4 class="setup-guide__heading">
-                <span class="setup-guide__step">2</span>
-                Create an API Token
-              </h4>
-              <ol class="setup-guide__steps">
-                <li>Go to <strong>dash.cloudflare.com/profile/api-tokens</strong></li>
-                <li>Click <strong>"Create Token"</strong></li>
-                <li>Choose <strong>"Create Custom Token"</strong></li>
-                <li>Set the <strong>Token name</strong> (e.g., "Luzerge - domainname.com")</li>
-                <li>Add these <strong>permissions</strong>:
-                  <ul>
-                    <li><strong>Zone → Cache Purge → Purge</strong></li>
-                    <li><strong>Zone → Zone → Read</strong></li>
-                    <li><strong>Zone → DNS → Read</strong></li>
-                    <li><strong>Zone → Analytics → Read</strong></li>
-                  </ul>
-                </li>
-                <li>Under <strong>Zone Resources</strong>, select <strong>"Specific zone"</strong> → pick the domain</li>
-                <li>Click <strong>"Continue to summary"</strong> → <strong>"Create Token"</strong></li>
-                <li>Copy the token immediately — <strong>you won't see it again!</strong></li>
-              </ol>
-            </div>
+      <!-- ═══════════════════ ADD DOMAIN PANEL ═══════════════════ -->
+      <div id="panelAddDomain" data-feature-panel hidden>
+        <section class="dash-panel dash-panel--glow" data-scroll-reveal>
+          <div class="dash-panel__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </div>
-        </details>
-
-        <form id="setupForm" novalidate>
-          <div class="form-row form-row--two">
-            <div class="form-group">
-              <label class="form-label" for="setupZoneId">Cloudflare Zone ID</label>
-              <input class="form-input" id="setupZoneId" type="text"
-                placeholder="abc123def456..." required />
-              <span class="form-hint">Dashboard → domain → Overview → right sidebar → API</span>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="setupApiToken">Cloudflare API Token</label>
-              <input class="form-input" id="setupApiToken" type="password"
-                placeholder="Zone-level API token" required />
-              <span class="form-hint">Profile → API Tokens → Create Custom Token</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="setupNotes">Admin Notes <span class="form-optional">(optional)</span></label>
-            <textarea class="form-input form-textarea" id="setupNotes" rows="2"
-              placeholder="Internal notes about this domain setup..."></textarea>
-          </div>
-
-          <div id="setupError" class="dash-alert dash-alert--error" hidden></div>
-
-          <div class="modal__actions">
-            <button type="button" class="btn btn--danger" id="setupRejectBtn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-              Reject
-            </button>
-            <div class="modal__actions-right">
-              <button type="button" class="btn btn--outline" id="setupCancelBtn">Cancel</button>
-              <button type="submit" class="btn btn--primary btn--glow" id="setupApproveBtn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                Approve &amp; Activate
+          <h2 class="dash-panel__title">Add a Domain</h2>
+          <p class="dash-panel__desc">Scan a domain to check its DNS, hosting, and Cloudflare status. Then submit it on behalf of a customer or for your own use.</p>
+          <form class="submit-domain-form" id="adminAddForm" novalidate>
+            <div class="form-row form-row--inline">
+              <div class="form-group form-group--grow">
+                <label class="form-label" for="adminInputDomain">Domain Name</label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix">https://</span>
+                  <input class="form-input" id="adminInputDomain" type="text" placeholder="example.com" required autocomplete="off" />
+                </div>
+                <span class="form-hint">We'll scan the domain first, then you can submit it</span>
+              </div>
+              <button class="btn btn--primary btn--glow" type="submit" id="adminScanBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Scan Domain
               </button>
             </div>
+            <div id="adminAddError" class="dash-alert dash-alert--error" hidden></div>
+          </form>
+        </section>
+
+        <!-- Scan report -->
+        <section class="dash-panel domain-report-panel" id="adminReportPanel" hidden data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              Domain Report
+            </h2>
+            <button class="btn btn--ghost btn--sm" id="adminCloseReportBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
-        </form>
+          <div class="report-domain-name" id="adminReportDomainName"></div>
+          <div class="report-grid" id="adminReportGrid">
+            <div class="report-card"><span class="report-card__label">Status</span><span class="report-card__value" id="adminRptStatus">—</span></div>
+            <div class="report-card"><span class="report-card__label">Platform / DNS</span><span class="report-card__value" id="adminRptPlatform">—</span></div>
+            <div class="report-card"><span class="report-card__label">Hosting Provider</span><span class="report-card__value" id="adminRptHosting">—</span></div>
+            <div class="report-card"><span class="report-card__label">Server IP</span><span class="report-card__value" id="adminRptIP">—</span></div>
+            <div class="report-card"><span class="report-card__label">Country</span><span class="report-card__value" id="adminRptCountry">—</span></div>
+            <div class="report-card"><span class="report-card__label">Cloudflare</span><span class="report-card__value" id="adminRptCloudflare">—</span></div>
+          </div>
+          <div class="report-details">
+            <div class="report-detail-group">
+              <h4 class="report-detail-group__title">Nameservers</h4>
+              <ul class="report-ns-list" id="adminRptNameservers"></ul>
+            </div>
+            <div class="report-detail-group" id="adminRptRecordsGroup" hidden>
+              <h4 class="report-detail-group__title">DNS Records</h4>
+              <div class="report-records" id="adminRptRecords"></div>
+            </div>
+          </div>
+          <div class="report-action" id="adminRptAction"></div>
+          <div class="report-submit" id="adminSubmitSection" hidden>
+            <div class="report-submit__divider"></div>
+            <div class="report-submit__row">
+              <p class="report-submit__text">Submit <strong id="adminSubmitDomainName"></strong> to the system?</p>
+              <button class="btn btn--primary btn--glow" type="button" id="adminSubmitDomainBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Submit Domain
+              </button>
+            </div>
+            <div id="adminSubmitError" class="dash-alert dash-alert--error" hidden></div>
+            <div id="adminSubmitSuccess" class="dash-alert dash-alert--success" hidden></div>
+          </div>
+        </section>
       </div>
-    </div>
 
-    <!-- Delete confirm modal -->
-    <div class="modal-backdrop" id="deleteModal" hidden>
-      <div class="modal">
-        <div class="modal__icon modal__icon--danger">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <!-- ═══════════════════ OVERVIEW PANEL ═══════════════════ -->
+      <div id="panelOverview" data-feature-panel>
+        <section class="dash-hero dash-hero--admin" data-scroll-reveal>
+          <div class="dash-hero__text">
+            <h1 class="dash-hero__title">Control Panel</h1>
+            <p class="dash-hero__sub">Manage domain submissions, configure Cloudflare credentials, and monitor all client websites.</p>
+          </div>
+          <div class="dash-hero__stats">
+            <div class="mini-stat mini-stat--amber">
+              <span class="mini-stat__value" id="statPendingAdmin">0</span>
+              <span class="mini-stat__label">Pending</span>
+            </div>
+            <div class="mini-stat mini-stat--green">
+              <span class="mini-stat__value" id="statActiveAdmin">0</span>
+              <span class="mini-stat__label">Active</span>
+            </div>
+            <div class="mini-stat mini-stat--red">
+              <span class="mini-stat__value" id="statRejectedAdmin">0</span>
+              <span class="mini-stat__label">Rejected</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__value" id="statUsersAdmin">0</span>
+              <span class="mini-stat__label">Total Users</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent pending (quick view) -->
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Recent Pending Applications</h2>
+            <button class="btn btn--outline btn--sm" type="button" id="viewAllAppsBtn">View All</button>
+          </div>
+          <div id="overviewPendingList"></div>
+          <div id="overviewPendingEmpty" class="dash-empty dash-empty--sm" hidden>No pending applications.</div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ APPLICATIONS PANEL (pending + all new) ═══════════════════ -->
+      <div id="panelApplications" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">All Applications</h2>
+            <span class="domain-count" id="appCount"></span>
+          </div>
+          <p class="dash-panel__desc">All domain submissions from customers. Click a row to expand details and configure.</p>
+          <div id="appLoading" class="dash-loading">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            Loading...
+          </div>
+          <div id="appEmpty" class="dash-empty" hidden>
+            <p>No applications yet</p>
+          </div>
+          <div class="admin-table-wrap" id="appTableWrap" hidden>
+            <table class="admin-table" id="appTable">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Submitted By</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="appTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ ACTIVE DOMAINS PANEL ═══════════════════ -->
+      <div id="panelActive" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Active Domains</h2>
+            <span class="domain-count" id="activeCount"></span>
+          </div>
+          <p class="dash-panel__desc">Domains that are live and connected to Cloudflare.</p>
+          <div id="activeEmpty" class="dash-empty" hidden>
+            <p>No active domains yet</p>
+          </div>
+          <div class="admin-table-wrap" id="activeTableWrap" hidden>
+            <table class="admin-table" id="activeTable">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Owner</th>
+                  <th>Activated</th>
+                  <th>Last Purged</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="activeTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ REJECTED PANEL ═══════════════════ -->
+      <div id="panelRejected" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Rejected Domains</h2>
+            <span class="domain-count" id="rejectedCount"></span>
+          </div>
+          <div id="rejectedEmpty" class="dash-empty" hidden>
+            <p>No rejected domains</p>
+          </div>
+          <div class="admin-table-wrap" id="rejectedTableWrap" hidden>
+            <table class="admin-table" id="rejectedTable">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Submitted By</th>
+                  <th>Date</th>
+                  <th>Reason</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rejectedTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ USERS PANEL ═══════════════════ -->
+      <div id="panelUsers" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">All Users</h2>
+            <span class="domain-count" id="userCount"></span>
+          </div>
+          <div id="usersEmpty" class="dash-empty" hidden>
+            <p>No users found</p>
+          </div>
+          <div class="admin-table-wrap" id="usersTableWrap" hidden>
+            <table class="admin-table" id="usersTable">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Domains</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Domain setup modal -->
+  <div class="modal-backdrop" id="setupModal" hidden>
+    <div class="modal modal--wide">
+      <div class="modal__header">
+        <h3 class="modal__title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Configure Domain
+        </h3>
+        <button class="btn btn--ghost btn--sm" id="setupCloseBtn" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="setup-domain-info">
+        <span class="setup-domain-name" id="setupDomainName"></span>
+        <span class="setup-domain-user" id="setupDomainUser"></span>
+        <span class="setup-domain-date" id="setupDomainDate"></span>
+      </div>
+
+      <!-- Setup guide accordion -->
+      <details class="setup-guide" id="setupGuide">
+        <summary class="setup-guide__toggle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          How to get these credentials
+        </summary>
+        <div class="setup-guide__content">
+          <div class="setup-guide__section">
+            <h4 class="setup-guide__heading"><span class="setup-guide__step">1</span> Get the Zone ID</h4>
+            <ol class="setup-guide__steps">
+              <li>Go to <strong>dash.cloudflare.com</strong> and log in</li>
+              <li>Click on the <strong>domain</strong> you want to configure</li>
+              <li>On the <strong>Overview</strong> page, scroll down the right sidebar</li>
+              <li>Find <strong>"API"</strong> section — copy the <strong>Zone ID</strong></li>
+            </ol>
+          </div>
+          <div class="setup-guide__section">
+            <h4 class="setup-guide__heading"><span class="setup-guide__step">2</span> Create an API Token</h4>
+            <ol class="setup-guide__steps">
+              <li>Go to <strong>dash.cloudflare.com/profile/api-tokens</strong></li>
+              <li>Click <strong>"Create Token"</strong></li>
+              <li>Choose <strong>"Create Custom Token"</strong></li>
+              <li>Set the <strong>Token name</strong> (e.g., "Luzerge - domainname.com")</li>
+              <li>Add these <strong>permissions</strong>:
+                <ul>
+                  <li><strong>Zone &rarr; Cache Purge &rarr; Purge</strong></li>
+                  <li><strong>Zone &rarr; Zone &rarr; Read</strong></li>
+                  <li><strong>Zone &rarr; DNS &rarr; Read</strong></li>
+                  <li><strong>Zone &rarr; Analytics &rarr; Read</strong></li>
+                </ul>
+              </li>
+              <li>Under <strong>Zone Resources</strong>, select <strong>"Specific zone"</strong> &rarr; pick the domain</li>
+              <li>Click <strong>"Continue to summary"</strong> &rarr; <strong>"Create Token"</strong></li>
+              <li>Copy the token immediately — <strong>you won't see it again!</strong></li>
+            </ol>
+          </div>
         </div>
-        <h3 class="modal__title">Delete Domain?</h3>
-        <p class="modal__desc" id="deleteModalDesc"></p>
+      </details>
+
+      <form id="setupForm" novalidate>
+        <div class="form-row form-row--two">
+          <div class="form-group">
+            <label class="form-label" for="setupZoneId">Cloudflare Zone ID</label>
+            <input class="form-input" id="setupZoneId" type="text" placeholder="abc123def456..." required />
+            <span class="form-hint">Dashboard &rarr; domain &rarr; Overview &rarr; right sidebar &rarr; API</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="setupApiToken">Cloudflare API Token</label>
+            <input class="form-input" id="setupApiToken" type="password" placeholder="Zone-level API token" required />
+            <span class="form-hint">Profile &rarr; API Tokens &rarr; Create Custom Token</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="setupNotes">Admin Notes <span class="form-optional">(optional)</span></label>
+          <textarea class="form-input form-textarea" id="setupNotes" rows="2" placeholder="Internal notes about this domain setup..."></textarea>
+        </div>
+
+        <div id="setupError" class="dash-alert dash-alert--error" hidden></div>
+
         <div class="modal__actions">
-          <button class="btn btn--outline" id="deleteCancelBtn">Cancel</button>
-          <button class="btn btn--danger" id="deleteConfirmBtn">Delete</button>
+          <button type="button" class="btn btn--danger" id="setupRejectBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Reject
+          </button>
+          <div class="modal__actions-right">
+            <button type="button" class="btn btn--outline" id="setupCancelBtn">Cancel</button>
+            <button type="submit" class="btn btn--primary btn--glow" id="setupApproveBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Approve &amp; Activate
+            </button>
+          </div>
         </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete confirm modal -->
+  <div class="modal-backdrop" id="deleteModal" hidden>
+    <div class="modal">
+      <div class="modal__icon modal__icon--danger">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </div>
+      <h3 class="modal__title">Delete Domain?</h3>
+      <p class="modal__desc" id="deleteModalDesc"></p>
+      <div class="modal__actions">
+        <button class="btn btn--outline" id="deleteCancelBtn">Cancel</button>
+        <button class="btn btn--danger" id="deleteConfirmBtn">Delete</button>
       </div>
     </div>
+  </div>
 
-  </main>
+  <!-- Toast -->
+  <div class="toast" id="toast" hidden></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/config.js"></script>
