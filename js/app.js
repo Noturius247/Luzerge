@@ -647,6 +647,26 @@ function initDragCards() {
         })
       })
     }
+
+    // Click a card to bring it to center
+    allCards.forEach(function(card) {
+      card.addEventListener('click', function() {
+        if (isHidden(card)) return
+        var idx = cards.indexOf(card)
+        if (idx < 0) return
+        // Calculate the angle needed to bring this card to the front (z = max)
+        var cardCurrentAngle = (currentAngle + idx * angleStep) % 360
+        // Normalize to -180..180
+        var rotation = -cardCurrentAngle
+        if (rotation > 180) rotation -= 360
+        if (rotation < -180) rotation += 360
+        targetAngle = currentAngle + rotation
+        cards.forEach(function(c) {
+          c.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease'
+        })
+        startAnimation()
+      })
+    })
   })
 }
 
@@ -776,9 +796,44 @@ document.addEventListener('DOMContentLoaded', () => {
   setFooterYear()
   initPageTracking()
   initPricingToggle()
+  initCurrencyConverter()
 })
 
 // ─── Pricing mode toggle (Self-managed vs Managed) ──────────────────────────
+
+let _pricingMode = 'self'
+let _pricingCurrency = 'PHP'
+let _pricingRate = 1
+const _currencySymbols = {
+  PHP: '₱', USD: '$', EUR: '€', GBP: '£', JPY: '¥', KRW: '₩',
+  SGD: 'S$', AUD: 'A$', CAD: 'C$', INR: '₹', AED: 'د.إ',
+  MYR: 'RM', THB: '฿', IDR: 'Rp', VND: '₫', CNY: '¥', BRL: 'R$',
+}
+// Currencies where decimals don't make sense
+const _noDecimalCurrencies = new Set(['JPY', 'KRW', 'VND', 'IDR'])
+
+function formatPrice(phpAmount, currency, rate) {
+  if (phpAmount === 0) return `${_currencySymbols[currency] || currency}0`
+  const converted = phpAmount * rate
+  const sym = _currencySymbols[currency] || currency + ' '
+  if (_noDecimalCurrencies.has(currency)) {
+    return `${sym}${Math.round(converted).toLocaleString()}`
+  }
+  // Show decimals only if they exist
+  const rounded = Math.round(converted * 100) / 100
+  const formatted = rounded % 1 === 0 ? rounded.toLocaleString() : rounded.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return `${sym}${formatted}`
+}
+
+function updateAllPrices() {
+  document.querySelectorAll('.pricing-card__amount').forEach(el => {
+    const baseSelf = parseFloat(el.dataset.baseSelf)
+    const baseManaged = parseFloat(el.dataset.baseManaged)
+    if (isNaN(baseSelf)) return
+    const base = _pricingMode === 'managed' ? baseManaged : baseSelf
+    el.textContent = formatPrice(base, _pricingCurrency, _pricingRate)
+  })
+}
 
 function initPricingToggle() {
   const btns = document.querySelectorAll('.pricing-mode-btn')
@@ -796,29 +851,81 @@ function initPricingToggle() {
   btns.forEach(btn => {
     btn.addEventListener('click', () => {
       const mode = btn.dataset.mode
+      _pricingMode = mode
       btns.forEach(b => b.classList.remove('pricing-mode-btn--active'))
       btn.classList.add('pricing-mode-btn--active')
 
-      // Update description
       if (desc) desc.textContent = descriptions[mode] || ''
 
-      // Show/hide mode-specific cards
       selfOnlyCards.forEach(c => c.style.display = mode === 'managed' ? 'none' : '')
       managedOnlyCards.forEach(c => {
         c.style.display = mode === 'self' ? 'none' : ''
         c.classList.toggle('pricing-card--managed-only', mode === 'self')
       })
 
-      // Swap prices
-      document.querySelectorAll('[data-price-self]').forEach(el => {
-        el.textContent = mode === 'managed' ? el.dataset.priceManaged : el.dataset.priceSelf
-      })
+      // Update prices with current currency
+      updateAllPrices()
 
-      // Re-layout carousel to remove gaps
       const pricingGrid = document.querySelector('.pricing__grid')
       if (pricingGrid && pricingGrid._relayout) {
         setTimeout(() => pricingGrid._relayout(), 50)
       }
     })
+  })
+}
+
+// ─── Currency converter ──────────────────────────────────────────────────────
+
+let _ratesCache = null
+
+async function fetchRates() {
+  if (_ratesCache) return _ratesCache
+  try {
+    // Free exchange rate API — no API key needed
+    const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/php.json')
+    if (!res.ok) throw new Error('Rate fetch failed')
+    const data = await res.json()
+    _ratesCache = data.php || {}
+    return _ratesCache
+  } catch {
+    // Fallback static rates (approximate) if API fails
+    _ratesCache = {
+      usd: 0.0175, eur: 0.0162, gbp: 0.014, jpy: 2.63, krw: 23.8,
+      sgd: 0.0236, aud: 0.027, cad: 0.024, inr: 1.47, aed: 0.064,
+      myr: 0.082, thb: 0.62, idr: 278, vnd: 440, cny: 0.127, brl: 0.089,
+      php: 1,
+    }
+    return _ratesCache
+  }
+}
+
+function initCurrencyConverter() {
+  const select = document.getElementById('currencySelect')
+  if (!select) return
+
+  select.addEventListener('change', async () => {
+    const currency = select.value
+    _pricingCurrency = currency
+    const rateEl = document.getElementById('currencyRate')
+
+    if (currency === 'PHP') {
+      _pricingRate = 1
+      if (rateEl) rateEl.textContent = ''
+      updateAllPrices()
+      return
+    }
+
+    if (rateEl) rateEl.textContent = 'Loading rate...'
+
+    const rates = await fetchRates()
+    const rate = rates[currency.toLowerCase()]
+    if (!rate) {
+      if (rateEl) rateEl.textContent = 'Rate unavailable'
+      return
+    }
+
+    _pricingRate = rate
+    if (rateEl) rateEl.textContent = `1 PHP = ${rate < 1 ? rate.toFixed(4) : rate.toFixed(2)} ${currency}`
+    updateAllPrices()
   })
 }

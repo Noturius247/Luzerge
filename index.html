@@ -424,7 +424,7 @@
         <article class="pricing-card" data-scroll-reveal data-self-only>
           <h3 class="pricing-card__name">Free</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount">₱0</span>
+            <span class="pricing-card__amount" data-base-self="0" data-base-managed="0">₱0</span>
             <span class="pricing-card__period">/month</span>
           </div>
           <p class="pricing-card__setup">Self-managed only</p>
@@ -443,7 +443,7 @@
         <article class="pricing-card pricing-card--managed-only" data-scroll-reveal data-managed-only>
           <h3 class="pricing-card__name">Solo</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount">₱99</span>
+            <span class="pricing-card__amount" data-base-self="99" data-base-managed="99">₱99</span>
             <span class="pricing-card__period">/month</span>
           </div>
           <p class="pricing-card__setup">Managed · No setup fee</p>
@@ -463,7 +463,7 @@
         <article class="pricing-card" data-scroll-reveal>
           <h3 class="pricing-card__name">Starter</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount" data-price-self="₱299" data-price-managed="₱699">₱299</span>
+            <span class="pricing-card__amount" data-price-self="₱299" data-price-managed="₱699" data-base-self="299" data-base-managed="699">₱299</span>
             <span class="pricing-card__period">/month</span>
           </div>
           <p class="pricing-card__setup">No setup fee</p>
@@ -484,7 +484,7 @@
           <div class="pricing-card__badge">Best Value</div>
           <h3 class="pricing-card__name">Pro</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount" data-price-self="₱999" data-price-managed="₱1,999">₱999</span>
+            <span class="pricing-card__amount" data-price-self="₱999" data-price-managed="₱1,999" data-base-self="999" data-base-managed="1999">₱999</span>
             <span class="pricing-card__period">/month</span>
           </div>
           <p class="pricing-card__setup">No setup fee</p>
@@ -505,7 +505,7 @@
         <article class="pricing-card" data-scroll-reveal>
           <h3 class="pricing-card__name">Business</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount" data-price-self="₱1,999" data-price-managed="₱3,999">₱1,999</span>
+            <span class="pricing-card__amount" data-price-self="₱1,999" data-price-managed="₱3,999" data-base-self="1999" data-base-managed="3999">₱1,999</span>
             <span class="pricing-card__period">/month</span>
           </div>
           <p class="pricing-card__setup">No setup fee</p>
@@ -525,7 +525,7 @@
         <article class="pricing-card" data-scroll-reveal>
           <h3 class="pricing-card__name">Enterprise</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount" data-price-self="₱3,499" data-price-managed="₱6,999">₱3,499</span>
+            <span class="pricing-card__amount" data-price-self="₱3,499" data-price-managed="₱6,999" data-base-self="3499" data-base-managed="6999">₱3,499</span>
             <span class="pricing-card__period">/month</span>
           </div>
           <p class="pricing-card__setup">Custom SLA available</p>
@@ -547,9 +547,32 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
+      <div class="currency-converter" data-scroll-reveal>
+        <label class="currency-converter__label" for="currencySelect">View prices in:</label>
+        <select class="currency-converter__select" id="currencySelect">
+          <option value="PHP" selected>PHP — Philippine Peso (₱)</option>
+          <option value="USD">USD — US Dollar ($)</option>
+          <option value="EUR">EUR — Euro (&euro;)</option>
+          <option value="GBP">GBP — British Pound (&pound;)</option>
+          <option value="JPY">JPY — Japanese Yen (&yen;)</option>
+          <option value="KRW">KRW — Korean Won (₩)</option>
+          <option value="SGD">SGD — Singapore Dollar (S$)</option>
+          <option value="AUD">AUD — Australian Dollar (A$)</option>
+          <option value="CAD">CAD — Canadian Dollar (C$)</option>
+          <option value="INR">INR — Indian Rupee (₹)</option>
+          <option value="AED">AED — UAE Dirham (د.إ)</option>
+          <option value="MYR">MYR — Malaysian Ringgit (RM)</option>
+          <option value="THB">THB — Thai Baht (฿)</option>
+          <option value="IDR">IDR — Indonesian Rupiah (Rp)</option>
+          <option value="VND">VND — Vietnamese Dong (₫)</option>
+          <option value="CNY">CNY — Chinese Yuan (¥)</option>
+          <option value="BRL">BRL — Brazilian Real (R$)</option>
+        </select>
+        <span class="currency-converter__rate" id="currencyRate"></span>
+      </div>
       <p class="pricing__note">
         All plans include: Cloudflare-powered edge caching, free SSL, DDoS protection, and 99.9% uptime SLA.
-        Prices are in Philippine Peso (₱). Billed monthly — cancel anytime.
+        Base prices are in Philippine Peso (₱). Billed monthly — cancel anytime.
       </p>
     </div>
   </section>
