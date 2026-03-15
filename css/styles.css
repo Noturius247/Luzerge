@@ -1132,12 +1132,16 @@ details[open] .faq__question::after {
     display: flex !important;
     flex-direction: column;
     position: fixed;
-    inset: var(--nav-height) 0 0;
+    top: var(--nav-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: #0a0e1a;
     padding: 2rem;
     align-items: flex-start;
     gap: 1.5rem;
-    z-index: 200;
+    z-index: 9999;
+    overflow-y: auto;
   }
   .nav__toggle { display: flex; }
 
