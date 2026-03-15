@@ -457,7 +457,7 @@ function renderUsersTable() {
       const domainCount = allDomains.filter(d => d.user_id === p.id).length
       const status = p.status || 'active'
       return `
-        <tr class="admin-row">
+        <tr class="admin-row" data-user-id="${p.id}">
           <td>
             <div class="admin-user-cell">
               <div class="admin-user-avatar admin-user-avatar--admin">${(p.full_name || p.email || '?')[0].toUpperCase()}</div>
@@ -469,9 +469,13 @@ function renderUsersTable() {
           <td>${domainCount}</td>
           <td>${formatDate(p.created_at)}</td>
         </tr>
+        <tr class="admin-expand-row" id="expand-user-${p.id}" hidden>
+          <td colspan="5"><div class="admin-expand" id="expandUser-${p.id}"></div></td>
+        </tr>
       `
     }).join('')
 
+    bindUserRowEvents(adminBody)
     renderPagination(adminWrap, 'adminsTable', aTotal, aPage, aTotalPages, renderUsersTable)
   }
 
@@ -515,8 +519,13 @@ function renderUsersTable() {
             </select>
           </td>
         </tr>
+        <tr class="admin-expand-row" id="expand-user-${p.id}" hidden>
+          <td colspan="6"><div class="admin-expand" id="expandUser-${p.id}"></div></td>
+        </tr>
       `
     }).join('')
+
+    bindUserRowEvents(userBody)
 
     // Bind status change events
     userWrap.querySelectorAll('.user-status-select').forEach(select => {
@@ -562,6 +571,81 @@ function renderUsersTable() {
 
     renderPagination(userWrap, 'usersTable', uTotal, uPage, uTotalPages, renderUsersTable)
   }
+}
+
+// ─── User row expand/collapse ─────────────────────────────────────────────────
+
+function bindUserRowEvents(container) {
+  container.querySelectorAll('.admin-row[data-user-id]').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('select') || e.target.closest('button')) return
+      toggleUserExpand(row.dataset.userId)
+    })
+  })
+}
+
+function toggleUserExpand(userId) {
+  const expandRow = document.getElementById(`expand-user-${userId}`)
+  if (!expandRow) return
+
+  // Close if already open
+  if (!expandRow.hidden) {
+    expandRow.hidden = true
+    return
+  }
+
+  // Close all other user expand rows
+  document.querySelectorAll('.admin-expand-row[id^="expand-user-"]').forEach(r => { r.hidden = true })
+
+  expandRow.hidden = false
+  const content = document.getElementById(`expandUser-${userId}`)
+  if (!content) return
+
+  const profile = allProfiles.find(p => p.id === userId)
+  if (!profile) return
+
+  const userDomainsList = allDomains.filter(d => d.user_id === userId)
+  const status = profile.status || 'active'
+
+  const domainsHtml = userDomainsList.length
+    ? userDomainsList.map(d => `
+        <div class="expand-meta__item">
+          <span class="expand-meta__value"><strong>${escHtml(d.domain)}</strong></span>
+          <span class="status-badge status-badge--${d.status}">${d.status}</span>
+        </div>
+      `).join('')
+    : '<p style="color:rgba(255,255,255,0.4);font-size:0.82rem;margin:0">No domains submitted</p>'
+
+  content.innerHTML = `
+    <div class="expand-grid">
+      <div class="expand-section">
+        <h4 class="expand-section__title">Account Info</h4>
+        <div class="expand-meta">
+          <div class="expand-meta__item"><span class="expand-meta__label">User ID</span><span class="expand-meta__value" style="font-size:0.75rem;font-family:monospace;color:rgba(255,255,255,0.5)">${userId.slice(0, 16)}...</span></div>
+          <div class="expand-meta__item"><span class="expand-meta__label">Name</span><span class="expand-meta__value">${escHtml(profile.full_name || '—')}</span></div>
+          <div class="expand-meta__item"><span class="expand-meta__label">Email</span><span class="expand-meta__value">${escHtml(profile.email || '—')}</span></div>
+          <div class="expand-meta__item"><span class="expand-meta__label">Role</span><span class="expand-meta__value"><span class="status-badge ${profile.role === 'admin' ? 'status-badge--active' : ''}">${profile.role}</span></span></div>
+          <div class="expand-meta__item"><span class="expand-meta__label">Status</span><span class="expand-meta__value"><span class="status-badge status-badge--${status}">${status}</span></span></div>
+          <div class="expand-meta__item"><span class="expand-meta__label">Joined</span><span class="expand-meta__value">${formatDate(profile.created_at)}</span></div>
+        </div>
+      </div>
+      <div class="expand-section">
+        <h4 class="expand-section__title">Avatar</h4>
+        <div style="margin-top:4px">
+          ${profile.avatar_url
+            ? `<img src="${escHtml(profile.avatar_url)}" alt="" style="width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,0.1)" />`
+            : `<div class="admin-user-avatar" style="width:64px;height:64px;font-size:1.5rem;line-height:64px">${(profile.full_name || profile.email || '?')[0].toUpperCase()}</div>`
+          }
+        </div>
+      </div>
+      <div class="expand-section">
+        <h4 class="expand-section__title">Domains (${userDomainsList.length})</h4>
+        <div class="expand-meta">
+          ${domainsHtml}
+        </div>
+      </div>
+    </div>
+  `
 }
 
 // ─── Bind table events (expandable rows + actions) ────────────────────────────
