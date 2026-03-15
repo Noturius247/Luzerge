@@ -173,8 +173,25 @@ ul[role="list"] { list-style: none; }
   pointer-events: none;
 }
 
+/* Rocket window and flame transitions */
+#rk-window {
+  transition: fill 0.5s ease, stroke 0.5s ease;
+}
+#rk-flame-path {
+  transition: opacity 0.4s ease;
+}
+
+/* Landed state — lights off, no flame */
+.rocket.is-landed #rk-window {
+  fill: #1e293b;
+  stroke: #475569;
+}
+.rocket.is-landed #rk-flame-path {
+  opacity: 0;
+}
+
 /* Rocket flame flicker */
-.rocket.is-visible svg path:last-of-type {
+.rocket.is-visible:not(.is-landed) svg path:last-of-type {
   animation: flame-flicker 0.3s ease-in-out infinite alternate;
 }
 

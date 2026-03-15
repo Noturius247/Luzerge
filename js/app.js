@@ -407,6 +407,13 @@ function initScrollEffects() {
         var t = Math.min(scrollPercent / 0.8, 1)
         window._rocketT = t
 
+        // Toggle landed state — lights off when fully landed
+        if (t >= 0.99) {
+          rocket.classList.add('is-landed')
+        } else {
+          rocket.classList.remove('is-landed')
+        }
+
         // Smooth ease-in-out
         var eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
 
@@ -685,11 +692,12 @@ function initRocketSmoke() {
       var smokeX = cx + flameOffsetX * Math.cos(rad) - flameOffsetY * Math.sin(rad)
       var smokeY = cy + flameOffsetX * Math.sin(rad) + flameOffsetY * Math.cos(rad)
 
-      // Only spawn if rocket has moved
+      // Only spawn if rocket has moved and not landed
       var dx = smokeX - lastRocketX
       var dy = smokeY - lastRocketY
-      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-        var rt = window._rocketT || 0
+      var rt = window._rocketT || 0
+      var isLanded = rt >= 0.99
+      if (!isLanded && (Math.abs(dx) > 1 || Math.abs(dy) > 1)) {
         var isBurst = rt < 0.1 || rt > 0.9
         spawnSmoke(smokeX, smokeY, rScale, isBurst)
         lastRocketX = smokeX
