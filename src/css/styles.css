@@ -67,21 +67,27 @@ body {
   min-height: 100vh;
 }
 
-/* Starfield dots via CSS */
+/* Starfield dots via CSS — visible across entire page */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -2;
   background-image:
-    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.4) 50%, transparent 50%),
-    radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.3) 50%, transparent 50%),
-    radial-gradient(1.5px 1.5px at 30% 70%, rgba(255,255,255,0.2) 50%, transparent 50%),
-    radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.35) 50%, transparent 50%),
-    radial-gradient(1px 1px at 90% 85%, rgba(255,255,255,0.25) 50%, transparent 50%),
-    radial-gradient(1.5px 1.5px at 45% 30%, rgba(255,255,255,0.15) 50%, transparent 50%),
-    radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.3) 50%, transparent 50%);
-  background-size: 250px 250px;
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.5) 50%, transparent 50%),
+    radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.4) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 30% 70%, rgba(255,255,255,0.3) 50%, transparent 50%),
+    radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.45) 50%, transparent 50%),
+    radial-gradient(1px 1px at 90% 85%, rgba(255,255,255,0.35) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 45% 30%, rgba(255,255,255,0.25) 50%, transparent 50%),
+    radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.4) 50%, transparent 50%),
+    radial-gradient(1px 1px at 5% 55%, rgba(255,255,255,0.3) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 70% 40%, rgba(255,255,255,0.2) 50%, transparent 50%),
+    radial-gradient(1px 1px at 50% 95%, rgba(255,255,255,0.35) 50%, transparent 50%),
+    radial-gradient(1px 1px at 25% 45%, rgba(255,255,255,0.3) 50%, transparent 50%),
+    radial-gradient(2px 2px at 95% 60%, rgba(59,130,246,0.3) 50%, transparent 50%),
+    radial-gradient(2px 2px at 35% 15%, rgba(6,182,212,0.25) 50%, transparent 50%);
+  background-size: 200px 200px;
   pointer-events: none;
 }
 
@@ -119,30 +125,39 @@ ul[role="list"] { list-style: none; }
 /* ─── Scroll-driven rocket ─────────────────────────────────── */
 .rocket {
   position: fixed;
-  left: 2rem;
-  bottom: 5%;
-  z-index: 9999;
+  top: 0;
+  left: 0;
+  z-index: 2;
   opacity: 0;
-  transition: opacity 0.4s ease, bottom 0.1s linear;
-  filter: drop-shadow(0 0 16px rgba(59, 130, 246, 0.5));
   pointer-events: none;
-}
-
-.rocket.is-visible {
-  opacity: 1;
+  will-change: transform;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .rocket svg {
   display: block;
-  width: 80px;
-  height: 80px;
-  transform: rotate(15deg) scaleX(-1);
-  animation: rocket-float 3s ease-in-out infinite;
+  width: 240px;
+  height: 240px;
 }
 
-@keyframes rocket-float {
-  0%, 100% { transform: rotate(15deg) scaleX(-1) translateY(0); }
-  50%      { transform: rotate(15deg) scaleX(-1) translateY(-8px); }
+/* Landing platform */
+.landing-pad {
+  position: fixed;
+  left: calc(3vw + 120px - 200px);
+  bottom: 5vh;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: center center;
+  filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.3));
+  will-change: transform, opacity;
+}
+
+.landing-pad svg {
+  display: block;
+  width: 400px;
+  height: 80px;
 }
 
 /* Rocket flame flicker */
@@ -346,13 +361,13 @@ ul[role="list"] { list-style: none; }
   z-index: 0;
 }
 
-.hero__starfield {
-  position: absolute;
+.page-starfield {
+  position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
 .hero__container {
@@ -427,7 +442,7 @@ ul[role="list"] { list-style: none; }
 /* ─── Problems ─────────────────────────────────────────────── */
 .problems {
   padding: clamp(3rem, 8vw, 6rem) 0;
-  background: var(--color-bg);
+  background: rgba(10, 14, 26, 0.6);
 }
 
 .problems__grid {
@@ -468,14 +483,85 @@ ul[role="list"] { list-style: none; }
 
 /* ─── Services ──────────────────────────────────────────────── */
 .services {
-  padding: clamp(3rem, 8vw, 6rem) 0;
-  background: var(--color-bg-alt);
+  padding: clamp(4rem, 10vw, 8rem) 0 clamp(6rem, 14vw, 12rem);
+  background: rgba(17, 24, 39, 0.5);
+}
+
+/* ─── Carousel UI ──────────────────────────────────────────── */
+.carousel-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.carousel-wrap .services__grid,
+.carousel-wrap .pricing__grid {
+  flex: 1;
+  min-width: 0;
+  perspective: 1200px;
+}
+
+.carousel-arrow {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+
+.carousel-arrow:hover {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--color-accent);
+  transform: scale(1.1);
+}
+
+.carousel-arrow:active {
+  transform: scale(0.95);
+}
+
+.draggable-card--active {
+  cursor: grabbing !important;
+  z-index: 100;
+  box-shadow: 0 20px 60px rgba(6, 182, 212, 0.3), 0 0 30px rgba(59, 130, 246, 0.2);
+  transition: box-shadow 0.2s ease;
 }
 
 .services__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 320px;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.services__grid .service-card,
+.pricing__grid .pricing-card {
+  font-size: 0.7rem;
+}
+
+.services__grid .btn,
+.pricing__grid .btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.65rem;
+}
+
+.services__grid .service-card {
+  position: absolute;
+  width: 300px;
+  max-height: 280px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease;
 }
 
 .service-card {
@@ -484,10 +570,16 @@ ul[role="list"] { list-style: none; }
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: 2rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.7rem;
+  line-height: 1.3;
   display: flex;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: box-shadow 0.2s ease, transform 0.3s ease;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.3rem;
   position: relative;
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
@@ -526,13 +618,13 @@ ul[role="list"] { list-style: none; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-lg);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(168, 85, 247, 0.15));
   color: var(--color-brand);
 }
-.service-card__title { font-size: 1.25rem; font-weight: 700; color: var(--color-text); }
+.service-card__title { font-size: 0.8rem; font-weight: 700; color: var(--color-text); }
 .service-card__desc { color: var(--color-text-muted); font-size: .9375rem; flex: 1; }
 
 .service-card__features {
@@ -548,7 +640,7 @@ ul[role="list"] { list-style: none; }
 /* ─── How It Works ──────────────────────────────────────────── */
 .how-it-works {
   padding: clamp(3rem, 8vw, 6rem) 0;
-  background: var(--color-bg);
+  background: rgba(10, 14, 26, 0.6);
 }
 
 .steps {
@@ -582,15 +674,27 @@ ul[role="list"] { list-style: none; }
 
 /* ─── Pricing ───────────────────────────────────────────────── */
 .pricing {
-  padding: clamp(3rem, 8vw, 6rem) 0;
-  background: var(--color-bg-alt);
+  padding: clamp(4rem, 10vw, 8rem) 0 clamp(6rem, 14vw, 12rem);
+  background: rgba(17, 24, 39, 0.5);
 }
 
 .pricing__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  align-items: start;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 320px;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.pricing__grid .pricing-card {
+  position: absolute;
+  width: 300px;
+  max-height: 300px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease;
 }
 
 .pricing-card {
@@ -599,9 +703,15 @@ ul[role="list"] { list-style: none; }
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: 2rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.7rem;
+  line-height: 1.3;
   position: relative;
   display: flex;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: box-shadow 0.2s ease, transform 0.3s ease;
   flex-direction: column;
   gap: 1rem;
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
@@ -638,9 +748,9 @@ ul[role="list"] { list-style: none; }
   animation: pulse-glow 3s ease-in-out infinite;
 }
 
-.pricing-card__name { font-size: 1.125rem; font-weight: 700; color: var(--color-text-muted); }
+.pricing-card__name { font-size: 0.85rem; font-weight: 700; color: var(--color-text-muted); }
 .pricing-card__price { display: flex; align-items: baseline; gap: .25rem; }
-.pricing-card__amount { font-size: 2.5rem; font-weight: 900; color: var(--color-text); }
+.pricing-card__amount { font-size: 1.25rem; font-weight: 900; color: var(--color-text); }
 .pricing-card__period { color: var(--color-text-muted); }
 .pricing-card__setup { font-size: .8125rem; color: var(--color-text-muted); }
 
@@ -664,7 +774,7 @@ ul[role="list"] { list-style: none; }
 /* ─── FAQ ───────────────────────────────────────────────────── */
 .faq {
   padding: clamp(3rem, 8vw, 6rem) 0;
-  background: var(--color-bg);
+  background: rgba(10, 14, 26, 0.6);
 }
 
 .faq__list {
@@ -714,7 +824,7 @@ details[open] .faq__question::after {
 /* ─── Contact ───────────────────────────────────────────────── */
 .contact {
   padding: clamp(3rem, 8vw, 6rem) 0;
-  background: var(--color-bg-alt);
+  background: rgba(17, 24, 39, 0.5);
 }
 
 .contact__layout {
@@ -781,28 +891,31 @@ details[open] .faq__question::after {
   text-align: right;
 }
 
-.form-success {
+.form-success,
+.form-error-global {
   padding: 1rem;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: var(--radius-md);
-  color: var(--color-success);
   font-weight: 600;
-  display: flex;
   align-items: center;
   gap: .75rem;
+  display: none;
+}
+
+.form-success:not([hidden]),
+.form-error-global:not([hidden]) {
+  display: flex;
+}
+
+.form-success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--color-success);
 }
 
 .form-error-global {
-  padding: 1rem;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius-md);
   color: var(--color-error);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: .75rem;
 }
 
 .contact__info {
@@ -834,7 +947,7 @@ details[open] .faq__question::after {
 
 /* ─── Footer ────────────────────────────────────────────────── */
 .footer {
-  background: #050810;
+  background: rgba(5, 8, 16, 0.8);
   color: #94a3b8;
   padding: 3rem 0 2rem;
   border-top: 1px solid var(--color-border);
@@ -929,6 +1042,9 @@ details[open] .faq__question::after {
   }
   .nav__toggle { display: flex; }
   .pricing-card--featured { transform: none; }
+  .rocket svg { width: 36px; height: 36px; }
+  .rocket { display: none; }
+  .landing-pad { display: none; }
 }
 
 /* ─── Accessibility ─────────────────────────────────────────── */

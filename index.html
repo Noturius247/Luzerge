@@ -84,14 +84,14 @@
   </nav>
 
   <!-- ─── Hero ────────────────────────────────────────────────────────── -->
+  <canvas id="heroStarfield" class="page-starfield" aria-hidden="true"></canvas>
   <section class="hero" aria-labelledby="hero-heading">
-    <canvas id="heroStarfield" class="hero__starfield" aria-hidden="true"></canvas>
     <div class="hero__container">
       <div class="hero__badge">
         <span class="badge">Cebu-Based · Serving SMEs Since 2026</span>
       </div>
       <h1 class="hero__heading" id="hero-heading">
-        Your Cebu Business Deserves<br />
+        Your Cebu Business<span id="rocketAnchor"></span> Deserves<br />
         <span class="hero__accent">A Real Website</span>
       </h1>
       <p class="hero__subheading">
@@ -182,7 +182,31 @@
     <div class="container">
       <h2 class="section__heading" id="services-heading" data-scroll-reveal>What We Build</h2>
       <p class="section__subheading" data-scroll-reveal>Simple solutions for real Cebu businesses.</p>
-      <div class="services__grid">
+
+      <div class="services__highlights" data-scroll-reveal>
+        <div class="highlight-pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg>
+          Launch in 3–5 days
+        </div>
+        <div class="highlight-pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor"/></svg>
+          Free SSL &amp; Security
+        </div>
+        <div class="highlight-pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          No Setup Fees
+        </div>
+        <div class="highlight-pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="2"/><line x1="12" y1="18" x2="12" y2="18.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          100% Mobile-First
+        </div>
+      </div>
+
+      <div class="carousel-wrap">
+        <button type="button" class="carousel-arrow carousel-arrow--left" aria-label="Rotate left" data-dir="-1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="services__grid">
         <article class="service-card" data-scroll-reveal>
           <div class="service-card__icon" aria-hidden="true">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22V12h6v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -231,6 +255,20 @@
           <a href="#pricing" class="btn btn--outline">From ₱299/mo · 1st Month Free</a>
         </article>
       </div>
+        <button type="button" class="carousel-arrow carousel-arrow--right" aria-label="Rotate right" data-dir="1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <p class="carousel-hint" data-scroll-reveal>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Drag or use arrows to explore services
+      </p>
+
+      <div class="services__cta" data-scroll-reveal>
+        <p class="services__cta-text">Not sure which one fits your business?</p>
+        <a href="#contact" class="btn btn--primary">Get a Free Consultation →</a>
+      </div>
     </div>
   </section>
 
@@ -277,7 +315,11 @@
     <div class="container">
       <h2 class="section__heading" id="pricing-heading" data-scroll-reveal>Simple, Honest Pricing</h2>
       <p class="section__subheading" data-scroll-reveal>No setup fees. No hidden charges. <strong class="text-accent">First month FREE</strong> — try it risk-free, cancel anytime.</p>
-      <div class="pricing__grid">
+      <div class="carousel-wrap">
+        <button type="button" class="carousel-arrow carousel-arrow--left" aria-label="Rotate left" data-dir="-1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="pricing__grid">
         <article class="pricing-card" data-scroll-reveal>
           <h3 class="pricing-card__name">Starter</h3>
           <div class="pricing-card__price">
@@ -336,6 +378,10 @@
           </ul>
           <a href="#contact" class="btn btn--outline">Get Started</a>
         </article>
+      </div>
+        <button type="button" class="carousel-arrow carousel-arrow--right" aria-label="Rotate right" data-dir="1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
       <p class="pricing__note">
         All plans include: free hosting, free SSL, DDoS protection, and daily backups.
@@ -534,6 +580,9 @@
     </div>
   </footer>
 
+  <!-- Rocket smoke trail -->
+  <canvas id="rocketSmoke" class="rocket-smoke" aria-hidden="true"></canvas>
+
   <!-- Scroll-driven rocket (fixed position, won't affect layout) -->
   <div class="rocket" id="scrollRocket" aria-hidden="true">
     <svg viewBox="0 0 64 64" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -552,6 +601,34 @@
         <linearGradient id="rk-flame" x1="32" y1="48" x2="32" y2="62" gradientUnits="userSpaceOnUse">
           <stop stop-color="#f59e0b"/><stop offset=".5" stop-color="#ef4444"/><stop offset="1" stop-color="transparent"/>
         </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Landing platform for rocket -->
+  <div class="landing-pad" id="landingPad" aria-hidden="true">
+    <svg viewBox="0 0 200 40" width="200" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Platform base -->
+      <ellipse cx="100" cy="30" rx="90" ry="10" fill="url(#pad-shadow)" opacity="0.4"/>
+      <rect x="15" y="18" width="170" height="8" rx="4" fill="url(#pad-body)"/>
+      <!-- Platform legs -->
+      <rect x="30" y="26" width="4" height="12" rx="1" fill="#94a3b8"/>
+      <rect x="166" y="26" width="4" height="12" rx="1" fill="#94a3b8"/>
+      <!-- Landing lights -->
+      <circle cx="50" cy="22" r="3" fill="#06b6d4" opacity="0.9"/>
+      <circle cx="100" cy="22" r="3" fill="#3b82f6" opacity="0.9"/>
+      <circle cx="150" cy="22" r="3" fill="#06b6d4" opacity="0.9"/>
+      <!-- "H" marking -->
+      <rect x="93" y="19" width="2" height="5" fill="#06b6d4" opacity="0.6"/>
+      <rect x="105" y="19" width="2" height="5" fill="#06b6d4" opacity="0.6"/>
+      <rect x="93" y="21" width="14" height="1.5" fill="#06b6d4" opacity="0.6"/>
+      <defs>
+        <linearGradient id="pad-body" x1="15" y1="18" x2="185" y2="26" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#1e293b"/><stop offset="0.5" stop-color="#334155"/><stop offset="1" stop-color="#1e293b"/>
+        </linearGradient>
+        <radialGradient id="pad-shadow" cx="100" cy="30" rx="90" ry="10" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#06b6d4" stop-opacity="0.3"/><stop offset="1" stop-color="transparent"/>
+        </radialGradient>
       </defs>
     </svg>
   </div>

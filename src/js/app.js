@@ -226,7 +226,7 @@ function initScrollReveals() {
   })
 }
 
-// ─── Hero starfield canvas animation ──────────────────────────────────────────
+// ─── Full-page starfield canvas animation ─────────────────────────────────────
 
 function initStarfield() {
   const canvas = document.getElementById('heroStarfield')
@@ -238,13 +238,12 @@ function initStarfield() {
   let animId = null
 
   function resize() {
-    const rect = canvas.parentElement.getBoundingClientRect()
-    canvas.width = rect.width
-    canvas.height = rect.height
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
   }
 
   function createStars(count) {
-    count = count || 120
+    count = count || 180
     stars = []
     for (let i = 0; i < count; i++) {
       stars.push({
@@ -285,18 +284,6 @@ function initStarfield() {
     resize()
     createStars()
   })
-
-  const observer = new IntersectionObserver(function(entries) {
-    if (entries[0].isIntersecting) {
-      if (!animId) animId = requestAnimationFrame(draw)
-    } else {
-      if (animId) {
-        cancelAnimationFrame(animId)
-        animId = null
-      }
-    }
-  })
-  observer.observe(canvas)
 }
 
 // ─── Hero accent text reveal ──────────────────────────────────────────────────
@@ -323,18 +310,29 @@ function initScrollEffects() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const nav = document.querySelector('.nav')
   const rocket = document.getElementById('scrollRocket')
+  const landingPad = document.getElementById('landingPad')
   const progressBar = document.getElementById('scrollProgress')
   const hero = document.querySelector('.hero')
   const stats = document.querySelector('.hero__stats')
   const sections = document.querySelectorAll('[data-scroll-section]')
 
-  let ticking = false
+  let scheduled = false
+  let lastScrollY = window.scrollY
+  let scrollDir = 1  // 1 = down, -1 = up
+  let rocketAngle = -40  // current rendered angle, smoothed
 
   function onScroll() {
-    if (ticking) return
-    ticking = true
+    // Always capture direction from latest event
+    var currentY = window.scrollY
+    scrollDir = currentY >= lastScrollY ? 1 : -1
+    lastScrollY = currentY
+
+    if (scheduled) return
+    scheduled = true
 
     requestAnimationFrame(function() {
+      scheduled = false
+      // Read fresh scroll position (not stale from event time)
       const scrollY = window.scrollY
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
       const scrollPercent = docHeight > 0 ? scrollY / docHeight : 0
@@ -355,16 +353,76 @@ function initScrollEffects() {
         }
       }
 
-      // ── Rocket flies from bottom-right to top-right as you scroll
+      // ── Rocket: starts lower-right of "Business", arcs to left, lands upright on pad
       if (rocket && !reducedMotion) {
-        if (scrollPercent > 0.03) {
-          rocket.classList.add('is-visible')
-          // Map scroll progress to bottom position: starts at 5%, ends at 90%
-          var bottomPos = 5 + (scrollPercent * 85)
-          rocket.style.bottom = bottomPos + '%'
+        if (scrollPercent > 0.01) {
+          // t goes 0→1 over 1%–80% of scroll
+          var t = Math.min((scrollPercent - 0.01) / 0.79, 1)
+
+          // Fade in slowly over first 20% of progress
+          var fadeIn = Math.min(t / 0.2, 1)
+          rocket.style.opacity = fadeIn
+
+          if (fadeIn > 0) rocket.classList.add('is-visible')
+
+          // Smooth ease-in-out
+          var eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+
+          // Bezier arc: Start(55vw, 25vh) → Control(35vw, 10vh) → End(3vw, 68vh)
+          var startX = 72, startY = 22
+          var cpX = 35, cpY = 10
+          var endX = 3, endY = 68
+
+          var x = (1 - eased) * (1 - eased) * startX + 2 * (1 - eased) * eased * cpX + eased * eased * endX
+          var y = (1 - eased) * (1 - eased) * startY + 2 * (1 - eased) * eased * cpY + eased * eased * endY
+
+          // Scale: SVG is 240px, start small (0.2) → full size (1) at landing
+          var scale = 0.2 + eased * 0.8
+
+          // Rotation: follows curve tangent going down, points back to start going up
+          var tx = 2 * (1 - eased) * (cpX - startX) + 2 * eased * (endX - cpX)
+          var ty = 2 * (1 - eased) * (cpY - startY) + 2 * eased * (endY - cpY)
+          var tangentAngle = Math.atan2(ty, tx) * (180 / Math.PI) + 90
+
+          var targetAngle
+          if (scrollDir === 1) {
+            // Scrolling down: nose follows curve, settles upright near landing
+            var uprightBlend = t > 0.7 ? (t - 0.7) / 0.3 : 0
+            uprightBlend = uprightBlend * uprightBlend
+            targetAngle = tangentAngle * (1 - uprightBlend)
+          } else {
+            // Scrolling up: nose points toward "Business" (the start point)
+            var dx = startX - x
+            var dy = startY - y
+            targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
+          }
+
+          // Smoothly interpolate toward target angle (no sudden flips)
+          var angleDiff = targetAngle - rocketAngle
+          // Normalize to -180..180
+          while (angleDiff > 180) angleDiff -= 360
+          while (angleDiff < -180) angleDiff += 360
+          rocketAngle += angleDiff * 0.12  // smooth lerp factor
+
+          var angle = rocketAngle
+
+          rocket.style.transform = 'translate(' + x + 'vw, ' + y + 'vh) scale(' + scale + ') rotate(' + angle + 'deg)'
+
+          // Landing platform fades in during last 40%
+          if (landingPad) {
+            var padProgress = Math.max(0, (t - 0.6) / 0.4)
+            var padEased = 1 - Math.pow(1 - padProgress, 2)
+            landingPad.style.opacity = padEased
+            landingPad.style.transform = 'scale(' + (0.6 + padEased * 0.4) + ')'
+          }
         } else {
           rocket.classList.remove('is-visible')
-          rocket.style.bottom = '5%'
+          rocket.style.opacity = 0
+          rocket.style.transform = 'translate(72vw, 22vh) scale(0.2) rotate(-40deg)'
+          if (landingPad) {
+            landingPad.style.opacity = 0
+            landingPad.style.transform = 'scale(0.6)'
+          }
         }
       }
 
@@ -391,13 +449,134 @@ function initScrollEffects() {
         })
       }
 
-      ticking = false
     })
   }
 
   window.addEventListener('scroll', onScroll, { passive: true })
   // Run once on load to set initial state
   onScroll()
+}
+
+// ─── 3D Glass Rotating Carousel ───────────────────────────────────────────────
+
+function initDragCards() {
+  var grids = document.querySelectorAll('.services__grid, .pricing__grid')
+
+  grids.forEach(function(grid) {
+    var cards = Array.from(grid.querySelectorAll('.service-card, .pricing-card'))
+    var count = cards.length
+    var angleStep = 360 / count
+    var radius = 380  // distance from center
+    var currentAngle = 0
+    var targetAngle = 0
+    var isDragging = false
+    var originX = 0
+    var rafId = null
+
+    // Position cards in a 3D circle
+    function layoutCards() {
+      cards.forEach(function(card, i) {
+        var cardAngle = currentAngle + (i * angleStep)
+        var rad = cardAngle * (Math.PI / 180)
+        var x = Math.sin(rad) * radius
+        var z = Math.cos(rad) * radius
+        // Cards facing away get dimmer and smaller
+        var faceFactor = (z + radius) / (2 * radius)  // 0 = back, 1 = front
+        var opacity = 0.5 + faceFactor * 0.5
+        var scale = 0.85 + faceFactor * 0.15
+
+        card.style.transform = 'translateX(' + x + 'px) translateZ(' + z + 'px) scale(' + scale + ')'
+        card.style.opacity = opacity
+        card.style.zIndex = Math.round(faceFactor * 10)
+      })
+    }
+
+    // Smooth animation loop
+    function animate() {
+      // Lerp current toward target
+      var diff = targetAngle - currentAngle
+      currentAngle += diff * 0.1
+
+      if (Math.abs(diff) > 0.1 || isDragging) {
+        layoutCards()
+        rafId = requestAnimationFrame(animate)
+      } else {
+        currentAngle = targetAngle
+        layoutCards()
+        rafId = null
+      }
+    }
+
+    function startAnimation() {
+      if (!rafId) rafId = requestAnimationFrame(animate)
+    }
+
+    // Initial layout
+    layoutCards()
+
+    // Drag to rotate
+    function onPointerDown(e) {
+      isDragging = true
+      originX = e.clientX
+      grid.style.cursor = 'grabbing'
+      // Kill CSS transitions during drag for responsiveness
+      cards.forEach(function(c) { c.style.transition = 'none' })
+      startAnimation()
+    }
+
+    function onPointerMove(e) {
+      if (!isDragging) return
+      e.preventDefault()
+      var dx = e.clientX - originX
+      targetAngle = currentAngle + dx * 0.3
+    }
+
+    function onPointerUp() {
+      if (!isDragging) return
+      isDragging = false
+      grid.style.cursor = 'grab'
+      // Snap to nearest card facing front
+      currentAngle = targetAngle
+      var snapAngle = Math.round(currentAngle / angleStep) * angleStep
+      targetAngle = snapAngle
+      // Re-enable transitions
+      cards.forEach(function(c) {
+        c.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease'
+      })
+      startAnimation()
+    }
+
+    grid.style.cursor = 'grab'
+    grid.addEventListener('mousedown', onPointerDown)
+    window.addEventListener('mousemove', onPointerMove)
+    window.addEventListener('mouseup', onPointerUp)
+
+    grid.addEventListener('touchstart', function(e) {
+      onPointerDown({ clientX: e.touches[0].clientX })
+    }, { passive: true })
+
+    window.addEventListener('touchmove', function(e) {
+      if (!isDragging) return
+      onPointerMove({ clientX: e.touches[0].clientX, preventDefault: function() {} })
+    }, { passive: true })
+
+    window.addEventListener('touchend', onPointerUp)
+
+    // Arrow buttons
+    var wrap = grid.closest('.carousel-wrap')
+    if (wrap) {
+      wrap.querySelectorAll('.carousel-arrow').forEach(function(arrow) {
+        arrow.addEventListener('click', function() {
+          var dir = parseInt(arrow.getAttribute('data-dir'))
+          targetAngle += dir * angleStep
+          cards.forEach(function(c) {
+            c.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease'
+          })
+          startAnimation()
+        })
+      })
+    }
+  })
 }
 
 // ─── Page view tracking ───────────────────────────────────────────────────────
@@ -415,6 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initStarfield()
   initHeroReveal()
   initScrollEffects()
+  initDragCards()
   setFooterYear()
   initPageTracking()
 })
