@@ -1136,12 +1136,23 @@ details[open] .faq__question::after {
     left: 0;
     right: 0;
     bottom: 0;
+    width: 100%;
+    height: calc(100vh - var(--nav-height));
     background: #0a0e1a;
     padding: 2rem;
     align-items: flex-start;
     gap: 1.5rem;
     z-index: 9999;
     overflow-y: auto;
+  }
+  .nav__links.is-open li {
+    width: 100%;
+  }
+  .nav__links.is-open a {
+    display: block;
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+    color: #fff;
   }
   .nav__toggle { display: flex; }
 
