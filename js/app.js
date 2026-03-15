@@ -354,12 +354,12 @@ function initScrollEffects() {
   let rocketStartY = null
   window._rocketT = 0
 
-  // Capture rocket start position from anchor on load
+  // Capture rocket start position from anchor on load — tight beside "Business"
   var anchor = document.getElementById('rocketAnchor')
   if (anchor) {
     var anchorRect = anchor.getBoundingClientRect()
-    rocketStartX = (anchorRect.right / window.innerWidth) * 100
-    rocketStartY = (anchorRect.top / window.innerHeight) * 100 - 2
+    rocketStartX = (anchorRect.left / window.innerWidth) * 100 - 3
+    rocketStartY = (anchorRect.top / window.innerHeight) * 100 - 4
     if (rocket) {
       rocket.style.transform = 'translate(' + rocketStartX + 'vw, ' + rocketStartY + 'vh) scale(0.54) rotate(0deg)'
     }
