@@ -377,6 +377,7 @@ function renderActiveTable() {
 
       body.hidden = !body.hidden
       if (chevron) chevron.classList.toggle('active-domain-card__chevron--open', !body.hidden)
+      if (!body.hidden) body.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     })
   })
 
@@ -685,6 +686,7 @@ function toggleUserExpand(userId) {
   document.querySelectorAll('.admin-expand-row[id^="expand-user-"]').forEach(r => { r.hidden = true })
 
   expandRow.hidden = false
+  expandRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   const content = document.getElementById(`expandUser-${userId}`)
   if (!content) return
 
@@ -803,6 +805,7 @@ function toggleExpand(domainId) {
 
   // Show this one
   expandRow.hidden = false
+  expandRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   const content = document.getElementById(`expandContent-${domainId}`)
   const domain = allDomains.find(d => d.id === domainId)
   if (!domain || !content) return
