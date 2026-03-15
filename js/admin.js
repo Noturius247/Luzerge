@@ -137,7 +137,7 @@ async function loadAllDomains() {
 
   const { data: profiles } = await _supabase
     .from('profiles')
-    .select('id, email, full_name, avatar_url, role, status, created_at')
+    .select('id, email, full_name, avatar_url, role, status, plan, payment_status, created_at')
     .order('created_at', { ascending: false })
 
   if (profiles) {
@@ -456,6 +456,8 @@ function renderUsersTable() {
     adminBody.innerHTML = pagedAdmins.map(p => {
       const domainCount = allDomains.filter(d => d.user_id === p.id).length
       const status = p.status || 'active'
+      const plan = p.plan || 'none'
+      const payment = p.payment_status || 'unpaid'
       return `
         <tr class="admin-row" data-user-id="${p.id}">
           <td>
@@ -466,11 +468,13 @@ function renderUsersTable() {
           </td>
           <td>${escHtml(p.email || '—')}</td>
           <td><span class="status-badge status-badge--${status}">${status}</span></td>
+          <td><span class="plan-badge plan-badge--${plan}">${plan}</span></td>
+          <td><span class="payment-badge payment-badge--${payment}">${payment}</span></td>
           <td>${domainCount}</td>
           <td>${formatDate(p.created_at)}</td>
         </tr>
         <tr class="admin-expand-row" id="expand-user-${p.id}" hidden>
-          <td colspan="5"><div class="admin-expand" id="expandUser-${p.id}"></div></td>
+          <td colspan="7"><div class="admin-expand" id="expandUser-${p.id}"></div></td>
         </tr>
       `
     }).join('')
@@ -498,6 +502,8 @@ function renderUsersTable() {
     userBody.innerHTML = pagedUsers.map(p => {
       const domainCount = allDomains.filter(d => d.user_id === p.id).length
       const status = p.status || 'active'
+      const plan = p.plan || 'none'
+      const payment = p.payment_status || 'unpaid'
       return `
         <tr class="admin-row" data-user-id="${p.id}">
           <td>
@@ -508,6 +514,8 @@ function renderUsersTable() {
           </td>
           <td>${escHtml(p.email || '—')}</td>
           <td><span class="status-badge status-badge--${status}" id="userStatus-${p.id}">${status}</span></td>
+          <td><span class="plan-badge plan-badge--${plan}" id="userPlan-${p.id}">${plan}</span></td>
+          <td><span class="payment-badge payment-badge--${payment}" id="userPayment-${p.id}">${payment}</span></td>
           <td>${domainCount}</td>
           <td>${formatDate(p.created_at)}</td>
           <td class="admin-row__actions">
@@ -517,10 +525,23 @@ function renderUsersTable() {
               <option value="suspended" ${status === 'suspended' ? 'selected' : ''}>Suspended</option>
               <option value="blocked" ${status === 'blocked' ? 'selected' : ''}>Blocked</option>
             </select>
+            <select class="form-input form-select form-select--sm user-plan-select" data-user-id="${p.id}">
+              <option value="none" ${plan === 'none' ? 'selected' : ''}>No Plan</option>
+              <option value="starter" ${plan === 'starter' ? 'selected' : ''}>Starter</option>
+              <option value="pro" ${plan === 'pro' ? 'selected' : ''}>Pro</option>
+              <option value="enterprise" ${plan === 'enterprise' ? 'selected' : ''}>Enterprise</option>
+            </select>
+            <select class="form-input form-select form-select--sm user-payment-select" data-user-id="${p.id}">
+              <option value="unpaid" ${payment === 'unpaid' ? 'selected' : ''}>Unpaid</option>
+              <option value="paid" ${payment === 'paid' ? 'selected' : ''}>Paid</option>
+              <option value="overdue" ${payment === 'overdue' ? 'selected' : ''}>Overdue</option>
+              <option value="trial" ${payment === 'trial' ? 'selected' : ''}>Trial</option>
+              <option value="cancelled" ${payment === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+            </select>
           </td>
         </tr>
         <tr class="admin-expand-row" id="expand-user-${p.id}" hidden>
-          <td colspan="6"><div class="admin-expand" id="expandUser-${p.id}"></div></td>
+          <td colspan="8"><div class="admin-expand" id="expandUser-${p.id}"></div></td>
         </tr>
       `
     }).join('')
@@ -538,34 +559,73 @@ function renderUsersTable() {
           .eq('id', userId)
 
         if (error) {
-          const toast = document.getElementById('toast')
-          if (toast) {
-            toast.textContent = `Failed to update: ${error.message}`
-            toast.hidden = false
-            clearTimeout(toast._timer)
-            toast._timer = setTimeout(() => { toast.hidden = true }, 3000)
-          }
+          showToast(`Failed to update: ${error.message}`)
           return
         }
 
-        // Update badge
         const badge = document.getElementById(`userStatus-${userId}`)
         if (badge) {
           badge.textContent = newStatus
           badge.className = `status-badge status-badge--${newStatus}`
         }
 
-        // Update local data
         const profile = allProfiles.find(p => p.id === userId)
         if (profile) profile.status = newStatus
+        showToast(`User status changed to ${newStatus}`)
+      })
+    })
 
-        const toast = document.getElementById('toast')
-        if (toast) {
-          toast.textContent = `User status changed to ${newStatus}`
-          toast.hidden = false
-          clearTimeout(toast._timer)
-          toast._timer = setTimeout(() => { toast.hidden = true }, 2000)
+    // Bind plan change events
+    userWrap.querySelectorAll('.user-plan-select').forEach(select => {
+      select.addEventListener('change', async () => {
+        const userId = select.dataset.userId
+        const newPlan = select.value
+        const { error } = await _supabase
+          .from('profiles')
+          .update({ plan: newPlan })
+          .eq('id', userId)
+
+        if (error) {
+          showToast(`Failed to update: ${error.message}`)
+          return
         }
+
+        const badge = document.getElementById(`userPlan-${userId}`)
+        if (badge) {
+          badge.textContent = newPlan
+          badge.className = `plan-badge plan-badge--${newPlan}`
+        }
+
+        const profile = allProfiles.find(p => p.id === userId)
+        if (profile) profile.plan = newPlan
+        showToast(`User plan changed to ${newPlan}`)
+      })
+    })
+
+    // Bind payment status change events
+    userWrap.querySelectorAll('.user-payment-select').forEach(select => {
+      select.addEventListener('change', async () => {
+        const userId = select.dataset.userId
+        const newPayment = select.value
+        const { error } = await _supabase
+          .from('profiles')
+          .update({ payment_status: newPayment })
+          .eq('id', userId)
+
+        if (error) {
+          showToast(`Failed to update: ${error.message}`)
+          return
+        }
+
+        const badge = document.getElementById(`userPayment-${userId}`)
+        if (badge) {
+          badge.textContent = newPayment
+          badge.className = `payment-badge payment-badge--${newPayment}`
+        }
+
+        const profile = allProfiles.find(p => p.id === userId)
+        if (profile) profile.payment_status = newPayment
+        showToast(`Payment status changed to ${newPayment}`)
       })
     })
 
@@ -606,6 +666,8 @@ function toggleUserExpand(userId) {
 
   const userDomainsList = allDomains.filter(d => d.user_id === userId)
   const status = profile.status || 'active'
+  const plan = profile.plan || 'none'
+  const payment = profile.payment_status || 'unpaid'
 
   const domainsHtml = userDomainsList.length
     ? userDomainsList.map(d => `
@@ -626,6 +688,8 @@ function toggleUserExpand(userId) {
           <div class="expand-meta__item"><span class="expand-meta__label">Email</span><span class="expand-meta__value">${escHtml(profile.email || '—')}</span></div>
           <div class="expand-meta__item"><span class="expand-meta__label">Role</span><span class="expand-meta__value"><span class="status-badge ${profile.role === 'admin' ? 'status-badge--active' : ''}">${profile.role}</span></span></div>
           <div class="expand-meta__item"><span class="expand-meta__label">Status</span><span class="expand-meta__value"><span class="status-badge status-badge--${status}">${status}</span></span></div>
+          <div class="expand-meta__item"><span class="expand-meta__label">Plan</span><span class="expand-meta__value"><span class="plan-badge plan-badge--${plan}">${plan}</span></span></div>
+          <div class="expand-meta__item"><span class="expand-meta__label">Payment</span><span class="expand-meta__value"><span class="payment-badge payment-badge--${payment}">${payment}</span></span></div>
           <div class="expand-meta__item"><span class="expand-meta__label">Joined</span><span class="expand-meta__value">${formatDate(profile.created_at)}</span></div>
         </div>
       </div>
@@ -1345,6 +1409,15 @@ function renderPagination(containerEl, tableKey, total, page, totalPages, render
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function showToast(msg, duration = 2500) {
+  const toast = document.getElementById('toast')
+  if (!toast) return
+  toast.textContent = msg
+  toast.hidden = false
+  clearTimeout(toast._timer)
+  toast._timer = setTimeout(() => { toast.hidden = true }, duration)
+}
 
 function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
