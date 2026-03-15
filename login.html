@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login — Luzerge</title>
   <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="stylesheet" href="/css/dashboard.css" />
 </head>
 <body class="auth-page">
+  <div class="grid-overlay" aria-hidden="true"></div>
 
   <div class="auth-card">
     <a href="/" class="auth-logo">
@@ -44,17 +48,22 @@
   <script src="/js/auth.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      // If already logged in, go to dashboard
+      // If already logged in, route by role
       const session = await getSession()
       if (session) {
-        window.location.replace('/dashboard.html')
+        const profile = await getProfile()
+        if (profile?.role === 'admin') {
+          window.location.replace('/admin.html')
+        } else {
+          window.location.replace('/dashboard.html')
+        }
         return
       }
 
       document.getElementById('googleBtn').addEventListener('click', async () => {
         const btn = document.getElementById('googleBtn')
         btn.disabled = true
-        btn.textContent = 'Redirecting…'
+        btn.textContent = 'Redirecting...'
 
         const { error } = await _supabase.auth.signInWithOAuth({
           provider: 'google',

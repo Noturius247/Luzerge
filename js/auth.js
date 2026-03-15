@@ -1,6 +1,6 @@
 /**
- * Luzerge — Auth helper (shared across login + dashboard pages)
- * Initializes Supabase client and exposes session utilities.
+ * Luzerge — Auth helper (shared across login + dashboard + admin pages)
+ * Initializes Supabase client and exposes session / role utilities.
  */
 
 'use strict'
@@ -29,6 +29,22 @@ async function getUser() {
 }
 
 /**
+ * Returns the user's profile (including role), or null.
+ */
+async function getProfile() {
+  const { data: { user } } = await _supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: profile } = await _supabase
+    .from('profiles')
+    .select('id, email, full_name, avatar_url, role')
+    .eq('id', user.id)
+    .single()
+
+  return profile
+}
+
+/**
  * Signs the user out and redirects to login.
  */
 async function signOut() {
@@ -47,4 +63,19 @@ async function requireAuth() {
     return null
   }
   return session
+}
+
+/**
+ * Routes user to the correct dashboard based on role.
+ * Call after login or on pages that need role-based routing.
+ */
+async function routeByRole() {
+  const profile = await getProfile()
+  if (!profile) return
+
+  if (profile.role === 'admin' && !window.location.pathname.includes('admin.html')) {
+    window.location.replace('/admin.html')
+  } else if (profile.role === 'user' && !window.location.pathname.includes('dashboard.html')) {
+    window.location.replace('/dashboard.html')
+  }
 }
