@@ -235,12 +235,17 @@ function renderApplicationsTable() {
       <td>${formatDate(d.created_at)}</td>
       <td><span class="status-badge status-badge--pending">pending</span></td>
       <td class="admin-row__actions">
-        <button class="btn btn--primary btn--sm" data-action="setup" data-id="${d.id}" type="button">Configure</button>
+        <button class="btn btn--primary btn--sm" data-action="setup" data-id="${d.id}" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Approve
+        </button>
         <button class="btn btn--outline btn--sm" data-action="lookup" data-domain="${escHtml(d.domain)}" data-id="${d.id}" type="button">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Lookup
         </button>
-        <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <button class="btn btn--ghost btn--sm btn--danger-text" data-action="reject" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          Reject
         </button>
       </td>
     </tr>
@@ -780,6 +785,12 @@ function bindTableEvents(container) {
       openDeleteModal(btn.dataset.id, btn.dataset.domain)
     })
   })
+  container.querySelectorAll('[data-action="reject"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      handleQuickReject(btn.dataset.id, btn.dataset.domain)
+    })
+  })
   container.querySelectorAll('[data-action="adminpurge"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -1281,6 +1292,25 @@ async function handleReject() {
   }
 
   closeSetupModal()
+  await loadAllDomains()
+}
+
+// ─── Quick Reject (from applications table) ──────────────────────────────────
+
+async function handleQuickReject(domainId, domainName) {
+  if (!confirm(`Reject domain "${domainName}"?`)) return
+
+  const { error } = await _supabase
+    .from('user_domains')
+    .update({ status: 'rejected', admin_notes: 'Domain rejected by admin.' })
+    .eq('id', domainId)
+
+  if (error) {
+    showToast(`Failed to reject: ${error.message}`)
+    return
+  }
+
+  showToast(`${domainName} rejected`)
   await loadAllDomains()
 }
 
