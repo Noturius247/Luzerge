@@ -332,7 +332,19 @@
             <!-- Self-managed fields (hidden by default) -->
             <div class="self-managed-fields" id="selfManagedFields" hidden>
 
-              <!-- How to connect guide -->
+              <!-- CDN Provider selector -->
+              <div class="form-group">
+                <label class="form-label" for="inputCdnProvider">CDN Provider</label>
+                <select class="form-input" id="inputCdnProvider">
+                  <option value="cloudflare">Cloudflare (full features)</option>
+                  <option value="cloudfront">AWS CloudFront</option>
+                  <option value="fastly">Fastly</option>
+                  <option value="none">None — monitoring only</option>
+                </select>
+                <span class="form-hint">Choose your CDN provider. Cloudflare offers the most features; other providers support analytics, DNS, SSL &amp; uptime monitoring.</span>
+              </div>
+
+              <!-- How to connect guide (Cloudflare only) -->
               <div class="cf-guide" id="cfGuide">
                 <button class="cf-guide__toggle" type="button" id="cfGuideToggle">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -369,20 +381,43 @@
                   </ol>
                   <div class="cf-guide__note">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Your credentials are stored securely and only used to communicate with Cloudflare's API on your behalf. We never share them.
+                    Your credentials are stored securely and only used to communicate with your CDN's API on your behalf. We never share them.
                   </div>
                 </div>
               </div>
 
-              <div class="form-group">
-                <label class="form-label" for="inputZoneId">Cloudflare Zone ID</label>
-                <input class="form-input" id="inputZoneId" type="text" placeholder="e.g. 0234a5b6c7d8e9f0..." autocomplete="off" />
-                <span class="form-hint">Found in your Cloudflare dashboard → Overview → API section (right sidebar)</span>
+              <!-- Cloudflare credential fields -->
+              <div id="cfCredentialFields">
+                <div class="form-group">
+                  <label class="form-label" for="inputZoneId">Cloudflare Zone ID</label>
+                  <input class="form-input" id="inputZoneId" type="text" placeholder="e.g. 0234a5b6c7d8e9f0..." autocomplete="off" />
+                  <span class="form-hint">Found in your Cloudflare dashboard → Overview → API section (right sidebar)</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="inputApiToken">Cloudflare API Token</label>
+                  <input class="form-input" id="inputApiToken" type="password" placeholder="Your API token" autocomplete="off" />
+                  <span class="form-hint">Create a token at My Profile → API Tokens. Use the "Edit zone DNS" template.</span>
+                </div>
               </div>
-              <div class="form-group">
-                <label class="form-label" for="inputApiToken">Cloudflare API Token</label>
-                <input class="form-input" id="inputApiToken" type="password" placeholder="Your API token" autocomplete="off" />
-                <span class="form-hint">Create a token at My Profile → API Tokens. Use the "Edit zone DNS" template.</span>
+
+              <!-- Generic credential fields (CloudFront / Fastly) -->
+              <div id="genericCredentialFields" hidden>
+                <div class="form-group">
+                  <label class="form-label" for="inputDistributionId" id="labelDistId">Distribution ID</label>
+                  <input class="form-input" id="inputDistributionId" type="text" placeholder="e.g. E1A2B3C4D5E6F7" autocomplete="off" />
+                  <span class="form-hint" id="hintDistId">Found in your CDN dashboard</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="inputCdnApiKey" id="labelCdnApiKey">API Key</label>
+                  <input class="form-input" id="inputCdnApiKey" type="password" placeholder="Your API key or token" autocomplete="off" />
+                  <span class="form-hint" id="hintCdnApiKey">Your CDN API key or access token</span>
+                </div>
+              </div>
+
+              <!-- None provider message -->
+              <div id="noneProviderMsg" class="cf-guide__note" hidden>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                No credentials needed. We'll monitor your domain's uptime, DNS records, and SSL certificate status using free public services.
               </div>
             </div>
 
@@ -507,6 +542,7 @@
           <div id="sslError" class="dash-alert dash-alert--error" hidden></div>
         </section>
         <section class="dash-panel">
+          <div id="sslSettingsSection">
           <h3 class="dash-panel__title">SSL Settings</h3>
           <div id="sslSettingsLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Loading settings...</div>
           <div class="feature-grid" id="sslSettingsGrid">
@@ -537,6 +573,7 @@
                 <label class="toggle-switch" id="toggleTls13"><input type="checkbox" data-cf-setting="min_tls_version" data-on-value="1.3" data-off-value="1.2"><span class="toggle-slider"></span></label>
               </div>
             </div>
+          </div>
           </div>
         </section>
       </div>

@@ -514,7 +514,8 @@ function initDragCards() {
   var grids = document.querySelectorAll('.services__grid, .pricing__grid')
 
   grids.forEach(function(grid) {
-    var cards = Array.from(grid.querySelectorAll('.service-card, .pricing-card'))
+    var allCards = Array.from(grid.querySelectorAll('.service-card, .pricing-card'))
+    var cards = allCards.filter(function(c) { return getComputedStyle(c).display !== 'none' })
     var count = cards.length
     var angleStep = 360 / count
     var radius = window.innerWidth <= 380 ? 180 : window.innerWidth <= 768 ? 250 : 380
@@ -524,8 +525,27 @@ function initDragCards() {
     var originX = 0
     var rafId = null
 
+    function isHidden(c) { return getComputedStyle(c).display === 'none' || c.style.display === 'none' }
+
+    // Recalculate visible cards (called when pricing mode changes)
+    grid._relayout = function() {
+      cards = allCards.filter(function(c) { return !isHidden(c) })
+      count = cards.length
+      angleStep = 360 / count
+      currentAngle = 0
+      targetAngle = 0
+      layoutCards()
+    }
+
     // Position cards in a 3D circle
     function layoutCards() {
+      allCards.forEach(function(card) {
+        if (isHidden(card)) {
+          card.style.opacity = '0'
+          card.style.zIndex = '-1'
+          return
+        }
+      })
       cards.forEach(function(card, i) {
         var cardAngle = currentAngle + (i * angleStep)
         var rad = cardAngle * (Math.PI / 180)
@@ -765,7 +785,8 @@ function initPricingToggle() {
   if (!btns.length) return
 
   const desc = document.getElementById('pricingModeDesc')
-  const freeCard = document.querySelector('[data-self-only]')
+  const selfOnlyCards = document.querySelectorAll('[data-self-only]')
+  const managedOnlyCards = document.querySelectorAll('[data-managed-only]')
 
   const descriptions = {
     self: 'You provide your own Cloudflare credentials \u2014 we provide the dashboard.',
@@ -781,13 +802,23 @@ function initPricingToggle() {
       // Update description
       if (desc) desc.textContent = descriptions[mode] || ''
 
-      // Show/hide free card (self-managed only)
-      if (freeCard) freeCard.style.display = mode === 'managed' ? 'none' : ''
+      // Show/hide mode-specific cards
+      selfOnlyCards.forEach(c => c.style.display = mode === 'managed' ? 'none' : '')
+      managedOnlyCards.forEach(c => {
+        c.style.display = mode === 'self' ? 'none' : ''
+        c.classList.toggle('pricing-card--managed-only', mode === 'self')
+      })
 
       // Swap prices
       document.querySelectorAll('[data-price-self]').forEach(el => {
         el.textContent = mode === 'managed' ? el.dataset.priceManaged : el.dataset.priceSelf
       })
+
+      // Re-layout carousel to remove gaps
+      const pricingGrid = document.querySelector('.pricing__grid')
+      if (pricingGrid && pricingGrid._relayout) {
+        setTimeout(() => pricingGrid._relayout(), 50)
+      }
     })
   })
 }

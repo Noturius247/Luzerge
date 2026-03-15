@@ -617,7 +617,10 @@ ul[role="list"] { list-style: none; }
 }
 
 .carousel-arrow {
-  flex-shrink: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -631,14 +634,22 @@ ul[role="list"] { list-style: none; }
   transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
 }
 
+.carousel-arrow--left {
+  left: -50px;
+}
+
+.carousel-arrow--right {
+  right: -50px;
+}
+
 .carousel-arrow:hover {
   background: rgba(6, 182, 212, 0.15);
   border-color: var(--color-accent);
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .carousel-arrow:active {
-  transform: scale(0.95);
+  transform: translateY(-50%) scale(0.95);
 }
 
 .services__grid {
@@ -870,15 +881,23 @@ ul[role="list"] { list-style: none; }
   color: var(--color-text-muted);
 }
 
+.pricing .section__subheading {
+  margin-bottom: 1rem;
+}
+
+.pricing-card--managed-only {
+  display: none;
+}
+
 /* Pricing mode toggle */
 .pricing-mode-toggle {
   display: flex;
   justify-content: center;
   gap: 4px;
-  margin: 0.75rem auto 0;
+  margin: 0.5rem auto 0;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 20px;
   padding: 4px;
   width: fit-content;
 }
@@ -914,7 +933,7 @@ ul[role="list"] { list-style: none; }
   text-align: center;
   font-size: 0.82rem;
   color: var(--color-text-muted);
-  margin: 0.4rem 0 1.5rem;
+  margin: 0.4rem 0 10.5rem;
 }
 
 /* ─── FAQ ───────────────────────────────────────────────────── */

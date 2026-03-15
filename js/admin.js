@@ -567,6 +567,7 @@ function renderUsersTable() {
             </select>
             <select class="form-input form-select form-select--sm user-plan-select" data-user-id="${p.id}">
               <option value="none" ${plan === 'none' ? 'selected' : ''}>No Plan</option>
+              <option value="solo" ${plan === 'solo' ? 'selected' : ''}>Solo</option>
               <option value="starter" ${plan === 'starter' ? 'selected' : ''}>Starter</option>
               <option value="pro" ${plan === 'pro' ? 'selected' : ''}>Pro</option>
               <option value="business" ${plan === 'business' ? 'selected' : ''}>Business</option>

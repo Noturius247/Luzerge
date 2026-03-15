@@ -13,8 +13,8 @@ let selectedDomainId = null
 let domainToDelete = null
 let userDomains = []
 let scannedDomain = null  // holds the domain name after a successful scan
-const PLAN_LIMITS = { none: 1, starter: 3, pro: 10, business: 50, enterprise: Infinity }
-const PLAN_PRICES = { none: 'Free', starter: '₱499/mo', pro: '₱1,499/mo', business: '₱2,999/mo', enterprise: '₱4,999/mo' }
+const PLAN_LIMITS = { none: 1, solo: 1, starter: 3, pro: 10, business: 50, enterprise: Infinity }
+const PLAN_PRICES = { none: 'Free', solo: '₱99/mo', starter: '₱299/mo', pro: '₱999/mo', business: '₱1,999/mo', enterprise: '₱3,499/mo' }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
@@ -87,6 +87,33 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('optManaged').classList.toggle('setup-mode-option--active', !isSelf)
       document.getElementById('optSelfManaged').classList.toggle('setup-mode-option--active', isSelf)
     })
+  })
+
+  // CDN provider dropdown — show/hide correct credential fields
+  document.getElementById('inputCdnProvider')?.addEventListener('change', (e) => {
+    const prov = e.target.value
+    const cfFields = document.getElementById('cfCredentialFields')
+    const genericFields = document.getElementById('genericCredentialFields')
+    const noneMsg = document.getElementById('noneProviderMsg')
+    const cfGuide = document.getElementById('cfGuide')
+
+    if (cfFields) cfFields.hidden = prov !== 'cloudflare'
+    if (genericFields) genericFields.hidden = prov === 'cloudflare' || prov === 'none'
+    if (noneMsg) noneMsg.hidden = prov !== 'none'
+    if (cfGuide) cfGuide.hidden = prov !== 'cloudflare'
+
+    // Update generic labels
+    if (prov === 'cloudfront') {
+      document.getElementById('labelDistId').textContent = 'Distribution ID'
+      document.getElementById('labelCdnApiKey').textContent = 'AWS Access Key'
+      document.getElementById('hintDistId').textContent = 'Found in CloudFront console → Distributions'
+      document.getElementById('hintCdnApiKey').textContent = 'IAM user access key with CloudFront permissions'
+    } else if (prov === 'fastly') {
+      document.getElementById('labelDistId').textContent = 'Service ID'
+      document.getElementById('labelCdnApiKey').textContent = 'API Token'
+      document.getElementById('hintDistId').textContent = 'Found in Fastly dashboard → your service → Service ID'
+      document.getElementById('hintCdnApiKey').textContent = 'Create a token at Account → API tokens'
+    }
   })
 
   // CF guide collapsible
@@ -275,9 +302,19 @@ function populateDomainSelect(selectId) {
   if (!select) return null
   const active = userDomains.filter(d => d.status === 'active')
   select.innerHTML = active.length
-    ? active.map(d => `<option value="${d.id}">${escHtml(d.domain)}</option>`).join('')
+    ? active.map(d => {
+        const prov = d.cdn_provider || 'cloudflare'
+        const label = prov === 'cloudflare' ? '' : ` [${prov}]`
+        return `<option value="${d.id}" data-provider="${prov}">${escHtml(d.domain)}${label}</option>`
+      }).join('')
     : '<option value="">No active domains</option>'
   return active.length ? active[0].id : null
+}
+
+/** Get the cdn_provider for a domain ID */
+function getDomainProvider(domainId) {
+  const d = userDomains.find(x => x.id === domainId)
+  return d?.cdn_provider || 'cloudflare'
 }
 
 // ─── CF Toggle switches — persist to Cloudflare ─────────────────────────────
@@ -291,6 +328,12 @@ function initCfToggles() {
     input.addEventListener('change', async () => {
       if (!_cfPanelDomainId) {
         showToast('Select a domain first')
+        input.checked = !input.checked
+        return
+      }
+
+      if (getDomainProvider(_cfPanelDomainId) !== 'cloudflare') {
+        showToast('Settings can only be changed for Cloudflare domains')
         input.checked = !input.checked
         return
       }
@@ -390,7 +433,7 @@ async function populateAnalytics() {
     loading.hidden = true
 
     if (!data.analytics) {
-      error.textContent = 'No analytics data available. Domain may not be connected to Cloudflare.'
+      error.textContent = data.message || 'No analytics data available for this domain.'
       error.hidden = false
       return
     }
@@ -398,8 +441,17 @@ async function populateAnalytics() {
     const a = data.analytics
     document.getElementById('anlRequests').textContent = fmtNum(a.requests_total)
     document.getElementById('anlBandwidth').textContent = formatBytes(a.bandwidth_total)
-    document.getElementById('anlVisitors').textContent = fmtNum(a.unique_visitors)
-    document.getElementById('anlCacheRate').textContent = a.cache_hit_rate + '%'
+    document.getElementById('anlVisitors').textContent = a.unique_visitors != null ? fmtNum(a.unique_visitors) : 'N/A'
+    document.getElementById('anlCacheRate').textContent = a.cache_hit_rate != null ? a.cache_hit_rate + '%' : 'N/A'
+
+    // Show provider badge
+    const provBadge = document.getElementById('anlProviderBadge')
+    if (provBadge) {
+      const prov = data.provider || 'cloudflare'
+      provBadge.textContent = prov
+      provBadge.hidden = prov === 'cloudflare'
+    }
+
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -434,56 +486,89 @@ async function populateSslPanel() {
 
   try {
     const selectedId = select.value || domainId
+    const provider = getDomainProvider(selectedId)
+    const isCf = provider === 'cloudflare'
+    const sslSettingsEl = document.getElementById('sslSettingsSection')
 
-    // Fetch certs and settings in parallel
+    // For non-CF, use ssl_check universal action; for CF, fetch certs + settings
     settingsLoading.hidden = false
-    const [certData, settingsData] = await Promise.all([
-      cfProxy(selectedId, 'ssl_certs'),
-      cfProxy(selectedId, 'settings'),
-    ])
-    loading.hidden = true
-    settingsLoading.hidden = true
 
-    // Populate cert table
-    const tbody = document.getElementById('sslBody')
-    const certs = certData.certs || []
-    if (certs.length) {
-      tbody.innerHTML = certs.map(c => {
-        const hosts = (c.hosts || []).join(', ')
-        const statusClass = c.status === 'active' ? 'active' : 'pending'
-        return `<tr>
-          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(hosts)}</td>
-          <td><span class="status-badge status-badge--${statusClass}">${escHtml(c.status)}</span></td>
-          <td>${escHtml(c.issuer || 'Cloudflare')}</td>
-          <td>${escHtml(c.type || 'universal')}</td>
-          <td>${c.expires_on ? formatDate(c.expires_on) : 'Auto-renewed'}</td>
-        </tr>`
-      }).join('')
+    if (isCf) {
+      const [certData, settingsData] = await Promise.all([
+        cfProxy(selectedId, 'ssl_certs'),
+        cfProxy(selectedId, 'settings'),
+      ])
+      loading.hidden = true
+      settingsLoading.hidden = true
+
+      // Populate cert table
+      const tbody = document.getElementById('sslBody')
+      const certs = certData.certs || []
+      if (certs.length) {
+        tbody.innerHTML = certs.map(c => {
+          const hosts = (c.hosts || []).join(', ')
+          const statusClass = c.status === 'active' ? 'active' : 'pending'
+          return `<tr>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(hosts)}</td>
+            <td><span class="status-badge status-badge--${statusClass}">${escHtml(c.status)}</span></td>
+            <td>${escHtml(c.issuer || 'Cloudflare')}</td>
+            <td>${escHtml(c.type || 'universal')}</td>
+            <td>${c.expires_on ? formatDate(c.expires_on) : 'Auto-renewed'}</td>
+          </tr>`
+        }).join('')
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No certificate packs found — Universal SSL may still be active</td></tr>'
+      }
+
+      // Show SSL settings section for CF
+      if (sslSettingsEl) sslSettingsEl.hidden = false
+
+      const s = settingsData.settings || {}
+      _cfSettings = s
+      _cfPanelDomainId = selectedId
+
+      const sslMode = s.ssl || 'off'
+      const badge = document.getElementById('sslModeBadge')
+      badge.textContent = sslMode
+      badge.className = 'status-badge ' + (sslMode === 'full' || sslMode === 'strict' ? 'status-badge--active' : 'status-badge--pending')
+
+      applyCfToggle('toggleAlwaysHttps', s.always_use_https)
+      const tls13 = s.min_tls_version === '1.3'
+      const tls13Label = document.getElementById('toggleTls13')
+      if (tls13Label) {
+        const inp = tls13Label.querySelector('input')
+        inp.checked = tls13
+        tls13Label.classList.toggle('toggle-switch--on', tls13)
+      }
     } else {
-      tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No certificate packs found — Universal SSL may still be active</td></tr>'
+      // Non-CF: use ssl_check for basic info, use ssl_certs action (edge fn routes to sslCheck)
+      const certData = await cfProxy(selectedId, 'ssl_certs')
+      loading.hidden = true
+      settingsLoading.hidden = true
+
+      const tbody = document.getElementById('sslBody')
+      if (certData.ssl_valid) {
+        const hdr = certData.headers || {}
+        tbody.innerHTML = `<tr>
+          <td>${escHtml(userDomains.find(d => d.id === selectedId)?.domain || '')}</td>
+          <td><span class="status-badge status-badge--active">Valid</span></td>
+          <td>${escHtml(hdr.server || provider)}</td>
+          <td>HTTPS check</td>
+          <td>${certData.hsts ? 'HSTS enabled' : 'No HSTS'}</td>
+        </tr>`
+      } else {
+        tbody.innerHTML = `<tr>
+          <td>${escHtml(userDomains.find(d => d.id === selectedId)?.domain || '')}</td>
+          <td><span class="status-badge status-badge--error">Invalid</span></td>
+          <td colspan="3">SSL check failed — ${escHtml(certData.error || 'Connection error')}</td>
+        </tr>`
+      }
+
+      // Hide CF-specific settings for non-CF
+      if (sslSettingsEl) sslSettingsEl.hidden = true
     }
+
     content.hidden = false
-
-    // Populate SSL settings from zone settings
-    const s = settingsData.settings || {}
-    _cfSettings = s
-    _cfPanelDomainId = selectedId
-
-    // SSL mode badge
-    const sslMode = s.ssl || 'off'
-    const badge = document.getElementById('sslModeBadge')
-    badge.textContent = sslMode
-    badge.className = 'status-badge ' + (sslMode === 'full' || sslMode === 'strict' ? 'status-badge--active' : 'status-badge--pending')
-
-    // Toggles
-    applyCfToggle('toggleAlwaysHttps', s.always_use_https)
-    const tls13 = s.min_tls_version === '1.3'
-    const tls13Label = document.getElementById('toggleTls13')
-    if (tls13Label) {
-      const inp = tls13Label.querySelector('input')
-      inp.checked = tls13
-      tls13Label.classList.toggle('toggle-switch--on', tls13)
-    }
   } catch (err) {
     loading.hidden = true
     settingsLoading.hidden = true
@@ -517,25 +602,47 @@ async function populateDnsPanel() {
 
   try {
     const selectedId = select.value || domainId
+    const provider = getDomainProvider(selectedId)
+    const isCf = provider === 'cloudflare'
     const data = await cfProxy(selectedId, 'dns_records')
     loading.hidden = true
 
-    const records = data.records || []
     const tbody = document.getElementById('dnsBody')
 
-    if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No DNS records found</td></tr>'
+    if (isCf) {
+      // CF returns array of {type, name, content, ttl, proxied}
+      const records = data.records || []
+      if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No DNS records found</td></tr>'
+      } else {
+        tbody.innerHTML = records.map(r => {
+          const ttl = r.ttl === 1 ? 'Auto' : `${r.ttl}s`
+          return `<tr>
+            <td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(r.type)}</span></td>
+            <td>${escHtml(r.name)}</td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(r.content)}">${escHtml(r.content)}</td>
+            <td>${ttl}</td>
+            <td>${r.proxied ? '<span class="status-badge status-badge--active">Proxied</span>' : '<span class="status-badge status-badge--pending">DNS only</span>'}</td>
+          </tr>`
+        }).join('')
+      }
     } else {
-      tbody.innerHTML = records.map(r => {
-        const ttl = r.ttl === 1 ? 'Auto' : `${r.ttl}s`
-        return `<tr>
-          <td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(r.type)}</span></td>
-          <td>${escHtml(r.name)}</td>
-          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(r.content)}">${escHtml(r.content)}</td>
-          <td>${ttl}</td>
-          <td>${r.proxied ? '<span class="status-badge status-badge--active">Proxied</span>' : '<span class="status-badge status-badge--pending">DNS only</span>'}</td>
-        </tr>`
-      }).join('')
+      // Non-CF: dns_lookup returns {records: {A: [{data, ttl}], CNAME: [...]}}
+      const recordMap = data.records || {}
+      const domainName = userDomains.find(d => d.id === selectedId)?.domain || ''
+      const rows = []
+      for (const [type, entries] of Object.entries(recordMap)) {
+        for (const entry of entries) {
+          rows.push(`<tr>
+            <td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(type)}</span></td>
+            <td>${escHtml(domainName)}</td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(entry.data)}">${escHtml(entry.data)}</td>
+            <td>${entry.ttl ? entry.ttl + 's' : 'N/A'}</td>
+            <td><span class="status-badge status-badge--pending">DNS lookup</span></td>
+          </tr>`)
+        }
+      }
+      tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="5" class="feature-empty">No DNS records found via lookup</td></tr>'
     }
     content.hidden = false
   } catch (err) {
@@ -570,6 +677,15 @@ async function populateMinifyPanel() {
 
   try {
     const selectedId = select.value || domainId
+    const provider = getDomainProvider(selectedId)
+
+    if (provider !== 'cloudflare') {
+      loading.hidden = true
+      error.textContent = 'Minification settings are only available for Cloudflare domains.'
+      error.hidden = false
+      return
+    }
+
     const data = await cfProxy(selectedId, 'settings')
     loading.hidden = true
 
@@ -614,6 +730,15 @@ async function populateImagesPanel() {
 
   try {
     const selectedId = select.value || domainId
+    const provider = getDomainProvider(selectedId)
+
+    if (provider !== 'cloudflare') {
+      loading.hidden = true
+      error.textContent = 'Image optimization settings are only available for Cloudflare domains.'
+      error.hidden = false
+      return
+    }
+
     const data = await cfProxy(selectedId, 'settings')
     loading.hidden = true
 
@@ -625,7 +750,6 @@ async function populateImagesPanel() {
     applyCfToggle('toggleRocketLoader', s.rocket_loader)
     applyCfToggle('toggleWebp', s.webp)
 
-    // Polish is a string value (off, lossless, lossy)
     const polishBadge = document.getElementById('imgPolishBadge')
     const polish = s.polish || 'off'
     polishBadge.textContent = polish
@@ -664,6 +788,15 @@ async function populateWafPanel() {
 
   try {
     const selectedId = select.value || domainId
+    const provider = getDomainProvider(selectedId)
+
+    if (provider !== 'cloudflare') {
+      loading.hidden = true
+      error.textContent = 'WAF / Firewall settings are only available for Cloudflare domains.'
+      error.hidden = false
+      return
+    }
+
     const data = await cfProxy(selectedId, 'settings')
     loading.hidden = true
 
@@ -671,7 +804,6 @@ async function populateWafPanel() {
     _cfSettings = s
     _cfPanelDomainId = selectedId
 
-    // Security level badge
     const levelBadge = document.getElementById('wafSecurityLevel')
     const level = s.security_level || 'medium'
     levelBadge.textContent = level.charAt(0).toUpperCase() + level.slice(1)
@@ -716,11 +848,20 @@ async function populateDdosPanel() {
 
   try {
     const selectedId = select.value || domainId
+    const provider = getDomainProvider(selectedId)
+
+    if (provider === 'none') {
+      loading.hidden = true
+      error.textContent = 'DDoS analytics are not available for monitoring-only domains.'
+      error.hidden = false
+      return
+    }
+
     const data = await cfProxy(selectedId, 'analytics', { since: '30d' })
     loading.hidden = true
 
     if (!data.analytics) {
-      error.textContent = 'No analytics data available for this domain.'
+      error.textContent = data.message || 'No analytics data available for this domain.'
       error.hidden = false
       return
     }
@@ -814,7 +955,7 @@ async function loadDomains() {
 
   const { data: domains, error } = await _supabase
     .from('user_domains')
-    .select('id, domain, status, admin_notes, last_purged_at, auto_purge_enabled, auto_purge_interval, created_at')
+    .select('id, domain, status, admin_notes, last_purged_at, auto_purge_enabled, auto_purge_interval, created_at, cdn_provider')
     .order('created_at', { ascending: false })
 
   loading.hidden = true
@@ -849,6 +990,7 @@ async function loadDomains() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </span>
           <span class="domain-card__name">${escHtml(d.domain)}</span>
+          ${d.cdn_provider && d.cdn_provider !== 'cloudflare' ? `<span class="status-badge" style="font-size:0.65rem;padding:2px 6px;background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(d.cdn_provider)}</span>` : ''}
         </div>
         <span class="domain-card__meta">
           Submitted ${formatDate(d.created_at)}
@@ -992,13 +1134,34 @@ async function handleSubmitDomain() {
 
   // Validate self-managed fields
   if (isSelfManaged) {
-    const zoneId = document.getElementById('inputZoneId').value.trim()
-    const apiToken = document.getElementById('inputApiToken').value.trim()
-    if (!zoneId || !apiToken) {
-      errEl.textContent = 'Please provide both your Cloudflare Zone ID and API Token.'
-      errEl.hidden = false
-      return
+    const provider = document.getElementById('inputCdnProvider')?.value || 'cloudflare'
+
+    if (provider === 'cloudflare') {
+      const zoneId = document.getElementById('inputZoneId').value.trim()
+      const apiToken = document.getElementById('inputApiToken').value.trim()
+      if (!zoneId || !apiToken) {
+        errEl.textContent = 'Please provide both your Cloudflare Zone ID and API Token.'
+        errEl.hidden = false
+        return
+      }
+    } else if (provider === 'cloudfront') {
+      const distId = document.getElementById('inputDistributionId').value.trim()
+      const apiKey = document.getElementById('inputCdnApiKey').value.trim()
+      if (!distId || !apiKey) {
+        errEl.textContent = 'Please provide both your CloudFront Distribution ID and AWS Access Key.'
+        errEl.hidden = false
+        return
+      }
+    } else if (provider === 'fastly') {
+      const svcId = document.getElementById('inputDistributionId').value.trim()
+      const apiKey = document.getElementById('inputCdnApiKey').value.trim()
+      if (!svcId || !apiKey) {
+        errEl.textContent = 'Please provide both your Fastly Service ID and API Token.'
+        errEl.hidden = false
+        return
+      }
     }
+    // 'none' requires no credentials
   }
 
   btn.disabled = true
@@ -1011,8 +1174,17 @@ async function handleSubmitDomain() {
   }
 
   if (isSelfManaged) {
-    insertData.cloudflare_zone_id = document.getElementById('inputZoneId').value.trim()
-    insertData.cloudflare_api_token = document.getElementById('inputApiToken').value.trim()
+    const provider = document.getElementById('inputCdnProvider')?.value || 'cloudflare'
+    insertData.cdn_provider = provider
+
+    if (provider === 'cloudflare') {
+      insertData.cloudflare_zone_id = document.getElementById('inputZoneId').value.trim()
+      insertData.cloudflare_api_token = document.getElementById('inputApiToken').value.trim()
+    } else if (provider === 'cloudfront' || provider === 'fastly') {
+      insertData.cdn_distribution_id = document.getElementById('inputDistributionId').value.trim()
+      insertData.cdn_api_key = document.getElementById('inputCdnApiKey').value.trim()
+    }
+    // 'none' = monitoring only, no credentials needed
   }
 
   const { error } = await _supabase.from('user_domains').insert(insertData)
@@ -1039,9 +1211,22 @@ async function handleSubmitDomain() {
   document.getElementById('addDomainForm').reset()
   document.getElementById('inputZoneId').value = ''
   document.getElementById('inputApiToken').value = ''
+  const distIdEl = document.getElementById('inputDistributionId')
+  const cdnKeyEl = document.getElementById('inputCdnApiKey')
+  if (distIdEl) distIdEl.value = ''
+  if (cdnKeyEl) cdnKeyEl.value = ''
+  const provSelect = document.getElementById('inputCdnProvider')
+  if (provSelect) provSelect.value = 'cloudflare'
   document.getElementById('selfManagedFields').hidden = true
   document.getElementById('optManaged').classList.add('setup-mode-option--active')
   document.getElementById('optSelfManaged').classList.remove('setup-mode-option--active')
+  // Reset provider credential fields visibility
+  const cfFields = document.getElementById('cfCredentialFields')
+  const genericFields = document.getElementById('genericCredentialFields')
+  const noneMsg = document.getElementById('noneProviderMsg')
+  if (cfFields) cfFields.hidden = false
+  if (genericFields) genericFields.hidden = true
+  if (noneMsg) noneMsg.hidden = true
   scannedDomain = null
 
   await loadDomains()
