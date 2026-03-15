@@ -105,19 +105,64 @@
           <span class="setup-domain-date" id="setupDomainDate"></span>
         </div>
 
+        <!-- Setup guide accordion -->
+        <details class="setup-guide" id="setupGuide">
+          <summary class="setup-guide__toggle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            How to get these credentials
+          </summary>
+          <div class="setup-guide__content">
+            <div class="setup-guide__section">
+              <h4 class="setup-guide__heading">
+                <span class="setup-guide__step">1</span>
+                Get the Zone ID
+              </h4>
+              <ol class="setup-guide__steps">
+                <li>Go to <strong>dash.cloudflare.com</strong> and log in</li>
+                <li>Click on the <strong>domain</strong> you want to configure</li>
+                <li>On the <strong>Overview</strong> page, scroll down the right sidebar</li>
+                <li>Find <strong>"API"</strong> section — copy the <strong>Zone ID</strong></li>
+              </ol>
+            </div>
+            <div class="setup-guide__section">
+              <h4 class="setup-guide__heading">
+                <span class="setup-guide__step">2</span>
+                Create an API Token
+              </h4>
+              <ol class="setup-guide__steps">
+                <li>Go to <strong>dash.cloudflare.com/profile/api-tokens</strong></li>
+                <li>Click <strong>"Create Token"</strong></li>
+                <li>Choose <strong>"Create Custom Token"</strong></li>
+                <li>Set the <strong>Token name</strong> (e.g., "Luzerge - domainname.com")</li>
+                <li>Add these <strong>permissions</strong>:
+                  <ul>
+                    <li><strong>Zone → Cache Purge → Purge</strong></li>
+                    <li><strong>Zone → Zone → Read</strong></li>
+                    <li><strong>Zone → DNS → Read</strong></li>
+                    <li><strong>Zone → Analytics → Read</strong></li>
+                  </ul>
+                </li>
+                <li>Under <strong>Zone Resources</strong>, select <strong>"Specific zone"</strong> → pick the domain</li>
+                <li>Click <strong>"Continue to summary"</strong> → <strong>"Create Token"</strong></li>
+                <li>Copy the token immediately — <strong>you won't see it again!</strong></li>
+              </ol>
+            </div>
+          </div>
+        </details>
+
         <form id="setupForm" novalidate>
           <div class="form-row form-row--two">
             <div class="form-group">
               <label class="form-label" for="setupZoneId">Cloudflare Zone ID</label>
               <input class="form-input" id="setupZoneId" type="text"
                 placeholder="abc123def456..." required />
-              <span class="form-hint">Dashboard → domain → Overview → right sidebar</span>
+              <span class="form-hint">Dashboard → domain → Overview → right sidebar → API</span>
             </div>
             <div class="form-group">
               <label class="form-label" for="setupApiToken">Cloudflare API Token</label>
               <input class="form-input" id="setupApiToken" type="password"
                 placeholder="Zone-level API token" required />
-              <span class="form-hint">My Profile → API Tokens → Create (Cache Purge + Zone:Read)</span>
+              <span class="form-hint">Profile → API Tokens → Create Custom Token</span>
             </div>
           </div>
           <div class="form-group">
