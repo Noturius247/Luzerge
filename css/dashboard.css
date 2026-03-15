@@ -209,7 +209,9 @@
 }
 
 .dash-page--admin .dash-main {
-  max-width: 1200px;
+  max-width: none;
+  width: 100%;
+  padding-right: 2.5rem;
 }
 
 /* ─── Welcome hero ─────────────────────────────────────────────────────────── */
