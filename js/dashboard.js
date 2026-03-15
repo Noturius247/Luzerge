@@ -1,6 +1,6 @@
 /**
  * Luzerge — User Dashboard JavaScript
- * Handles: domain submission, status monitoring, cache purge (for active domains)
+ * Handles: sidebar nav, domain submission, status monitoring, cache purge, feature panels
  */
 
 'use strict'
@@ -11,6 +11,7 @@ let currentUser = null
 let currentProfile = null
 let selectedDomainId = null
 let domainToDelete = null
+let userDomains = []
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
@@ -19,7 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await _supabase.auth.getSession()
 
   if (!session) {
-    // Listen for auth state change in case tokens are still being processed
     const { data: { subscription } } = _supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         if (event === 'SIGNED_IN' && newSession) {
@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
     )
-    // Give it a moment, then redirect if still no session
     setTimeout(async () => {
       const { data: { session: recheck } } = await _supabase.auth.getSession()
       if (!recheck) {
@@ -42,7 +41,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   currentUser = session.user
   currentProfile = await getProfile()
 
-  // If admin, redirect to admin page
   if (currentProfile?.role === 'admin') {
     window.location.replace('/admin.html')
     return
@@ -52,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const navUser = document.getElementById('navUser')
   if (navUser) navUser.textContent = currentProfile?.email || currentUser.email
 
-  // Avatar
   const navAvatar = document.getElementById('navAvatar')
   if (navAvatar && currentProfile?.avatar_url) {
     navAvatar.innerHTML = `<img src="${escHtml(currentProfile.avatar_url)}" alt="" />`
@@ -60,7 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     navAvatar.textContent = (currentProfile?.full_name || currentUser.email || '?')[0].toUpperCase()
   }
 
-  // Hero name
   const heroName = document.getElementById('heroName')
   if (heroName) {
     const firstName = (currentProfile?.full_name || '').split(' ')[0] || 'there'
@@ -92,12 +88,181 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('deleteCancelBtn')?.addEventListener('click', closeDeleteModal)
   document.getElementById('deleteConfirmBtn')?.addEventListener('click', confirmDelete)
 
+  // Sidebar
+  initSidebar()
+
+  // Toggle switches
+  initToggles()
+
   // Init starfield
   initDashStarfield()
 
   // Scroll reveals
   initScrollReveals()
 })
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+
+function initSidebar() {
+  const sidebar = document.getElementById('dashSidebar')
+  const overlay = document.getElementById('sidebarOverlay')
+  const toggle = document.getElementById('sidebarToggle')
+
+  // Sidebar nav items
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', () => {
+      switchPanel(item.dataset.panel)
+      // Close mobile sidebar
+      sidebar?.classList.remove('is-open')
+      overlay?.classList.remove('is-open')
+    })
+  })
+
+  // Mobile hamburger
+  toggle?.addEventListener('click', () => {
+    sidebar?.classList.toggle('is-open')
+    overlay?.classList.toggle('is-open')
+  })
+
+  // Overlay click to close
+  overlay?.addEventListener('click', () => {
+    sidebar?.classList.remove('is-open')
+    overlay?.classList.remove('is-open')
+  })
+}
+
+function switchPanel(panelId) {
+  // Update sidebar active state
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.classList.toggle('sidebar-item--active', item.dataset.panel === panelId)
+  })
+
+  // Hide all panels, show target
+  document.querySelectorAll('[data-feature-panel]').forEach(panel => {
+    panel.hidden = true
+  })
+
+  const target = document.getElementById('panel' + panelId.charAt(0).toUpperCase() + panelId.slice(1))
+  if (target) {
+    target.hidden = false
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // Populate mock data for panels that need it
+  if (panelId === 'ssl') populateSslTable()
+  if (panelId === 'dns') populateDnsTable()
+  if (panelId === 'uptime') populateUptime()
+}
+
+// ─── Toggle switches ──────────────────────────────────────────────────────────
+
+function initToggles() {
+  document.querySelectorAll('.toggle-switch input').forEach(input => {
+    input.addEventListener('change', () => {
+      const label = input.closest('.toggle-switch')
+      label.classList.toggle('toggle-switch--on', input.checked)
+      showToast('Settings saved')
+    })
+  })
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast')
+  if (!toast) return
+  toast.textContent = msg
+  toast.hidden = false
+  clearTimeout(toast._timer)
+  toast._timer = setTimeout(() => { toast.hidden = true }, 2000)
+}
+
+// ─── Mock data populators ─────────────────────────────────────────────────────
+
+function populateSslTable() {
+  const tbody = document.getElementById('sslBody')
+  if (!tbody || !userDomains.length) return
+
+  const activeDomains = userDomains.filter(d => d.status === 'active')
+  if (!activeDomains.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No active domains yet</td></tr>'
+    return
+  }
+
+  tbody.innerHTML = activeDomains.map(d => {
+    const expiry = new Date()
+    expiry.setMonth(expiry.getMonth() + 3)
+    return `<tr>
+      <td>${escHtml(d.domain)}</td>
+      <td><span class="status-badge status-badge--active">Active</span></td>
+      <td>Let's Encrypt</td>
+      <td>${formatDate(expiry.toISOString())}</td>
+      <td><span class="status-badge status-badge--active">On</span></td>
+    </tr>`
+  }).join('')
+}
+
+function populateDnsTable() {
+  const tbody = document.getElementById('dnsBody')
+  if (!tbody || !userDomains.length) return
+
+  const activeDomains = userDomains.filter(d => d.status === 'active')
+  if (!activeDomains.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No active domains yet</td></tr>'
+    return
+  }
+
+  const records = []
+  activeDomains.forEach(d => {
+    records.push(
+      { type: 'A', name: d.domain, value: '104.21.xx.xx', ttl: 'Auto', proxied: true },
+      { type: 'AAAA', name: d.domain, value: '2606:4700:xxxx::xxxx', ttl: 'Auto', proxied: true },
+      { type: 'CNAME', name: `www.${d.domain}`, value: d.domain, ttl: 'Auto', proxied: true },
+    )
+  })
+
+  tbody.innerHTML = records.map(r => `<tr>
+    <td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${r.type}</span></td>
+    <td>${escHtml(r.name)}</td>
+    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(r.value)}</td>
+    <td>${r.ttl}</td>
+    <td>${r.proxied ? '<span class="status-badge status-badge--active">Proxied</span>' : 'DNS only'}</td>
+  </tr>`).join('')
+}
+
+function populateUptime() {
+  const container = document.getElementById('uptimeList')
+  if (!container || !userDomains.length) return
+
+  const activeDomains = userDomains.filter(d => d.status === 'active')
+  if (!activeDomains.length) {
+    container.innerHTML = `<div class="uptime-empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <p>No active domains to monitor</p>
+      <span>Domains will appear here once approved</span>
+    </div>`
+    return
+  }
+
+  container.innerHTML = activeDomains.map(d => {
+    // Generate random uptime bars (24 blocks for 24 hours)
+    const blocks = Array.from({ length: 24 }, () => {
+      const r = Math.random()
+      return r < 0.95 ? 'up' : r < 0.98 ? 'down' : 'unknown'
+    })
+    const upCount = blocks.filter(b => b === 'up').length
+    const pct = ((upCount / 24) * 100).toFixed(1)
+    const pctClass = pct >= 99 ? 'good' : pct >= 95 ? 'warn' : 'bad'
+
+    return `<div class="uptime-card">
+      <div class="uptime-card__top">
+        <span class="uptime-card__domain">${escHtml(d.domain)}</span>
+        <span class="uptime-card__pct uptime-card__pct--${pctClass}">${pct}%</span>
+      </div>
+      <div class="uptime-bar">
+        ${blocks.map(b => `<div class="uptime-bar__block uptime-bar__block--${b}"></div>`).join('')}
+      </div>
+    </div>`
+  }).join('')
+}
 
 // ─── Load domains ─────────────────────────────────────────────────────────────
 
@@ -123,7 +288,8 @@ async function loadDomains() {
     return
   }
 
-  // Update hero stats
+  userDomains = domains || []
+
   const total = domains.length
   const active = domains.filter(d => d.status === 'active').length
   const pending = domains.filter(d => d.status === 'pending').length
@@ -159,11 +325,11 @@ async function loadDomains() {
           ${statusIcon(d.status)}
           ${d.status}
         </span>
-        ${d.status === 'active' ? `<button class="btn btn--outline btn--sm" data-action="view" data-id="${d.id}">
+        ${d.status === 'active' ? `<button class="btn btn--outline btn--sm" data-action="view" data-id="${d.id}" type="button">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Stats
         </button>` : ''}
-        <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}">
+        <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
       </div>
@@ -179,8 +345,7 @@ async function loadDomains() {
   })
   list.querySelectorAll('.domain-card').forEach(card => {
     card.addEventListener('click', () => {
-      const status = card.classList.contains('domain-card--active') ? 'active' : null
-      if (status === 'active') openDetail(card.dataset.id)
+      if (card.classList.contains('domain-card--active')) openDetail(card.dataset.id)
     })
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && card.classList.contains('domain-card--active')) {
@@ -253,7 +418,6 @@ async function handleAddDomain(e) {
     return
   }
 
-  // Success
   successEl.innerHTML = `<strong>${escHtml(domain)}</strong> submitted! Our team will set it up and you'll see it go <span class="status-badge status-badge--active" style="display:inline-flex;vertical-align:middle;margin:0 4px">active</span> once ready.`
   successEl.hidden = false
   document.getElementById('addDomainForm').reset()
@@ -269,6 +433,9 @@ function showAddError(msg) {
 // ─── Domain detail ────────────────────────────────────────────────────────────
 
 async function openDetail(domainId) {
+  // Make sure we're on the overview panel
+  switchPanel('overview')
+
   selectedDomainId = domainId
   document.getElementById('detailPanel').hidden = false
   document.getElementById('detailPanel').scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -360,7 +527,7 @@ async function loadStats(domainId) {
 
 function switchPurgeTab(tab) {
   document.querySelectorAll('.purge-tab').forEach(t => t.classList.remove('purge-tab--active'))
-  document.querySelector(`[data-tab="${tab}"]`).classList.add('purge-tab--active')
+  document.querySelector(`[data-tab="${tab}"]`)?.classList.add('purge-tab--active')
   document.getElementById('purgeEverything').hidden = tab !== 'everything'
   document.getElementById('purgeUrls').hidden = tab !== 'urls'
 }

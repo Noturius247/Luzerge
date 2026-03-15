@@ -17,10 +17,15 @@
 
   <!-- ─── Top Nav ─────────────────────────────────────────────────────────── -->
   <header class="dash-nav">
-    <a href="/" class="dash-nav__logo">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg>
-      Luzerge
-    </a>
+    <div class="dash-nav__left">
+      <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="/" class="dash-nav__logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg>
+        Luzerge
+      </a>
+    </div>
     <div class="dash-nav__right">
       <div class="dash-nav__avatar" id="navAvatar"></div>
       <span class="dash-nav__user" id="navUser"></span>
@@ -28,175 +33,558 @@
     </div>
   </header>
 
-  <!-- ─── Main ────────────────────────────────────────────────────────────── -->
-  <main class="dash-main">
+  <!-- ─── Layout: Sidebar + Main ──────────────────────────────────────────── -->
+  <div class="dash-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Welcome hero -->
-    <section class="dash-hero" data-scroll-reveal>
-      <div class="dash-hero__text">
-        <h1 class="dash-hero__title">Welcome back, <span class="text-accent" id="heroName">there</span></h1>
-        <p class="dash-hero__sub">Submit your domain and we'll handle the technical setup for you. Track your website's cache status in real time.</p>
-      </div>
-      <div class="dash-hero__stats">
-        <div class="mini-stat">
-          <span class="mini-stat__value" id="statTotal">0</span>
-          <span class="mini-stat__label">Domains</span>
-        </div>
-        <div class="mini-stat">
-          <span class="mini-stat__value" id="statActive">0</span>
-          <span class="mini-stat__label">Active</span>
-        </div>
-        <div class="mini-stat">
-          <span class="mini-stat__value" id="statPending">0</span>
-          <span class="mini-stat__label">Pending</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Submit Domain -->
-    <section class="dash-panel dash-panel--glow" id="addDomainPanel" data-scroll-reveal>
-      <div class="dash-panel__icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      </div>
-      <h2 class="dash-panel__title">Submit a Website</h2>
-      <p class="dash-panel__desc">
-        Just enter your domain name — our team will configure everything else (Cloudflare Zone ID, API tokens, DNS). You'll be notified once it's live.
-      </p>
-      <form class="submit-domain-form" id="addDomainForm" novalidate>
-        <div class="form-row form-row--inline">
-          <div class="form-group form-group--grow">
-            <label class="form-label" for="inputDomain">Your Domain</label>
-            <div class="input-with-prefix">
-              <span class="input-prefix">https://</span>
-              <input class="form-input" id="inputDomain" type="text"
-                placeholder="yourdomain.com" required autocomplete="off" />
-            </div>
-            <span class="form-hint">We'll handle DNS, SSL, and cache setup for you</span>
-          </div>
-          <button class="btn btn--primary btn--glow" type="submit" id="addDomainBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Submit Domain
-          </button>
-        </div>
-        <div id="addDomainError" class="dash-alert dash-alert--error" hidden></div>
-        <div id="addDomainSuccess" class="dash-alert dash-alert--success" hidden></div>
-      </form>
-    </section>
-
-    <!-- Domains List -->
-    <section class="dash-panel" id="domainsPanel" data-scroll-reveal>
-      <div class="dash-panel__header">
-        <h2 class="dash-panel__title">Your Domains</h2>
-        <span class="domain-count" id="domainCount"></span>
-      </div>
-
-      <div id="domainsLoading" class="dash-loading">
-        <div class="loading-dots">
-          <span></span><span></span><span></span>
-        </div>
-        Loading your domains...
-      </div>
-      <div id="domainsEmpty" class="dash-empty" hidden>
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <p>No domains yet</p>
-        <span>Submit your first domain above to get started</span>
-      </div>
-
-      <div class="domains-list" id="domainsList"></div>
-    </section>
-
-    <!-- Domain Detail (shown when an active domain is selected) -->
-    <section class="dash-panel dash-panel--detail" id="detailPanel" hidden data-scroll-reveal>
-      <div class="dash-panel__header">
-        <h2 class="dash-panel__title" id="detailTitle">Domain Details</h2>
-        <button class="btn btn--ghost btn--sm" id="closeDetailBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-          Back
+    <aside class="dash-sidebar" id="dashSidebar">
+      <nav class="sidebar-nav">
+        <span class="sidebar-section-label">Main</span>
+        <button type="button" class="sidebar-item sidebar-item--active" data-panel="overview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Overview
         </button>
+
+        <span class="sidebar-section-label">Performance</span>
+        <button type="button" class="sidebar-item" data-panel="analytics">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Analytics
+        </button>
+        <button type="button" class="sidebar-item" data-panel="minify">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Minification
+        </button>
+        <button type="button" class="sidebar-item" data-panel="images">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Image Optimization
+        </button>
+
+        <span class="sidebar-section-label">Network</span>
+        <button type="button" class="sidebar-item" data-panel="ssl">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          SSL / TLS
+        </button>
+        <button type="button" class="sidebar-item" data-panel="dns">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          DNS Management
+        </button>
+
+        <span class="sidebar-section-label">Security</span>
+        <button type="button" class="sidebar-item" data-panel="waf">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          WAF / Firewall
+        </button>
+        <button type="button" class="sidebar-item" data-panel="ddos">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          DDoS Protection
+        </button>
+        <button type="button" class="sidebar-item" data-panel="uptime">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Uptime Monitoring
+        </button>
+      </nav>
+    </aside>
+
+    <main class="dash-main">
+
+      <!-- ═══════════════════ OVERVIEW PANEL ═══════════════════ -->
+      <div id="panelOverview" data-feature-panel>
+
+        <section class="dash-hero" data-scroll-reveal>
+          <div class="dash-hero__text">
+            <h1 class="dash-hero__title">Welcome back, <span class="text-accent" id="heroName">there</span></h1>
+            <p class="dash-hero__sub">Submit your domain and we'll handle the technical setup for you. Track your website's cache status in real time.</p>
+          </div>
+          <div class="dash-hero__stats">
+            <div class="mini-stat">
+              <span class="mini-stat__value" id="statTotal">0</span>
+              <span class="mini-stat__label">Domains</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__value" id="statActive">0</span>
+              <span class="mini-stat__label">Active</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__value" id="statPending">0</span>
+              <span class="mini-stat__label">Pending</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="dash-panel dash-panel--glow" id="addDomainPanel" data-scroll-reveal>
+          <div class="dash-panel__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h2 class="dash-panel__title">Submit a Website</h2>
+          <p class="dash-panel__desc">Just enter your domain name — our team will configure everything else (Cloudflare Zone ID, API tokens, DNS). You'll be notified once it's live.</p>
+          <form class="submit-domain-form" id="addDomainForm" novalidate>
+            <div class="form-row form-row--inline">
+              <div class="form-group form-group--grow">
+                <label class="form-label" for="inputDomain">Your Domain</label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix">https://</span>
+                  <input class="form-input" id="inputDomain" type="text" placeholder="yourdomain.com" required autocomplete="off" />
+                </div>
+                <span class="form-hint">We'll handle DNS, SSL, and cache setup for you</span>
+              </div>
+              <button class="btn btn--primary btn--glow" type="submit" id="addDomainBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Submit Domain
+              </button>
+            </div>
+            <div id="addDomainError" class="dash-alert dash-alert--error" hidden></div>
+            <div id="addDomainSuccess" class="dash-alert dash-alert--success" hidden></div>
+          </form>
+        </section>
+
+        <section class="dash-panel" id="domainsPanel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Your Domains</h2>
+            <span class="domain-count" id="domainCount"></span>
+          </div>
+          <div id="domainsLoading" class="dash-loading">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            Loading your domains...
+          </div>
+          <div id="domainsEmpty" class="dash-empty" hidden>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <p>No domains yet</p>
+            <span>Submit your first domain above to get started</span>
+          </div>
+          <div class="domains-list" id="domainsList"></div>
+        </section>
+
+        <section class="dash-panel dash-panel--detail" id="detailPanel" hidden data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title" id="detailTitle">Domain Details</h2>
+            <button class="btn btn--ghost btn--sm" id="closeDetailBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Back
+            </button>
+          </div>
+          <div class="stats-row" id="detailStats">
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+              <span class="stat-box__value" id="statRequests">—</span>
+              <span class="stat-box__label">Requests (24h)</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+              <span class="stat-box__value" id="statCacheRate">—</span>
+              <span class="stat-box__label">Cache Hit Rate</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+              <span class="stat-box__value" id="statThreats">—</span>
+              <span class="stat-box__label">Threats Blocked</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
+              <span class="stat-box__value" id="statPurges">—</span>
+              <span class="stat-box__label">Purges (30d)</span>
+            </div>
+          </div>
+          <div class="purge-section">
+            <h3 class="purge-section__title">Purge Cache</h3>
+            <div class="purge-tabs">
+              <button class="purge-tab purge-tab--active" data-tab="everything" type="button">Everything</button>
+              <button class="purge-tab" data-tab="urls" type="button">Specific URLs</button>
+            </div>
+            <div id="purgeEverything">
+              <p class="purge-desc">Clears the entire Cloudflare cache for this domain.</p>
+              <button class="btn btn--danger btn--glow-red" id="purgeEverythingBtn" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Purge Everything
+              </button>
+            </div>
+            <div id="purgeUrls" hidden>
+              <p class="purge-desc">Enter one URL per line to purge specific pages only.</p>
+              <textarea class="form-input form-textarea" id="urlsToPurge" placeholder="https://yourdomain.com/page&#10;https://yourdomain.com/blog/post-1" rows="4"></textarea>
+              <button class="btn btn--primary" id="purgeUrlsBtn" type="button">Purge Selected URLs</button>
+            </div>
+            <div id="purgeSuccess" class="dash-alert dash-alert--success" hidden></div>
+            <div id="purgeError" class="dash-alert dash-alert--error" hidden></div>
+          </div>
+          <div class="history-section">
+            <h3 class="history-section__title">Recent Purges</h3>
+            <div id="historyLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading...</div>
+            <table class="history-table" id="historyTable" hidden>
+              <thead><tr><th>Date</th><th>Type</th><th>Status</th></tr></thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+            <div id="historyEmpty" class="dash-empty dash-empty--sm" hidden>No purge history yet.</div>
+          </div>
+        </section>
       </div>
 
-      <!-- Stats row -->
-      <div class="stats-row" id="detailStats">
-        <div class="stat-box">
-          <span class="stat-box__icon stat-box__icon--blue">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </span>
-          <span class="stat-box__value" id="statRequests">—</span>
-          <span class="stat-box__label">Requests (24h)</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-box__icon stat-box__icon--cyan">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </span>
-          <span class="stat-box__value" id="statCacheRate">—</span>
-          <span class="stat-box__label">Cache Hit Rate</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-box__icon stat-box__icon--purple">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </span>
-          <span class="stat-box__value" id="statThreats">—</span>
-          <span class="stat-box__label">Threats Blocked</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-box__icon stat-box__icon--amber">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          </span>
-          <span class="stat-box__value" id="statPurges">—</span>
-          <span class="stat-box__label">Purges (30d)</span>
-        </div>
+      <!-- ═══════════════════ SSL / TLS PANEL ═══════════════════ -->
+      <div id="panelSsl" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">SSL / TLS Certificates</h2>
+            <span class="status-badge status-badge--active">Protected</span>
+          </div>
+          <p class="dash-panel__desc">Monitor SSL certificate status for all your domains. Certificates are automatically provisioned and renewed.</p>
+          <div class="feature-table-wrap">
+            <table class="history-table" id="sslTable">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Status</th>
+                  <th>Issuer</th>
+                  <th>Expires</th>
+                  <th>Auto-Renew</th>
+                </tr>
+              </thead>
+              <tbody id="sslBody">
+                <tr><td colspan="5" class="feature-empty">Submit a domain to see SSL status</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="dash-panel">
+          <h3 class="dash-panel__title">SSL Settings</h3>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Full (Strict) Mode</span>
+                  <span class="feature-card__desc">End-to-end encryption with certificate validation</span>
+                </div>
+                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Always Use HTTPS</span>
+                  <span class="feature-card__desc">Redirect all HTTP requests to HTTPS</span>
+                </div>
+                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">HSTS</span>
+                  <span class="feature-card__desc">HTTP Strict Transport Security headers</span>
+                </div>
+                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">TLS 1.3</span>
+                  <span class="feature-card__desc">Enable the latest TLS protocol version</span>
+                </div>
+                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <!-- Purge controls -->
-      <div class="purge-section">
-        <h3 class="purge-section__title">Purge Cache</h3>
-        <div class="purge-tabs">
-          <button class="purge-tab purge-tab--active" data-tab="everything">Everything</button>
-          <button class="purge-tab" data-tab="urls">Specific URLs</button>
-        </div>
-
-        <div id="purgeEverything">
-          <p class="purge-desc">Clears the entire Cloudflare cache for this domain. Visitors will get fresh content on their next request.</p>
-          <button class="btn btn--danger btn--glow-red" id="purgeEverythingBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Purge Everything
-          </button>
-        </div>
-
-        <div id="purgeUrls" hidden>
-          <p class="purge-desc">Enter one URL per line to purge specific pages only.</p>
-          <textarea class="form-input form-textarea" id="urlsToPurge"
-            placeholder="https://yourdomain.com/page&#10;https://yourdomain.com/blog/post-1"
-            rows="4"></textarea>
-          <button class="btn btn--primary" id="purgeUrlsBtn">Purge Selected URLs</button>
-        </div>
-
-        <div id="purgeSuccess" class="dash-alert dash-alert--success" hidden></div>
-        <div id="purgeError" class="dash-alert dash-alert--error" hidden></div>
+      <!-- ═══════════════════ DNS PANEL ═══════════════════ -->
+      <div id="panelDns" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">DNS Management</h2>
+            <button class="btn btn--primary btn--sm" type="button" disabled title="Coming soon">+ Add Record</button>
+          </div>
+          <p class="dash-panel__desc">View and manage DNS records for your domains. Records are configured by our team during setup.</p>
+          <div class="feature-table-wrap">
+            <table class="history-table" id="dnsTable">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Name</th>
+                  <th>Value</th>
+                  <th>TTL</th>
+                  <th>Proxied</th>
+                </tr>
+              </thead>
+              <tbody id="dnsBody">
+                <tr><td colspan="5" class="feature-empty">DNS records will appear once your domain is active</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
 
-      <!-- Purge History -->
-      <div class="history-section">
-        <h3 class="history-section__title">Recent Purges</h3>
-        <div id="historyLoading" class="dash-loading">
-          <div class="loading-dots"><span></span><span></span><span></span></div>
-          Loading...
-        </div>
-        <table class="history-table" id="historyTable" hidden>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Type</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="historyBody"></tbody>
-        </table>
-        <div id="historyEmpty" class="dash-empty dash-empty--sm" hidden>No purge history yet.</div>
+      <!-- ═══════════════════ ANALYTICS PANEL ═══════════════════ -->
+      <div id="panelAnalytics" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Analytics</h2>
+            <div class="date-range-pills">
+              <button type="button" class="purge-tab purge-tab--active">24h</button>
+              <button type="button" class="purge-tab">7d</button>
+              <button type="button" class="purge-tab">30d</button>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+              <span class="stat-box__value" id="anlRequests">12.4K</span>
+              <span class="stat-box__label">Total Requests</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+              <span class="stat-box__value" id="anlBandwidth">2.8 GB</span>
+              <span class="stat-box__label">Bandwidth</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+              <span class="stat-box__value" id="anlVisitors">1.2K</span>
+              <span class="stat-box__label">Unique Visitors</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+              <span class="stat-box__value" id="anlCacheRate">94.2%</span>
+              <span class="stat-box__label">Cache Hit Rate</span>
+            </div>
+          </div>
+        </section>
+        <section class="dash-panel">
+          <h3 class="dash-panel__title">Traffic Overview</h3>
+          <div class="chart-placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <p>Interactive charts coming soon</p>
+            <span>Real-time traffic visualization will be available here</span>
+          </div>
+        </section>
       </div>
-    </section>
 
-  </main>
+      <!-- ═══════════════════ WAF / FIREWALL PANEL ═══════════════════ -->
+      <div id="panelWaf" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">WAF / Firewall Rules</h2>
+            <span class="status-badge status-badge--active">Active</span>
+          </div>
+          <p class="dash-panel__desc">Manage Web Application Firewall rules to protect your websites from common attacks.</p>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Bot Protection</span>
+                  <span class="feature-card__desc">Block known malicious bots and crawlers</span>
+                </div>
+                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">SQL Injection Prevention</span>
+                  <span class="feature-card__desc">Block SQL injection attempts in requests</span>
+                </div>
+                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">XSS Protection</span>
+                  <span class="feature-card__desc">Prevent cross-site scripting attacks</span>
+                </div>
+                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Rate Limiting</span>
+                  <span class="feature-card__desc">Limit requests per IP to prevent abuse</span>
+                </div>
+                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Geo Blocking</span>
+                  <span class="feature-card__desc">Block traffic from specific countries</span>
+                </div>
+                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Hotlink Protection</span>
+                  <span class="feature-card__desc">Prevent other sites from embedding your assets</span>
+                </div>
+                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ IMAGE OPTIMIZATION PANEL ═══════════════════ -->
+      <div id="panelImages" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Image Optimization</h2>
+          </div>
+          <p class="dash-panel__desc">Automatically optimize images to reduce page load times and save bandwidth.</p>
+          <div class="stats-row stats-row--mb">
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
+              <span class="stat-box__value">0</span>
+              <span class="stat-box__label">Images Optimized</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+              <span class="stat-box__value">0 KB</span>
+              <span class="stat-box__label">Bandwidth Saved</span>
+            </div>
+          </div>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Auto WebP Conversion</span>
+                  <span class="feature-card__desc">Serve WebP images to supported browsers</span>
+                </div>
+                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Lazy Loading</span>
+                  <span class="feature-card__desc">Load images only when they enter the viewport</span>
+                </div>
+                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Lossy Compression</span>
+                  <span class="feature-card__desc">Reduce image size with minimal quality loss</span>
+                </div>
+                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__info">
+                  <span class="feature-card__name">Resize Large Images</span>
+                  <span class="feature-card__desc">Auto-resize images larger than 2000px</span>
+                </div>
+                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MINIFICATION PANEL ═══════════════════ -->
+      <div id="panelMinify" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Minification</h2>
+          </div>
+          <p class="dash-panel__desc">Remove unnecessary characters from HTML, CSS, and JavaScript files to reduce file sizes and improve load times.</p>
+          <div class="feature-grid feature-grid--three">
+            <div class="feature-card feature-card--center">
+              <div class="feature-card__icon feature-card__icon--orange">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </div>
+              <span class="feature-card__name">HTML</span>
+              <span class="feature-card__desc">Minify HTML output</span>
+              <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="feature-card feature-card--center">
+              <div class="feature-card__icon feature-card__icon--blue">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 8h3v8H8z"/></svg>
+              </div>
+              <span class="feature-card__name">CSS</span>
+              <span class="feature-card__desc">Minify CSS files</span>
+              <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="feature-card feature-card--center">
+              <div class="feature-card__icon feature-card__icon--yellow">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4H4v16h16V4z"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+              </div>
+              <span class="feature-card__name">JavaScript</span>
+              <span class="feature-card__desc">Minify JS files</span>
+              <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ UPTIME MONITORING PANEL ═══════════════════ -->
+      <div id="panelUptime" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Uptime Monitoring</h2>
+          </div>
+          <p class="dash-panel__desc">Monitor your website availability with checks every 5 minutes. Get notified when your site goes down.</p>
+          <div id="uptimeList" class="uptime-list">
+            <div class="uptime-empty">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <p>No domains to monitor</p>
+              <span>Submit a domain in Overview to start monitoring</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ DDOS PROTECTION PANEL ═══════════════════ -->
+      <div id="panelDdos" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">DDoS Protection</h2>
+            <span class="threat-badge threat-badge--low">Threat Level: Low</span>
+          </div>
+          <p class="dash-panel__desc">Always-on DDoS mitigation powered by Cloudflare's global network.</p>
+          <div class="stats-row stats-row--mb">
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+              <span class="stat-box__value">0</span>
+              <span class="stat-box__label">Attacks Mitigated (30d)</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+              <span class="stat-box__value">0</span>
+              <span class="stat-box__label">Blocked Requests</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+              <span class="stat-box__value">0ms</span>
+              <span class="stat-box__label">Avg. Response Time</span>
+            </div>
+          </div>
+        </section>
+        <section class="dash-panel">
+          <h3 class="dash-panel__title">Recent Events</h3>
+          <div class="feature-table-wrap">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Duration</th>
+                  <th>Blocked</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5" class="feature-empty">No attacks detected — your sites are safe</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+    </main>
+  </div>
 
   <!-- Delete confirm modal -->
   <div class="modal-backdrop" id="deleteModal" hidden>
@@ -207,11 +595,14 @@
       <h3 class="modal__title">Remove Domain?</h3>
       <p class="modal__desc" id="deleteModalDesc"></p>
       <div class="modal__actions">
-        <button class="btn btn--outline" id="deleteCancelBtn">Cancel</button>
-        <button class="btn btn--danger" id="deleteConfirmBtn">Remove</button>
+        <button class="btn btn--outline" id="deleteCancelBtn" type="button">Cancel</button>
+        <button class="btn btn--danger" id="deleteConfirmBtn" type="button">Remove</button>
       </div>
     </div>
   </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast" hidden></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/js/config.js"></script>
