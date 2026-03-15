@@ -870,6 +870,53 @@ ul[role="list"] { list-style: none; }
   color: var(--color-text-muted);
 }
 
+/* Pricing mode toggle */
+.pricing-mode-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 1.5rem auto 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.pricing-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.55rem 1.2rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pricing-mode-btn:hover:not(.pricing-mode-btn--active) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pricing-mode-btn--active {
+  background: var(--color-brand);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.pricing-mode-desc {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin: 0.75rem 0 0;
+}
+
 /* ─── FAQ ───────────────────────────────────────────────────── */
 .faq {
   padding: clamp(3rem, 8vw, 6rem) 0;

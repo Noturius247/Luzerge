@@ -755,4 +755,39 @@ document.addEventListener('DOMContentLoaded', () => {
   initDragCards()
   setFooterYear()
   initPageTracking()
+  initPricingToggle()
 })
+
+// ─── Pricing mode toggle (Self-managed vs Managed) ──────────────────────────
+
+function initPricingToggle() {
+  const btns = document.querySelectorAll('.pricing-mode-btn')
+  if (!btns.length) return
+
+  const desc = document.getElementById('pricingModeDesc')
+  const freeCard = document.querySelector('[data-self-only]')
+
+  const descriptions = {
+    self: 'You provide your own Cloudflare credentials \u2014 we provide the dashboard.',
+    managed: 'Our team sets up and manages Cloudflare for you \u2014 fully hands-off.',
+  }
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.mode
+      btns.forEach(b => b.classList.remove('pricing-mode-btn--active'))
+      btn.classList.add('pricing-mode-btn--active')
+
+      // Update description
+      if (desc) desc.textContent = descriptions[mode] || ''
+
+      // Show/hide free card (self-managed only)
+      if (freeCard) freeCard.style.display = mode === 'managed' ? 'none' : ''
+
+      // Swap prices
+      document.querySelectorAll('[data-price-self]').forEach(el => {
+        el.textContent = mode === 'managed' ? el.dataset.priceManaged : el.dataset.priceSelf
+      })
+    })
+  })
+}

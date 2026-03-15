@@ -331,6 +331,49 @@
 
             <!-- Self-managed fields (hidden by default) -->
             <div class="self-managed-fields" id="selfManagedFields" hidden>
+
+              <!-- How to connect guide -->
+              <div class="cf-guide" id="cfGuide">
+                <button class="cf-guide__toggle" type="button" id="cfGuideToggle">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  How to connect your domain to Cloudflare
+                  <svg class="cf-guide__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cf-guide__body" id="cfGuideBody" hidden>
+                  <p class="cf-guide__intro">Your domain can be on <strong>any hosting provider</strong> (GoDaddy, Hostinger, AWS, VPS, etc.). Cloudflare sits in front as a reverse proxy — your origin server stays the same.</p>
+                  <ol class="cf-guide__steps">
+                    <li>
+                      <strong>Create a free Cloudflare account</strong>
+                      <span>Go to <a href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener">dash.cloudflare.com/sign-up</a> and sign up</span>
+                    </li>
+                    <li>
+                      <strong>Add your domain</strong>
+                      <span>Click "Add a Site", enter your domain, and select the Free plan</span>
+                    </li>
+                    <li>
+                      <strong>Change your nameservers</strong>
+                      <span>Cloudflare will give you two nameservers (e.g. <code>anna.ns.cloudflare.com</code>). Update these at your domain registrar (GoDaddy, Namecheap, etc.). This usually takes 5–30 minutes to propagate.</span>
+                    </li>
+                    <li>
+                      <strong>Get your Zone ID</strong>
+                      <span>In Cloudflare dashboard → your domain → <strong>Overview</strong> → scroll down to the <strong>API</strong> section on the right sidebar. Copy the <strong>Zone ID</strong>.</span>
+                    </li>
+                    <li>
+                      <strong>Create an API Token</strong>
+                      <span>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener">My Profile → API Tokens</a> → <strong>Create Token</strong> → use the <strong>"Edit zone DNS"</strong> template → under <strong>Zone Resources</strong>, select your domain → <strong>Continue to summary</strong> → <strong>Create Token</strong>. Copy the token.</span>
+                    </li>
+                    <li>
+                      <strong>Paste below</strong>
+                      <span>Enter both values in the fields below and submit. All panels will show live data instantly.</span>
+                    </li>
+                  </ol>
+                  <div class="cf-guide__note">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Your credentials are stored securely and only used to communicate with Cloudflare's API on your behalf. We never share them.
+                  </div>
+                </div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label" for="inputZoneId">Cloudflare Zone ID</label>
                 <input class="form-input" id="inputZoneId" type="text" placeholder="e.g. 0234a5b6c7d8e9f0..." autocomplete="off" />
@@ -339,7 +382,7 @@
               <div class="form-group">
                 <label class="form-label" for="inputApiToken">Cloudflare API Token</label>
                 <input class="form-input" id="inputApiToken" type="password" placeholder="Your API token" autocomplete="off" />
-                <span class="form-hint">Create a token at Cloudflare → My Profile → API Tokens. Use the "Edit zone" template for full access.</span>
+                <span class="form-hint">Create a token at My Profile → API Tokens. Use the "Edit zone DNS" template.</span>
               </div>
             </div>
 

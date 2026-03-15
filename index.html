@@ -6,7 +6,7 @@
 
   <!-- SEO -->
   <title>Luzerge — Fast, Affordable CDN for Philippine Websites</title>
-  <meta name="description" content="Speed up your website with Luzerge CDN. Global edge caching, DDoS protection, and one-click cache purge. Starting at ₱99/month. No setup fees." />
+  <meta name="description" content="Speed up your website with Luzerge CDN. Global edge caching, DDoS protection, and one-click cache purge. Free for 1 domain. Managed plans from ₱699/month." />
   <meta name="keywords" content="CDN Philippines, website speed optimization, cache management, Cloudflare CDN, DDoS protection Philippines, fast website Philippines" />
   <link rel="canonical" href="https://luzerge.com/" />
 
@@ -14,13 +14,13 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://luzerge.com/" />
   <meta property="og:title" content="Luzerge — Fast, Affordable CDN for Philippine Websites" />
-  <meta property="og:description" content="Speed up your website with global edge caching, DDoS protection, and real-time analytics. Starting at ₱99/month." />
+  <meta property="og:description" content="Speed up your website with global edge caching, DDoS protection, and real-time analytics. Free for 1 domain or managed from ₱699/month." />
   <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Luzerge — Fast, Affordable CDN for Philippine Websites" />
-  <meta name="twitter:description" content="Global CDN with cache management and DDoS protection from ₱99/mo." />
+  <meta name="twitter:description" content="Global CDN with cache management and DDoS protection. Free for 1 domain or managed from ₱699/mo." />
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -35,8 +35,8 @@
     "offers": {
       "@type": "AggregateOffer",
       "priceCurrency": "PHP",
-      "lowPrice": "99",
-      "highPrice": "499"
+      "lowPrice": "0",
+      "highPrice": "6999"
     },
     "provider": {
       "@type": "Organization",
@@ -181,7 +181,7 @@
       <p class="hero__subheading">
         Luzerge CDN speeds up your website with global edge caching, DDoS protection,
         and one-click cache management. We handle the setup — you just submit your domain.
-        Starting at <strong>₱99/month</strong>. No setup fees.
+        <strong>Free for 1 domain</strong> — or fully managed from ₱699/mo.
         <strong>First month FREE</strong> — try it risk-free!
       </p>
       <div class="hero__actions">
@@ -248,7 +248,7 @@
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
           <h3>"CDN services are too expensive and complicated to set up."</h3>
-          <p class="problem-card__solution">Starting at ₱99/mo with no setup fees. Submit your domain — we configure everything.</p>
+          <p class="problem-card__solution">Free for self-managed, or fully managed from ₱699/mo. No setup fees.</p>
         </div>
         <div class="problem-card" data-scroll-reveal>
           <span class="problem-card__icon" aria-hidden="true">
@@ -397,19 +397,37 @@
   <section class="pricing" id="pricing" aria-labelledby="pricing-heading" data-scroll-section>
     <div class="container">
       <h2 class="section__heading" id="pricing-heading" data-scroll-reveal>Simple, Honest Pricing</h2>
-      <p class="section__subheading" data-scroll-reveal>No setup fees. No hidden charges. <strong class="text-accent">First month FREE</strong> — try it risk-free, cancel anytime.</p>
+      <p class="section__subheading" data-scroll-reveal>No setup fees. No hidden charges. Cancel anytime.</p>
+
+      <!-- Pricing mode toggle -->
+      <div class="pricing-mode-toggle" data-scroll-reveal>
+        <button type="button" class="pricing-mode-btn pricing-mode-btn--active" data-mode="self">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          Self-managed
+        </button>
+        <button type="button" class="pricing-mode-btn" data-mode="managed">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Managed by Luzerge
+        </button>
+      </div>
+      <p class="pricing-mode-desc" data-scroll-reveal>
+        <span id="pricingModeDesc">You provide your own Cloudflare credentials — we provide the dashboard.</span>
+      </p>
+
       <div class="carousel-wrap">
         <button type="button" class="carousel-arrow carousel-arrow--left" aria-label="Rotate left" data-dir="-1">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="pricing__grid">
-        <article class="pricing-card" data-scroll-reveal>
-          <h3 class="pricing-card__name">Starter</h3>
+
+        <!-- Free -->
+        <article class="pricing-card" data-scroll-reveal data-self-only>
+          <h3 class="pricing-card__name">Free</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount">₱99</span>
+            <span class="pricing-card__amount">₱0</span>
             <span class="pricing-card__period">/month</span>
           </div>
-          <p class="pricing-card__setup">1st month FREE · No setup fee</p>
+          <p class="pricing-card__setup">Self-managed only</p>
           <ul class="pricing-card__features" role="list">
             <li>1 domain</li>
             <li>Global edge caching</li>
@@ -417,21 +435,41 @@
             <li>DDoS protection</li>
             <li>One-click cache purge</li>
             <li>Basic analytics</li>
-            <li>Email support</li>
           </ul>
-          <a href="/login.html" class="btn btn--outline">Start Free Trial</a>
+          <a href="/login.html" class="btn btn--outline">Get Started</a>
         </article>
 
+        <!-- Starter -->
+        <article class="pricing-card" data-scroll-reveal>
+          <h3 class="pricing-card__name">Starter</h3>
+          <div class="pricing-card__price">
+            <span class="pricing-card__amount" data-price-self="₱299" data-price-managed="₱699">₱299</span>
+            <span class="pricing-card__period">/month</span>
+          </div>
+          <p class="pricing-card__setup">No setup fee</p>
+          <ul class="pricing-card__features" role="list">
+            <li>Up to 3 domains</li>
+            <li>Global edge caching</li>
+            <li>Free SSL certificates</li>
+            <li>DDoS protection</li>
+            <li>One-click cache purge</li>
+            <li>Full analytics dashboard</li>
+            <li>Email support</li>
+          </ul>
+          <a href="/login.html" class="btn btn--outline">Get Started</a>
+        </article>
+
+        <!-- Pro -->
         <article class="pricing-card pricing-card--featured" data-scroll-reveal>
           <div class="pricing-card__badge">Best Value</div>
           <h3 class="pricing-card__name">Pro</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount">₱249</span>
+            <span class="pricing-card__amount" data-price-self="₱999" data-price-managed="₱1,999">₱999</span>
             <span class="pricing-card__period">/month</span>
           </div>
-          <p class="pricing-card__setup">1st month FREE · No setup fee</p>
+          <p class="pricing-card__setup">No setup fee</p>
           <ul class="pricing-card__features" role="list">
-            <li>Up to 5 domains</li>
+            <li>Up to 10 domains</li>
             <li>Global edge caching</li>
             <li>Free SSL certificates</li>
             <li>Advanced DDoS protection</li>
@@ -440,16 +478,37 @@
             <li>Threat monitoring</li>
             <li>Priority support (Viber)</li>
           </ul>
-          <a href="/login.html" class="btn btn--primary">Start Free Trial</a>
+          <a href="/login.html" class="btn btn--primary">Get Started</a>
         </article>
 
+        <!-- Business -->
         <article class="pricing-card" data-scroll-reveal>
           <h3 class="pricing-card__name">Business</h3>
           <div class="pricing-card__price">
-            <span class="pricing-card__amount">₱499</span>
+            <span class="pricing-card__amount" data-price-self="₱1,999" data-price-managed="₱3,999">₱1,999</span>
             <span class="pricing-card__period">/month</span>
           </div>
-          <p class="pricing-card__setup">1st month FREE · No setup fee</p>
+          <p class="pricing-card__setup">No setup fee</p>
+          <ul class="pricing-card__features" role="list">
+            <li>Up to 50 domains</li>
+            <li>Global edge caching</li>
+            <li>Wildcard SSL certificates</li>
+            <li>Enterprise DDoS mitigation</li>
+            <li>Full analytics + exports</li>
+            <li>WAF (Web Application Firewall)</li>
+            <li>Dedicated support manager</li>
+          </ul>
+          <a href="#contact" class="btn btn--outline">Contact Sales</a>
+        </article>
+
+        <!-- Enterprise -->
+        <article class="pricing-card" data-scroll-reveal>
+          <h3 class="pricing-card__name">Enterprise</h3>
+          <div class="pricing-card__price">
+            <span class="pricing-card__amount" data-price-self="₱3,499" data-price-managed="₱6,999">₱3,499</span>
+            <span class="pricing-card__period">/month</span>
+          </div>
+          <p class="pricing-card__setup">Custom SLA available</p>
           <ul class="pricing-card__features" role="list">
             <li>Unlimited domains</li>
             <li>Global edge caching</li>
@@ -457,11 +516,12 @@
             <li>Enterprise DDoS mitigation</li>
             <li>API access for cache purge</li>
             <li>Advanced analytics + exports</li>
-            <li>WAF (Web Application Firewall)</li>
-            <li>Dedicated support manager</li>
+            <li>WAF + bot protection</li>
+            <li>Dedicated account manager</li>
           </ul>
           <a href="#contact" class="btn btn--outline">Contact Sales</a>
         </article>
+
       </div>
         <button type="button" class="carousel-arrow carousel-arrow--right" aria-label="Rotate right" data-dir="1">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -469,7 +529,7 @@
       </div>
       <p class="pricing__note">
         All plans include: Cloudflare-powered edge caching, free SSL, DDoS protection, and 99.9% uptime SLA.
-        Prices are in Philippine Peso. Billed monthly — cancel anytime.
+        Prices are in Philippine Peso (₱). Billed monthly — cancel anytime.
       </p>
     </div>
   </section>
@@ -550,10 +610,12 @@
             <label for="service" class="form-label">What do you need?</label>
             <select id="service" name="service" class="form-input">
               <option value="">Select a plan...</option>
-              <option value="starter">Starter — 1 domain (₱99/mo)</option>
-              <option value="pro">Pro — Up to 5 domains (₱249/mo)</option>
-              <option value="business">Business — Unlimited domains (₱499/mo)</option>
-              <option value="custom">Custom / Enterprise plan</option>
+              <option value="free">Free — 1 domain (self-managed)</option>
+              <option value="starter">Starter — 3 domains (from ₱299/mo)</option>
+              <option value="pro">Pro — 10 domains (from ₱999/mo)</option>
+              <option value="business">Business — 50 domains (from ₱1,999/mo)</option>
+              <option value="enterprise">Enterprise — Unlimited (from ₱3,499/mo)</option>
+              <option value="custom">Custom plan</option>
               <option value="other">Just have a question</option>
             </select>
           </div>

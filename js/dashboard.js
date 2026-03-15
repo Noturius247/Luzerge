@@ -13,7 +13,8 @@ let selectedDomainId = null
 let domainToDelete = null
 let userDomains = []
 let scannedDomain = null  // holds the domain name after a successful scan
-const PLAN_LIMITS = { none: 1, starter: 3, pro: 10, enterprise: 50 }
+const PLAN_LIMITS = { none: 1, starter: 3, pro: 10, business: 50, enterprise: Infinity }
+const PLAN_PRICES = { none: 'Free', starter: '₱499/mo', pro: '₱1,499/mo', business: '₱2,999/mo', enterprise: '₱4,999/mo' }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('optManaged').classList.toggle('setup-mode-option--active', !isSelf)
       document.getElementById('optSelfManaged').classList.toggle('setup-mode-option--active', isSelf)
     })
+  })
+
+  // CF guide collapsible
+  document.getElementById('cfGuideToggle')?.addEventListener('click', () => {
+    const guide = document.getElementById('cfGuide')
+    const body = document.getElementById('cfGuideBody')
+    const isOpen = !body.hidden
+    body.hidden = isOpen
+    guide.classList.toggle('cf-guide--open', !isOpen)
   })
 
   // Close detail
@@ -200,7 +210,16 @@ function showToast(msg) {
 
 // ─── CF-Proxy helper ─────────────────────────────────────────────────────────
 
+const _cfCache = {}          // keyed by `${domainId}:${action}:${extraKey}`
+const CF_CACHE_TTL = 60_000  // 60 seconds
+
 async function cfProxy(domainId, action, extra = {}) {
+  const cacheKey = `${domainId}:${action}:${JSON.stringify(extra)}`
+  const cached = _cfCache[cacheKey]
+  if (cached && Date.now() - cached.ts < CF_CACHE_TTL) {
+    return cached.data
+  }
+
   const session = await getSession()
   if (!session) return null
   const params = new URLSearchParams({ domain_id: domainId, action, ...extra })
@@ -211,7 +230,15 @@ async function cfProxy(domainId, action, extra = {}) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error || `HTTP ${res.status}`)
   }
-  return res.json()
+  const data = await res.json()
+  _cfCache[cacheKey] = { data, ts: Date.now() }
+  return data
+}
+
+function invalidateCache(domainId, action) {
+  for (const key of Object.keys(_cfCache)) {
+    if (key.startsWith(`${domainId}:${action}`)) delete _cfCache[key]
+  }
 }
 
 async function cfProxyPost(domainId, action, body) {
@@ -257,6 +284,7 @@ function populateDomainSelect(selectId) {
 
 let _cfPanelDomainId = null // currently selected domain for settings panels
 let _cfSettings = {}        // cached zone settings
+const _toggleLocks = new Set() // prevent rapid toggle spam
 
 function initCfToggles() {
   document.querySelectorAll('[data-cf-setting]').forEach(input => {
@@ -269,6 +297,12 @@ function initCfToggles() {
 
       const label = input.closest('.toggle-switch')
       const setting = input.dataset.cfSetting
+      const lockKey = `${_cfPanelDomainId}:${setting}`
+      if (_toggleLocks.has(lockKey)) {
+        input.checked = !input.checked
+        return
+      }
+      _toggleLocks.add(lockKey)
       let value
 
       if (setting === 'minify') {
@@ -288,6 +322,7 @@ function initCfToggles() {
 
       try {
         await cfProxyPost(_cfPanelDomainId, 'update_setting', { setting, value })
+        invalidateCache(_cfPanelDomainId, 'settings')
         if (setting === 'minify') _cfSettings.minify = value
         else _cfSettings[setting] = value
         showToast('Setting saved')
@@ -297,6 +332,7 @@ function initCfToggles() {
         showToast('Failed to save: ' + err.message)
       } finally {
         label.style.opacity = ''
+        _toggleLocks.delete(lockKey)
       }
     })
   })
@@ -1045,7 +1081,7 @@ function renderAccountSummary() {
   const usageEl = document.getElementById('summaryDomainUsage')
   if (usageEl) {
     const limit = PLAN_LIMITS[plan] || 1
-    usageEl.textContent = `${userDomains.length} / ${limit}`
+    usageEl.textContent = limit === Infinity ? `${userDomains.length} / Unlimited` : `${userDomains.length} / ${limit}`
   }
 
   const sinceEl = document.getElementById('summaryMemberSince')
