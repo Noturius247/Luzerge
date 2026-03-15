@@ -445,6 +445,25 @@
 
 .form-input::placeholder { color: rgba(148, 163, 184, 0.35); }
 
+.form-input--sm {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  width: auto;
+  min-width: 140px;
+  max-width: 220px;
+}
+
+.panel-domain-select {
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 1.6rem;
+}
+
 .form-input:focus {
   outline: none;
   border-color: var(--color-brand, #3b82f6);
@@ -2259,6 +2278,86 @@
 
 .report-submit__text strong {
   color: #fff;
+}
+
+/* Setup mode choice */
+.setup-mode-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+@media (max-width: 540px) {
+  .setup-mode-choice { grid-template-columns: 1fr; }
+}
+
+.setup-mode-option {
+  position: relative;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.setup-mode-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.setup-mode-option--active {
+  border-color: var(--color-brand, #3b82f6);
+  background: rgba(59, 130, 246, 0.06);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.setup-mode-option:hover:not(.setup-mode-option--active) {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.setup-mode-option__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setup-mode-option__icon {
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+}
+
+.setup-mode-option--active .setup-mode-option__icon {
+  color: var(--color-brand, #3b82f6);
+}
+
+.setup-mode-option__label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.setup-mode-option__desc {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+}
+
+.self-managed-fields {
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeSlideDown 0.25s ease;
+}
+
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Info alert variant */

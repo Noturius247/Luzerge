@@ -303,8 +303,47 @@
           <div class="report-action" id="reportAction"></div>
           <div class="report-submit" id="reportSubmitSection" hidden>
             <div class="report-submit__divider"></div>
+            <p class="report-submit__text">Ready to submit <strong id="reportSubmitDomain"></strong> for CDN setup?</p>
+
+            <!-- Setup mode choice -->
+            <div class="setup-mode-choice" id="setupModeChoice">
+              <label class="setup-mode-option setup-mode-option--active" id="optManaged">
+                <input type="radio" name="setupMode" value="managed" checked>
+                <div class="setup-mode-option__content">
+                  <span class="setup-mode-option__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </span>
+                  <span class="setup-mode-option__label">Managed by Luzerge</span>
+                  <span class="setup-mode-option__desc">Our team will configure Cloudflare for you</span>
+                </div>
+              </label>
+              <label class="setup-mode-option" id="optSelfManaged">
+                <input type="radio" name="setupMode" value="self">
+                <div class="setup-mode-option__content">
+                  <span class="setup-mode-option__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                  </span>
+                  <span class="setup-mode-option__label">Self-managed</span>
+                  <span class="setup-mode-option__desc">I'll provide my own Cloudflare credentials</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- Self-managed fields (hidden by default) -->
+            <div class="self-managed-fields" id="selfManagedFields" hidden>
+              <div class="form-group">
+                <label class="form-label" for="inputZoneId">Cloudflare Zone ID</label>
+                <input class="form-input" id="inputZoneId" type="text" placeholder="e.g. 0234a5b6c7d8e9f0..." autocomplete="off" />
+                <span class="form-hint">Found in your Cloudflare dashboard → Overview → API section (right sidebar)</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inputApiToken">Cloudflare API Token</label>
+                <input class="form-input" id="inputApiToken" type="password" placeholder="Your API token" autocomplete="off" />
+                <span class="form-hint">Create a token at Cloudflare → My Profile → API Tokens. Use the "Edit zone" template for full access.</span>
+              </div>
+            </div>
+
             <div class="report-submit__row">
-              <p class="report-submit__text">Ready to submit <strong id="reportSubmitDomain"></strong> for CDN setup?</p>
               <button class="btn btn--primary btn--glow" type="button" id="reportSubmitBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Submit Domain
@@ -401,36 +440,40 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">SSL / TLS Certificates</h2>
-            <span class="status-badge status-badge--active">Protected</span>
+            <select class="form-input form-input--sm panel-domain-select" id="sslDomainSelect"></select>
           </div>
           <p class="dash-panel__desc">Monitor SSL certificate status for all your domains. Certificates are automatically provisioned and renewed.</p>
-          <div class="feature-table-wrap">
-            <table class="history-table" id="sslTable">
-              <thead>
-                <tr>
-                  <th>Domain</th>
-                  <th>Status</th>
-                  <th>Issuer</th>
-                  <th>Expires</th>
-                  <th>Auto-Renew</th>
-                </tr>
-              </thead>
-              <tbody id="sslBody">
-                <tr><td colspan="5" class="feature-empty">Submit a domain to see SSL status</td></tr>
-              </tbody>
-            </table>
+          <div id="sslLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading SSL data...</div>
+          <div id="sslNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="sslContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table" id="sslTable">
+                <thead>
+                  <tr>
+                    <th>Host</th>
+                    <th>Status</th>
+                    <th>Issuer</th>
+                    <th>Type</th>
+                    <th>Expires</th>
+                  </tr>
+                </thead>
+                <tbody id="sslBody"></tbody>
+              </table>
+            </div>
           </div>
+          <div id="sslError" class="dash-alert dash-alert--error" hidden></div>
         </section>
         <section class="dash-panel">
           <h3 class="dash-panel__title">SSL Settings</h3>
-          <div class="feature-grid">
+          <div id="sslSettingsLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Loading settings...</div>
+          <div class="feature-grid" id="sslSettingsGrid">
             <div class="feature-card">
               <div class="feature-card__top">
                 <div class="feature-card__info">
-                  <span class="feature-card__name">Full (Strict) Mode</span>
-                  <span class="feature-card__desc">End-to-end encryption with certificate validation</span>
+                  <span class="feature-card__name">SSL Mode</span>
+                  <span class="feature-card__desc" id="sslModeDesc">End-to-end encryption mode</span>
                 </div>
-                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                <span class="status-badge" id="sslModeBadge">--</span>
               </div>
             </div>
             <div class="feature-card">
@@ -439,16 +482,7 @@
                   <span class="feature-card__name">Always Use HTTPS</span>
                   <span class="feature-card__desc">Redirect all HTTP requests to HTTPS</span>
                 </div>
-                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">HSTS</span>
-                  <span class="feature-card__desc">HTTP Strict Transport Security headers</span>
-                </div>
-                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+                <label class="toggle-switch" id="toggleAlwaysHttps"><input type="checkbox" data-cf-setting="always_use_https"><span class="toggle-slider"></span></label>
               </div>
             </div>
             <div class="feature-card">
@@ -457,7 +491,7 @@
                   <span class="feature-card__name">TLS 1.3</span>
                   <span class="feature-card__desc">Enable the latest TLS protocol version</span>
                 </div>
-                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                <label class="toggle-switch" id="toggleTls13"><input type="checkbox" data-cf-setting="min_tls_version" data-on-value="1.3" data-off-value="1.2"><span class="toggle-slider"></span></label>
               </div>
             </div>
           </div>
@@ -469,25 +503,28 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">DNS Management</h2>
-            <button class="btn btn--primary btn--sm" type="button" disabled title="Coming soon">+ Add Record</button>
+            <select class="form-input form-input--sm panel-domain-select" id="dnsDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">View and manage DNS records for your domains. Records are configured by our team during setup.</p>
-          <div class="feature-table-wrap">
-            <table class="history-table" id="dnsTable">
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Name</th>
-                  <th>Value</th>
-                  <th>TTL</th>
-                  <th>Proxied</th>
-                </tr>
-              </thead>
-              <tbody id="dnsBody">
-                <tr><td colspan="5" class="feature-empty">DNS records will appear once your domain is active</td></tr>
-              </tbody>
-            </table>
+          <p class="dash-panel__desc">View DNS records for your domains. Records are managed via Cloudflare.</p>
+          <div id="dnsLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading DNS records...</div>
+          <div id="dnsNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="dnsContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table" id="dnsTable">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>TTL</th>
+                    <th>Proxied</th>
+                  </tr>
+                </thead>
+                <tbody id="dnsBody"></tbody>
+              </table>
+            </div>
           </div>
+          <div id="dnsError" class="dash-alert dash-alert--error" hidden></div>
         </section>
       </div>
 
@@ -496,42 +533,42 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">Analytics</h2>
-            <div class="date-range-pills">
-              <button type="button" class="purge-tab purge-tab--active">24h</button>
-              <button type="button" class="purge-tab">7d</button>
-              <button type="button" class="purge-tab">30d</button>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <select class="form-input form-input--sm panel-domain-select" id="anlDomainSelect"></select>
+              <div class="date-range-pills">
+                <button type="button" class="purge-tab purge-tab--active" data-range="24h">24h</button>
+                <button type="button" class="purge-tab" data-range="7d">7d</button>
+                <button type="button" class="purge-tab" data-range="30d">30d</button>
+              </div>
             </div>
           </div>
-          <div class="stats-row">
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-              <span class="stat-box__value" id="anlRequests">12.4K</span>
-              <span class="stat-box__label">Total Requests</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
-              <span class="stat-box__value" id="anlBandwidth">2.8 GB</span>
-              <span class="stat-box__label">Bandwidth</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-              <span class="stat-box__value" id="anlVisitors">1.2K</span>
-              <span class="stat-box__label">Unique Visitors</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-              <span class="stat-box__value" id="anlCacheRate">94.2%</span>
-              <span class="stat-box__label">Cache Hit Rate</span>
+          <div id="anlLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading analytics...</div>
+          <div id="anlNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains. Submit and get a domain approved to see analytics.</div>
+          <div id="anlContent" hidden>
+            <div class="stats-row">
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+                <span class="stat-box__value" id="anlRequests">--</span>
+                <span class="stat-box__label">Total Requests</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+                <span class="stat-box__value" id="anlBandwidth">--</span>
+                <span class="stat-box__label">Bandwidth</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <span class="stat-box__value" id="anlVisitors">--</span>
+                <span class="stat-box__label">Unique Visitors</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+                <span class="stat-box__value" id="anlCacheRate">--</span>
+                <span class="stat-box__label">Cache Hit Rate</span>
+              </div>
             </div>
           </div>
-        </section>
-        <section class="dash-panel">
-          <h3 class="dash-panel__title">Traffic Overview</h3>
-          <div class="chart-placeholder">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <p>Interactive charts coming soon</p>
-            <span>Real-time traffic visualization will be available here</span>
-          </div>
+          <div id="anlError" class="dash-alert dash-alert--error" hidden></div>
         </section>
       </div>
 
@@ -540,65 +577,61 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">WAF / Firewall Rules</h2>
-            <span class="status-badge status-badge--active">Active</span>
+            <select class="form-input form-input--sm panel-domain-select" id="wafDomainSelect"></select>
           </div>
           <p class="dash-panel__desc">Manage Web Application Firewall rules to protect your websites from common attacks.</p>
-          <div class="feature-grid">
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Bot Protection</span>
-                  <span class="feature-card__desc">Block known malicious bots and crawlers</span>
+          <div id="wafLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading security settings...</div>
+          <div id="wafNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="wafContent" hidden>
+            <div class="feature-grid">
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">Security Level</span>
+                    <span class="feature-card__desc">Current Cloudflare security level</span>
+                  </div>
+                  <span class="status-badge" id="wafSecurityLevel">--</span>
                 </div>
-                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
               </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">SQL Injection Prevention</span>
-                  <span class="feature-card__desc">Block SQL injection attempts in requests</span>
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">Browser Integrity Check</span>
+                    <span class="feature-card__desc">Block known malicious bots and crawlers</span>
+                  </div>
+                  <label class="toggle-switch" id="toggleBrowserCheck"><input type="checkbox" data-cf-setting="browser_check"><span class="toggle-slider"></span></label>
                 </div>
-                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
               </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">XSS Protection</span>
-                  <span class="feature-card__desc">Prevent cross-site scripting attacks</span>
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">Email Obfuscation</span>
+                    <span class="feature-card__desc">Hide email addresses from scrapers</span>
+                  </div>
+                  <label class="toggle-switch" id="toggleEmailObfuscation"><input type="checkbox" data-cf-setting="email_obfuscation"><span class="toggle-slider"></span></label>
                 </div>
-                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
               </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Rate Limiting</span>
-                  <span class="feature-card__desc">Limit requests per IP to prevent abuse</span>
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">Hotlink Protection</span>
+                    <span class="feature-card__desc">Prevent other sites from embedding your assets</span>
+                  </div>
+                  <label class="toggle-switch" id="toggleHotlink"><input type="checkbox" data-cf-setting="hotlink_protection"><span class="toggle-slider"></span></label>
                 </div>
-                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
               </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Geo Blocking</span>
-                  <span class="feature-card__desc">Block traffic from specific countries</span>
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">Server-Side Excludes</span>
+                    <span class="feature-card__desc">Hide sensitive content from suspicious visitors</span>
+                  </div>
+                  <label class="toggle-switch" id="toggleSSE"><input type="checkbox" data-cf-setting="server_side_exclude"><span class="toggle-slider"></span></label>
                 </div>
-                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Hotlink Protection</span>
-                  <span class="feature-card__desc">Prevent other sites from embedding your assets</span>
-                </div>
-                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
               </div>
             </div>
           </div>
+          <div id="wafError" class="dash-alert dash-alert--error" hidden></div>
         </section>
       </div>
 
@@ -607,58 +640,52 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">Image Optimization</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="imgDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">Automatically optimize images to reduce page load times and save bandwidth.</p>
-          <div class="stats-row stats-row--mb">
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
-              <span class="stat-box__value">0</span>
-              <span class="stat-box__label">Images Optimized</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
-              <span class="stat-box__value">0 KB</span>
-              <span class="stat-box__label">Bandwidth Saved</span>
-            </div>
-          </div>
-          <div class="feature-grid">
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Auto WebP Conversion</span>
-                  <span class="feature-card__desc">Serve WebP images to supported browsers</span>
+          <p class="dash-panel__desc">Cloudflare image optimization settings for your domain. Some features require a Pro plan on Cloudflare.</p>
+          <div id="imgLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading image settings...</div>
+          <div id="imgNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="imgContent" hidden>
+            <div class="feature-grid">
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">Mirage</span>
+                    <span class="feature-card__desc">Lazy-load images and optimize for mobile (Pro+)</span>
+                  </div>
+                  <label class="toggle-switch" id="toggleMirage"><input type="checkbox" data-cf-setting="mirage"><span class="toggle-slider"></span></label>
                 </div>
-                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
               </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Lazy Loading</span>
-                  <span class="feature-card__desc">Load images only when they enter the viewport</span>
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">Polish</span>
+                    <span class="feature-card__desc">Lossless/lossy image compression (Pro+)</span>
+                  </div>
+                  <span class="status-badge" id="imgPolishBadge">--</span>
                 </div>
-                <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
               </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Lossy Compression</span>
-                  <span class="feature-card__desc">Reduce image size with minimal quality loss</span>
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">WebP</span>
+                    <span class="feature-card__desc">Serve WebP to supported browsers (Pro+)</span>
+                  </div>
+                  <label class="toggle-switch" id="toggleWebp"><input type="checkbox" data-cf-setting="webp"><span class="toggle-slider"></span></label>
                 </div>
-                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
               </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Resize Large Images</span>
-                  <span class="feature-card__desc">Auto-resize images larger than 2000px</span>
+              <div class="feature-card">
+                <div class="feature-card__top">
+                  <div class="feature-card__info">
+                    <span class="feature-card__name">Rocket Loader</span>
+                    <span class="feature-card__desc">Improve paint times by deferring JS</span>
+                  </div>
+                  <label class="toggle-switch" id="toggleRocketLoader"><input type="checkbox" data-cf-setting="rocket_loader"><span class="toggle-slider"></span></label>
                 </div>
-                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
               </div>
             </div>
           </div>
+          <div id="imgError" class="dash-alert dash-alert--error" hidden></div>
         </section>
       </div>
 
@@ -667,34 +694,40 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">Minification</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="minifyDomainSelect"></select>
           </div>
           <p class="dash-panel__desc">Remove unnecessary characters from HTML, CSS, and JavaScript files to reduce file sizes and improve load times.</p>
-          <div class="feature-grid feature-grid--three">
-            <div class="feature-card feature-card--center">
-              <div class="feature-card__icon feature-card__icon--orange">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <div id="minifyLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading minification settings...</div>
+          <div id="minifyNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="minifyContent" hidden>
+            <div class="feature-grid feature-grid--three">
+              <div class="feature-card feature-card--center">
+                <div class="feature-card__icon feature-card__icon--orange">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                </div>
+                <span class="feature-card__name">HTML</span>
+                <span class="feature-card__desc">Minify HTML output</span>
+                <label class="toggle-switch" id="toggleMinHtml"><input type="checkbox" data-cf-setting="minify" data-cf-key="html"><span class="toggle-slider"></span></label>
               </div>
-              <span class="feature-card__name">HTML</span>
-              <span class="feature-card__desc">Minify HTML output</span>
-              <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-            </div>
-            <div class="feature-card feature-card--center">
-              <div class="feature-card__icon feature-card__icon--blue">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 8h3v8H8z"/></svg>
+              <div class="feature-card feature-card--center">
+                <div class="feature-card__icon feature-card__icon--blue">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 8h3v8H8z"/></svg>
+                </div>
+                <span class="feature-card__name">CSS</span>
+                <span class="feature-card__desc">Minify CSS files</span>
+                <label class="toggle-switch" id="toggleMinCss"><input type="checkbox" data-cf-setting="minify" data-cf-key="css"><span class="toggle-slider"></span></label>
               </div>
-              <span class="feature-card__name">CSS</span>
-              <span class="feature-card__desc">Minify CSS files</span>
-              <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-            </div>
-            <div class="feature-card feature-card--center">
-              <div class="feature-card__icon feature-card__icon--yellow">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4H4v16h16V4z"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+              <div class="feature-card feature-card--center">
+                <div class="feature-card__icon feature-card__icon--yellow">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4H4v16h16V4z"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                </div>
+                <span class="feature-card__name">JavaScript</span>
+                <span class="feature-card__desc">Minify JS files</span>
+                <label class="toggle-switch" id="toggleMinJs"><input type="checkbox" data-cf-setting="minify" data-cf-key="js"><span class="toggle-slider"></span></label>
               </div>
-              <span class="feature-card__name">JavaScript</span>
-              <span class="feature-card__desc">Minify JS files</span>
-              <label class="toggle-switch toggle-switch--on"><input type="checkbox" checked><span class="toggle-slider"></span></label>
             </div>
           </div>
+          <div id="minifyError" class="dash-alert dash-alert--error" hidden></div>
         </section>
       </div>
 
@@ -703,15 +736,19 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">Uptime Monitoring</h2>
+            <button class="btn btn--outline btn--sm" id="uptimeRefreshBtn" type="button">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Check Now
+            </button>
           </div>
-          <p class="dash-panel__desc">Monitor your website availability with checks every 5 minutes. Get notified when your site goes down.</p>
-          <div id="uptimeList" class="uptime-list">
-            <div class="uptime-empty">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <p>No domains to monitor</p>
-              <span>Submit a domain in Overview to start monitoring</span>
-            </div>
+          <p class="dash-panel__desc">Live HTTP health checks for your active domains. Click "Check Now" to run a fresh check.</p>
+          <div id="uptimeLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Checking uptime...</div>
+          <div id="uptimeNoDomains" class="dash-empty dash-empty--sm" hidden>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <p>No active domains to monitor</p>
+            <span>Domains will appear here once approved</span>
           </div>
+          <div id="uptimeList" class="uptime-list" hidden></div>
         </section>
       </div>
 
@@ -720,45 +757,31 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">DDoS Protection</h2>
-            <span class="threat-badge threat-badge--low">Threat Level: Low</span>
+            <select class="form-input form-input--sm panel-domain-select" id="ddosDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">Always-on DDoS mitigation powered by Cloudflare's global network.</p>
-          <div class="stats-row stats-row--mb">
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-              <span class="stat-box__value">0</span>
-              <span class="stat-box__label">Attacks Mitigated (30d)</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
-              <span class="stat-box__value">0</span>
-              <span class="stat-box__label">Blocked Requests</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-              <span class="stat-box__value">0ms</span>
-              <span class="stat-box__label">Avg. Response Time</span>
+          <p class="dash-panel__desc">Always-on DDoS mitigation powered by Cloudflare's global network. Threat data from the last 30 days.</p>
+          <div id="ddosLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading threat data...</div>
+          <div id="ddosNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="ddosContent" hidden>
+            <div class="stats-row stats-row--mb">
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                <span class="stat-box__value" id="ddosThreats">--</span>
+                <span class="stat-box__label">Threats Detected (30d)</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+                <span class="stat-box__value" id="ddosRequests">--</span>
+                <span class="stat-box__label">Total Requests (30d)</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+                <span class="stat-box__value" id="ddosBandwidth">--</span>
+                <span class="stat-box__label">Bandwidth (30d)</span>
+              </div>
             </div>
           </div>
-        </section>
-        <section class="dash-panel">
-          <h3 class="dash-panel__title">Recent Events</h3>
-          <div class="feature-table-wrap">
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Duration</th>
-                  <th>Blocked</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td colspan="5" class="feature-empty">No attacks detected — your sites are safe</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <div id="ddosError" class="dash-alert dash-alert--error" hidden></div>
         </section>
       </div>
 

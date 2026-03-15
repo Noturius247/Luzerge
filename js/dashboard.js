@@ -78,6 +78,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Submit domain button (inside report panel)
   document.getElementById('reportSubmitBtn')?.addEventListener('click', handleSubmitDomain)
 
+  // Setup mode radio toggle
+  document.querySelectorAll('input[name="setupMode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const isSelf = radio.value === 'self' && radio.checked
+      document.getElementById('selfManagedFields').hidden = !isSelf
+      document.getElementById('optManaged').classList.toggle('setup-mode-option--active', !isSelf)
+      document.getElementById('optSelfManaged').classList.toggle('setup-mode-option--active', isSelf)
+    })
+  })
+
   // Close detail
   document.getElementById('closeDetailBtn')?.addEventListener('click', closeDetail)
 
@@ -102,8 +112,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Sidebar
   initSidebar()
 
-  // Toggle switches
-  initToggles()
+  // CF toggle switches
+  initCfToggles()
 
   // Init starfield
   initDashStarfield()
@@ -166,23 +176,18 @@ function switchPanel(panelId) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Populate mock data for panels that need it
-  if (panelId === 'ssl') populateSslTable()
-  if (panelId === 'dns') populateDnsTable()
-  if (panelId === 'uptime') populateUptime()
+  // Populate panel data from Cloudflare
+  if (panelId === 'analytics') populateAnalytics()
+  if (panelId === 'ssl') populateSslPanel()
+  if (panelId === 'dns') populateDnsPanel()
+  if (panelId === 'minify') populateMinifyPanel()
+  if (panelId === 'images') populateImagesPanel()
+  if (panelId === 'waf') populateWafPanel()
+  if (panelId === 'ddos') populateDdosPanel()
+  if (panelId === 'uptime') populateUptimePanel()
 }
 
-// ─── Toggle switches ──────────────────────────────────────────────────────────
-
-function initToggles() {
-  document.querySelectorAll('.toggle-switch input').forEach(input => {
-    input.addEventListener('change', () => {
-      const label = input.closest('.toggle-switch')
-      label.classList.toggle('toggle-switch--on', input.checked)
-      showToast('Settings saved')
-    })
-  })
-}
+// ─── Toast ────────────────────────────────────────────────────────────────────
 
 function showToast(msg) {
   const toast = document.getElementById('toast')
@@ -193,93 +198,570 @@ function showToast(msg) {
   toast._timer = setTimeout(() => { toast.hidden = true }, 2000)
 }
 
-// ─── Mock data populators ─────────────────────────────────────────────────────
+// ─── CF-Proxy helper ─────────────────────────────────────────────────────────
 
-function populateSslTable() {
-  const tbody = document.getElementById('sslBody')
-  if (!tbody || !userDomains.length) return
-
-  const activeDomains = userDomains.filter(d => d.status === 'active')
-  if (!activeDomains.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No active domains yet</td></tr>'
-    return
+async function cfProxy(domainId, action, extra = {}) {
+  const session = await getSession()
+  if (!session) return null
+  const params = new URLSearchParams({ domain_id: domainId, action, ...extra })
+  const res = await fetch(`${EDGE_BASE}/cf-proxy?${params}`, {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error || `HTTP ${res.status}`)
   }
-
-  tbody.innerHTML = activeDomains.map(d => {
-    const expiry = new Date()
-    expiry.setMonth(expiry.getMonth() + 3)
-    return `<tr>
-      <td>${escHtml(d.domain)}</td>
-      <td><span class="status-badge status-badge--active">Active</span></td>
-      <td>Let's Encrypt</td>
-      <td>${formatDate(expiry.toISOString())}</td>
-      <td><span class="status-badge status-badge--active">On</span></td>
-    </tr>`
-  }).join('')
+  return res.json()
 }
 
-function populateDnsTable() {
-  const tbody = document.getElementById('dnsBody')
-  if (!tbody || !userDomains.length) return
+async function cfProxyPost(domainId, action, body) {
+  const session = await getSession()
+  if (!session) return null
+  const params = new URLSearchParams({ domain_id: domainId, action })
+  const res = await fetch(`${EDGE_BASE}/cf-proxy?${params}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error || `HTTP ${res.status}`)
+  }
+  return res.json()
+}
 
-  const activeDomains = userDomains.filter(d => d.status === 'active')
-  if (!activeDomains.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No active domains yet</td></tr>'
+function formatBytes(bytes) {
+  if (bytes == null || bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
+}
+
+// ─── Panel domain selectors ──────────────────────────────────────────────────
+
+function populateDomainSelect(selectId) {
+  const select = document.getElementById(selectId)
+  if (!select) return null
+  const active = userDomains.filter(d => d.status === 'active')
+  select.innerHTML = active.length
+    ? active.map(d => `<option value="${d.id}">${escHtml(d.domain)}</option>`).join('')
+    : '<option value="">No active domains</option>'
+  return active.length ? active[0].id : null
+}
+
+// ─── CF Toggle switches — persist to Cloudflare ─────────────────────────────
+
+let _cfPanelDomainId = null // currently selected domain for settings panels
+let _cfSettings = {}        // cached zone settings
+
+function initCfToggles() {
+  document.querySelectorAll('[data-cf-setting]').forEach(input => {
+    input.addEventListener('change', async () => {
+      if (!_cfPanelDomainId) {
+        showToast('Select a domain first')
+        input.checked = !input.checked
+        return
+      }
+
+      const label = input.closest('.toggle-switch')
+      const setting = input.dataset.cfSetting
+      let value
+
+      if (setting === 'minify') {
+        // Minify is a compound setting {css, html, js}
+        const key = input.dataset.cfKey
+        const current = _cfSettings.minify || { css: 'off', html: 'off', js: 'off' }
+        current[key] = input.checked ? 'on' : 'off'
+        value = current
+      } else if (input.dataset.onValue) {
+        value = input.checked ? input.dataset.onValue : input.dataset.offValue
+      } else {
+        value = input.checked ? 'on' : 'off'
+      }
+
+      label.classList.toggle('toggle-switch--on', input.checked)
+      label.style.opacity = '0.5'
+
+      try {
+        await cfProxyPost(_cfPanelDomainId, 'update_setting', { setting, value })
+        if (setting === 'minify') _cfSettings.minify = value
+        else _cfSettings[setting] = value
+        showToast('Setting saved')
+      } catch (err) {
+        input.checked = !input.checked
+        label.classList.toggle('toggle-switch--on', input.checked)
+        showToast('Failed to save: ' + err.message)
+      } finally {
+        label.style.opacity = ''
+      }
+    })
+  })
+}
+
+function applyCfToggle(id, settingValue) {
+  const label = document.getElementById(id)
+  if (!label) return
+  const input = label.querySelector('input')
+  if (!input) return
+  const isOn = settingValue === 'on' || settingValue === true
+  input.checked = isOn
+  label.classList.toggle('toggle-switch--on', isOn)
+}
+
+// ─── Analytics panel ─────────────────────────────────────────────────────────
+
+let _anlRange = '24h'
+
+async function populateAnalytics() {
+  const loading = document.getElementById('anlLoading')
+  const content = document.getElementById('anlContent')
+  const noDomains = document.getElementById('anlNoDomains')
+  const error = document.getElementById('anlError')
+
+  loading.hidden = false
+  content.hidden = true
+  noDomains.hidden = true
+  error.hidden = true
+
+  const domainId = populateDomainSelect('anlDomainSelect')
+  if (!domainId) {
+    loading.hidden = true
+    noDomains.hidden = false
     return
   }
 
-  const records = []
-  activeDomains.forEach(d => {
-    records.push(
-      { type: 'A', name: d.domain, value: '104.21.xx.xx', ttl: 'Auto', proxied: true },
-      { type: 'AAAA', name: d.domain, value: '2606:4700:xxxx::xxxx', ttl: 'Auto', proxied: true },
-      { type: 'CNAME', name: `www.${d.domain}`, value: d.domain, ttl: 'Auto', proxied: true },
-    )
+  // Bind domain selector change
+  const select = document.getElementById('anlDomainSelect')
+  select.onchange = () => populateAnalytics()
+
+  // Bind range pills
+  document.querySelectorAll('#panelAnalytics .purge-tab').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('#panelAnalytics .purge-tab').forEach(b => b.classList.remove('purge-tab--active'))
+      btn.classList.add('purge-tab--active')
+      _anlRange = btn.dataset.range || '24h'
+      populateAnalytics()
+    }
   })
 
-  tbody.innerHTML = records.map(r => `<tr>
-    <td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${r.type}</span></td>
-    <td>${escHtml(r.name)}</td>
-    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(r.value)}</td>
-    <td>${r.ttl}</td>
-    <td>${r.proxied ? '<span class="status-badge status-badge--active">Proxied</span>' : 'DNS only'}</td>
-  </tr>`).join('')
+  try {
+    const selectedId = select.value || domainId
+    const data = await cfProxy(selectedId, 'analytics', { since: _anlRange })
+    loading.hidden = true
+
+    if (!data.analytics) {
+      error.textContent = 'No analytics data available. Domain may not be connected to Cloudflare.'
+      error.hidden = false
+      return
+    }
+
+    const a = data.analytics
+    document.getElementById('anlRequests').textContent = fmtNum(a.requests_total)
+    document.getElementById('anlBandwidth').textContent = formatBytes(a.bandwidth_total)
+    document.getElementById('anlVisitors').textContent = fmtNum(a.unique_visitors)
+    document.getElementById('anlCacheRate').textContent = a.cache_hit_rate + '%'
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
 }
 
-function populateUptime() {
-  const container = document.getElementById('uptimeList')
-  if (!container || !userDomains.length) return
+// ─── SSL panel ───────────────────────────────────────────────────────────────
 
-  const activeDomains = userDomains.filter(d => d.status === 'active')
-  if (!activeDomains.length) {
-    container.innerHTML = `<div class="uptime-empty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <p>No active domains to monitor</p>
-      <span>Domains will appear here once approved</span>
-    </div>`
+async function populateSslPanel() {
+  const loading = document.getElementById('sslLoading')
+  const content = document.getElementById('sslContent')
+  const noDomains = document.getElementById('sslNoDomains')
+  const error = document.getElementById('sslError')
+  const settingsLoading = document.getElementById('sslSettingsLoading')
+
+  loading.hidden = false
+  content.hidden = true
+  noDomains.hidden = true
+  error.hidden = true
+
+  const domainId = populateDomainSelect('sslDomainSelect')
+  if (!domainId) {
+    loading.hidden = true
+    noDomains.hidden = false
     return
   }
 
-  container.innerHTML = activeDomains.map(d => {
-    // Generate random uptime bars (24 blocks for 24 hours)
-    const blocks = Array.from({ length: 24 }, () => {
-      const r = Math.random()
-      return r < 0.95 ? 'up' : r < 0.98 ? 'down' : 'unknown'
-    })
-    const upCount = blocks.filter(b => b === 'up').length
-    const pct = ((upCount / 24) * 100).toFixed(1)
-    const pctClass = pct >= 99 ? 'good' : pct >= 95 ? 'warn' : 'bad'
+  const select = document.getElementById('sslDomainSelect')
+  select.onchange = () => populateSslPanel()
+
+  try {
+    const selectedId = select.value || domainId
+
+    // Fetch certs and settings in parallel
+    settingsLoading.hidden = false
+    const [certData, settingsData] = await Promise.all([
+      cfProxy(selectedId, 'ssl_certs'),
+      cfProxy(selectedId, 'settings'),
+    ])
+    loading.hidden = true
+    settingsLoading.hidden = true
+
+    // Populate cert table
+    const tbody = document.getElementById('sslBody')
+    const certs = certData.certs || []
+    if (certs.length) {
+      tbody.innerHTML = certs.map(c => {
+        const hosts = (c.hosts || []).join(', ')
+        const statusClass = c.status === 'active' ? 'active' : 'pending'
+        return `<tr>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(hosts)}</td>
+          <td><span class="status-badge status-badge--${statusClass}">${escHtml(c.status)}</span></td>
+          <td>${escHtml(c.issuer || 'Cloudflare')}</td>
+          <td>${escHtml(c.type || 'universal')}</td>
+          <td>${c.expires_on ? formatDate(c.expires_on) : 'Auto-renewed'}</td>
+        </tr>`
+      }).join('')
+    } else {
+      tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No certificate packs found — Universal SSL may still be active</td></tr>'
+    }
+    content.hidden = false
+
+    // Populate SSL settings from zone settings
+    const s = settingsData.settings || {}
+    _cfSettings = s
+    _cfPanelDomainId = selectedId
+
+    // SSL mode badge
+    const sslMode = s.ssl || 'off'
+    const badge = document.getElementById('sslModeBadge')
+    badge.textContent = sslMode
+    badge.className = 'status-badge ' + (sslMode === 'full' || sslMode === 'strict' ? 'status-badge--active' : 'status-badge--pending')
+
+    // Toggles
+    applyCfToggle('toggleAlwaysHttps', s.always_use_https)
+    const tls13 = s.min_tls_version === '1.3'
+    const tls13Label = document.getElementById('toggleTls13')
+    if (tls13Label) {
+      const inp = tls13Label.querySelector('input')
+      inp.checked = tls13
+      tls13Label.classList.toggle('toggle-switch--on', tls13)
+    }
+  } catch (err) {
+    loading.hidden = true
+    settingsLoading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── DNS panel ───────────────────────────────────────────────────────────────
+
+async function populateDnsPanel() {
+  const loading = document.getElementById('dnsLoading')
+  const content = document.getElementById('dnsContent')
+  const noDomains = document.getElementById('dnsNoDomains')
+  const error = document.getElementById('dnsError')
+
+  loading.hidden = false
+  content.hidden = true
+  noDomains.hidden = true
+  error.hidden = true
+
+  const domainId = populateDomainSelect('dnsDomainSelect')
+  if (!domainId) {
+    loading.hidden = true
+    noDomains.hidden = false
+    return
+  }
+
+  const select = document.getElementById('dnsDomainSelect')
+  select.onchange = () => populateDnsPanel()
+
+  try {
+    const selectedId = select.value || domainId
+    const data = await cfProxy(selectedId, 'dns_records')
+    loading.hidden = true
+
+    const records = data.records || []
+    const tbody = document.getElementById('dnsBody')
+
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No DNS records found</td></tr>'
+    } else {
+      tbody.innerHTML = records.map(r => {
+        const ttl = r.ttl === 1 ? 'Auto' : `${r.ttl}s`
+        return `<tr>
+          <td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(r.type)}</span></td>
+          <td>${escHtml(r.name)}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(r.content)}">${escHtml(r.content)}</td>
+          <td>${ttl}</td>
+          <td>${r.proxied ? '<span class="status-badge status-badge--active">Proxied</span>' : '<span class="status-badge status-badge--pending">DNS only</span>'}</td>
+        </tr>`
+      }).join('')
+    }
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── Minification panel ──────────────────────────────────────────────────────
+
+async function populateMinifyPanel() {
+  const loading = document.getElementById('minifyLoading')
+  const content = document.getElementById('minifyContent')
+  const noDomains = document.getElementById('minifyNoDomains')
+  const error = document.getElementById('minifyError')
+
+  loading.hidden = false
+  content.hidden = true
+  noDomains.hidden = true
+  error.hidden = true
+
+  const domainId = populateDomainSelect('minifyDomainSelect')
+  if (!domainId) {
+    loading.hidden = true
+    noDomains.hidden = false
+    return
+  }
+
+  const select = document.getElementById('minifyDomainSelect')
+  select.onchange = () => populateMinifyPanel()
+
+  try {
+    const selectedId = select.value || domainId
+    const data = await cfProxy(selectedId, 'settings')
+    loading.hidden = true
+
+    const s = data.settings || {}
+    _cfSettings = s
+    _cfPanelDomainId = selectedId
+
+    const minify = s.minify || { css: 'off', html: 'off', js: 'off' }
+    applyCfToggle('toggleMinHtml', minify.html)
+    applyCfToggle('toggleMinCss', minify.css)
+    applyCfToggle('toggleMinJs', minify.js)
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── Image Optimization panel ────────────────────────────────────────────────
+
+async function populateImagesPanel() {
+  const loading = document.getElementById('imgLoading')
+  const content = document.getElementById('imgContent')
+  const noDomains = document.getElementById('imgNoDomains')
+  const error = document.getElementById('imgError')
+
+  loading.hidden = false
+  content.hidden = true
+  noDomains.hidden = true
+  error.hidden = true
+
+  const domainId = populateDomainSelect('imgDomainSelect')
+  if (!domainId) {
+    loading.hidden = true
+    noDomains.hidden = false
+    return
+  }
+
+  const select = document.getElementById('imgDomainSelect')
+  select.onchange = () => populateImagesPanel()
+
+  try {
+    const selectedId = select.value || domainId
+    const data = await cfProxy(selectedId, 'settings')
+    loading.hidden = true
+
+    const s = data.settings || {}
+    _cfSettings = s
+    _cfPanelDomainId = selectedId
+
+    applyCfToggle('toggleMirage', s.mirage)
+    applyCfToggle('toggleRocketLoader', s.rocket_loader)
+    applyCfToggle('toggleWebp', s.webp)
+
+    // Polish is a string value (off, lossless, lossy)
+    const polishBadge = document.getElementById('imgPolishBadge')
+    const polish = s.polish || 'off'
+    polishBadge.textContent = polish
+    polishBadge.className = 'status-badge ' + (polish !== 'off' ? 'status-badge--active' : 'status-badge--pending')
+
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── WAF / Firewall panel ────────────────────────────────────────────────────
+
+async function populateWafPanel() {
+  const loading = document.getElementById('wafLoading')
+  const content = document.getElementById('wafContent')
+  const noDomains = document.getElementById('wafNoDomains')
+  const error = document.getElementById('wafError')
+
+  loading.hidden = false
+  content.hidden = true
+  noDomains.hidden = true
+  error.hidden = true
+
+  const domainId = populateDomainSelect('wafDomainSelect')
+  if (!domainId) {
+    loading.hidden = true
+    noDomains.hidden = false
+    return
+  }
+
+  const select = document.getElementById('wafDomainSelect')
+  select.onchange = () => populateWafPanel()
+
+  try {
+    const selectedId = select.value || domainId
+    const data = await cfProxy(selectedId, 'settings')
+    loading.hidden = true
+
+    const s = data.settings || {}
+    _cfSettings = s
+    _cfPanelDomainId = selectedId
+
+    // Security level badge
+    const levelBadge = document.getElementById('wafSecurityLevel')
+    const level = s.security_level || 'medium'
+    levelBadge.textContent = level.charAt(0).toUpperCase() + level.slice(1)
+    const levelClass = level === 'high' || level === 'under_attack' ? 'status-badge--error' : 'status-badge--active'
+    levelBadge.className = `status-badge ${levelClass}`
+
+    applyCfToggle('toggleBrowserCheck', s.browser_check)
+    applyCfToggle('toggleEmailObfuscation', s.email_obfuscation)
+    applyCfToggle('toggleHotlink', s.hotlink_protection)
+    applyCfToggle('toggleSSE', s.server_side_exclude)
+
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── DDoS panel ──────────────────────────────────────────────────────────────
+
+async function populateDdosPanel() {
+  const loading = document.getElementById('ddosLoading')
+  const content = document.getElementById('ddosContent')
+  const noDomains = document.getElementById('ddosNoDomains')
+  const error = document.getElementById('ddosError')
+
+  loading.hidden = false
+  content.hidden = true
+  noDomains.hidden = true
+  error.hidden = true
+
+  const domainId = populateDomainSelect('ddosDomainSelect')
+  if (!domainId) {
+    loading.hidden = true
+    noDomains.hidden = false
+    return
+  }
+
+  const select = document.getElementById('ddosDomainSelect')
+  select.onchange = () => populateDdosPanel()
+
+  try {
+    const selectedId = select.value || domainId
+    const data = await cfProxy(selectedId, 'analytics', { since: '30d' })
+    loading.hidden = true
+
+    if (!data.analytics) {
+      error.textContent = 'No analytics data available for this domain.'
+      error.hidden = false
+      return
+    }
+
+    const a = data.analytics
+    document.getElementById('ddosThreats').textContent = fmtNum(a.threats_total)
+    document.getElementById('ddosRequests').textContent = fmtNum(a.requests_total)
+    document.getElementById('ddosBandwidth').textContent = formatBytes(a.bandwidth_total)
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── Uptime panel ────────────────────────────────────────────────────────────
+
+async function populateUptimePanel() {
+  const loading = document.getElementById('uptimeLoading')
+  const list = document.getElementById('uptimeList')
+  const noDomains = document.getElementById('uptimeNoDomains')
+
+  loading.hidden = false
+  list.hidden = true
+  noDomains.hidden = true
+
+  const activeDomains = userDomains.filter(d => d.status === 'active')
+  if (!activeDomains.length) {
+    loading.hidden = true
+    noDomains.hidden = false
+    return
+  }
+
+  const session = await getSession()
+  if (!session) { loading.hidden = true; return }
+
+  // Run uptime checks in parallel for all active domains
+  const results = await Promise.all(activeDomains.map(async (d) => {
+    try {
+      const data = await cfProxy(d.id, 'uptime_check')
+      return { domain: d.domain, checks: data.checks || [] }
+    } catch {
+      return { domain: d.domain, checks: [] }
+    }
+  }))
+
+  loading.hidden = true
+  list.hidden = false
+
+  list.innerHTML = results.map(r => {
+    const httpsCheck = r.checks.find(c => c.url?.startsWith('https'))
+    const httpCheck = r.checks.find(c => c.url?.startsWith('http://'))
+    const mainCheck = httpsCheck || httpCheck || {}
+    const isUp = mainCheck.ok
+    const latency = mainCheck.latency
+
+    const pctClass = isUp ? 'good' : 'bad'
+    const statusText = isUp ? 'UP' : 'DOWN'
+    const latencyText = latency != null ? `${latency}ms` : '--'
 
     return `<div class="uptime-card">
       <div class="uptime-card__top">
-        <span class="uptime-card__domain">${escHtml(d.domain)}</span>
-        <span class="uptime-card__pct uptime-card__pct--${pctClass}">${pct}%</span>
+        <span class="uptime-card__domain">${escHtml(r.domain)}</span>
+        <span class="uptime-card__pct uptime-card__pct--${pctClass}">${statusText}</span>
       </div>
-      <div class="uptime-bar">
-        ${blocks.map(b => `<div class="uptime-bar__block uptime-bar__block--${b}"></div>`).join('')}
+      <div style="display:flex;gap:1rem;font-size:0.85rem;color:rgba(255,255,255,0.6);margin-top:0.3rem">
+        <span>HTTPS: ${httpsCheck?.ok ? '<span style="color:#22c55e">&#10003; ' + (httpsCheck.status || '') + '</span>' : '<span style="color:#ef4444">&#10007; ' + (httpsCheck?.status || 'Timeout') + '</span>'}</span>
+        <span>HTTP: ${httpCheck?.ok ? '<span style="color:#22c55e">&#10003; ' + (httpCheck.status || '') + '</span>' : '<span style="color:#ef4444">&#10007; ' + (httpCheck?.status || 'Timeout') + '</span>'}</span>
+        <span>Latency: <strong>${latencyText}</strong></span>
       </div>
     </div>`
   }).join('')
+
+  // Bind refresh button
+  const refreshBtn = document.getElementById('uptimeRefreshBtn')
+  if (refreshBtn) refreshBtn.onclick = () => populateUptimePanel()
 }
 
 // ─── Load domains ─────────────────────────────────────────────────────────────
@@ -470,14 +952,34 @@ async function handleSubmitDomain() {
   errEl.hidden = true
   successEl.hidden = true
 
+  const isSelfManaged = document.querySelector('input[name="setupMode"][value="self"]')?.checked
+
+  // Validate self-managed fields
+  if (isSelfManaged) {
+    const zoneId = document.getElementById('inputZoneId').value.trim()
+    const apiToken = document.getElementById('inputApiToken').value.trim()
+    if (!zoneId || !apiToken) {
+      errEl.textContent = 'Please provide both your Cloudflare Zone ID and API Token.'
+      errEl.hidden = false
+      return
+    }
+  }
+
   btn.disabled = true
   btn.innerHTML = '<span class="btn-spinner"></span> Submitting...'
 
-  const { error } = await _supabase.from('user_domains').insert({
+  const insertData = {
     user_id: currentUser.id,
     domain: scannedDomain,
-    status: 'pending',
-  })
+    status: isSelfManaged ? 'active' : 'pending',
+  }
+
+  if (isSelfManaged) {
+    insertData.cloudflare_zone_id = document.getElementById('inputZoneId').value.trim()
+    insertData.cloudflare_api_token = document.getElementById('inputApiToken').value.trim()
+  }
+
+  const { error } = await _supabase.from('user_domains').insert(insertData)
 
   btn.disabled = false
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Submit Domain'
@@ -488,14 +990,22 @@ async function handleSubmitDomain() {
     return
   }
 
-  successEl.innerHTML = `<strong>${escHtml(scannedDomain)}</strong> submitted! Our team will set it up and you'll see it go <span class="status-badge status-badge--active" style="display:inline-flex;vertical-align:middle;margin:0 4px">active</span> once ready.`
+  const successMsg = isSelfManaged
+    ? `<strong>${escHtml(scannedDomain)}</strong> is now <span class="status-badge status-badge--active" style="display:inline-flex;vertical-align:middle;margin:0 4px">active</span>! All panels are pulling live data from your Cloudflare account.`
+    : `<strong>${escHtml(scannedDomain)}</strong> submitted! Our team will set it up and you'll see it go <span class="status-badge status-badge--active" style="display:inline-flex;vertical-align:middle;margin:0 4px">active</span> once ready.`
+  successEl.innerHTML = successMsg
   successEl.hidden = false
 
   // Hide the submit button row after success
   btn.hidden = true
 
-  // Reset the scan form
+  // Reset forms
   document.getElementById('addDomainForm').reset()
+  document.getElementById('inputZoneId').value = ''
+  document.getElementById('inputApiToken').value = ''
+  document.getElementById('selfManagedFields').hidden = true
+  document.getElementById('optManaged').classList.add('setup-mode-option--active')
+  document.getElementById('optSelfManaged').classList.remove('setup-mode-option--active')
   scannedDomain = null
 
   await loadDomains()
@@ -787,6 +1297,12 @@ async function runDomainLookup(domain, showSubmit = false) {
   document.getElementById('reportSubmitError').hidden = true
   document.getElementById('reportSubmitSuccess').hidden = true
   document.getElementById('reportSubmitBtn').hidden = false
+  // Reset setup mode to managed
+  document.getElementById('selfManagedFields').hidden = true
+  document.getElementById('optManaged').classList.add('setup-mode-option--active')
+  document.getElementById('optSelfManaged').classList.remove('setup-mode-option--active')
+  const managedRadio = document.querySelector('input[name="setupMode"][value="managed"]')
+  if (managedRadio) managedRadio.checked = true
 
   // Set loading state
   document.getElementById('reportDomainName').textContent = domain
