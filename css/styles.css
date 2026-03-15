@@ -1133,9 +1133,7 @@ details[open] .faq__question::after {
     flex-direction: column;
     position: fixed;
     inset: var(--nav-height) 0 0;
-    background: rgba(10, 14, 26, 0.98);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
+    background: #0a0e1a;
     padding: 2rem;
     align-items: flex-start;
     gap: 1.5rem;
