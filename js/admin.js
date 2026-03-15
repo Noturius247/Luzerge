@@ -237,7 +237,9 @@ async function runAdminLookup(domain, domainId) {
   card.appendChild(report)
 
   try {
-    const res = await fetch(`${EDGE_BASE}/domain-lookup?domain=${encodeURIComponent(domain)}`)
+    const res = await fetch(`${EDGE_BASE}/domain-lookup?domain=${encodeURIComponent(domain)}`, {
+      headers: { apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+    })
     const data = await res.json()
 
     if (!data.registered) {
