@@ -196,9 +196,9 @@
 }
 
 .dash-main {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  max-width: none;
+  width: 100%;
+  padding: 2rem 2.5rem 4rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -206,12 +206,6 @@
 
 .dash-main--wide {
   max-width: 1060px;
-}
-
-.dash-page--admin .dash-main {
-  max-width: none;
-  width: 100%;
-  padding-right: 2.5rem;
 }
 
 /* ─── Welcome hero ─────────────────────────────────────────────────────────── */
