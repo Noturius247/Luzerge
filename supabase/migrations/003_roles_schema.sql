@@ -20,19 +20,15 @@ CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  INSERT INTO profiles (id, email, full_name, avatar_url, role)
+  INSERT INTO public.profiles (id, email, full_name, avatar_url, role)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''),
-    COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture', ''),
+    '',
+    '',
     'user'
   )
-  ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
-    full_name = EXCLUDED.full_name,
-    avatar_url = EXCLUDED.avatar_url,
-    updated_at = NOW();
+  ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
 $$;
