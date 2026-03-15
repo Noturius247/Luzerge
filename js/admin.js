@@ -938,54 +938,39 @@ function toggleExpand(domainId) {
 // ─── Domain Lookup (Admin) ────────────────────────────────────────────────
 
 async function runAdminLookup(domain, domainId) {
-  // For table rows (applications, rejected) — write directly into expandContent
-  const expandRow = document.getElementById(`expand-${domainId}`)
-  const expandContent = document.getElementById(`expandContent-${domainId}`)
-
-  // For active domain cards — use expandLookup inside card body
-  const cardBody = document.getElementById(`cardBody-${domainId}`)
-  const chevron = document.getElementById(`chevron-${domainId}`)
-  const cardLookup = document.getElementById(`expandLookup-${domainId}`)
-
+  // Determine which container to use
   let container
 
-  if (expandRow && expandContent) {
-    // Table row mode — show expand row and use expandContent as container
-    if (expandRow.hidden) {
-      document.querySelectorAll('.admin-expand-row').forEach(r => { r.hidden = true })
-      expandRow.hidden = false
-    }
-    container = expandContent
-
-    // Toggle off if already has lookup loaded
-    if (container.dataset.lookupLoaded === 'true') {
-      container.innerHTML = ''
-      container.dataset.lookupLoaded = ''
-      expandRow.hidden = true
-      return
-    }
-  } else if (cardBody && cardLookup) {
-    // Card mode — expand card body, use expandLookup container
-    if (cardBody.hidden) {
+  // Try card-based lookup (active domain cards)
+  const cardLookup = document.getElementById(`expandLookup-${domainId}`)
+  if (cardLookup) {
+    const cardBody = document.getElementById(`cardBody-${domainId}`)
+    const chevron = document.getElementById(`chevron-${domainId}`)
+    if (cardBody && cardBody.hidden) {
       cardBody.hidden = false
       if (chevron) chevron.classList.add('active-domain-card__chevron--open')
     }
     container = cardLookup
-
-    // Toggle off
-    if (container.innerHTML && container.dataset.loaded === 'true') {
-      container.innerHTML = ''
-      container.dataset.loaded = ''
-      return
-    }
   } else {
+    // Table row mode — use the dedicated lookup result area
+    container = document.getElementById('appLookupResult')
+    if (!container) return
+  }
+
+  // Toggle off if already loaded
+  if (container.dataset.lookupLoaded === 'true') {
+    container.innerHTML = ''
+    container.hidden = true
+    container.dataset.lookupLoaded = ''
     return
   }
 
+  container.hidden = false
   container.innerHTML = `<div class="admin-report__loading">
     <div class="loading-dots"><span></span><span></span><span></span></div>
     Looking up <strong>${escHtml(domain)}</strong>...
   </div>`
+  container.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 
   try {
     const res = await fetch(`${EDGE_BASE}/domain-lookup?domain=${encodeURIComponent(domain)}`, {
@@ -1004,6 +989,8 @@ async function runAdminLookup(domain, domainId) {
         <div class="dash-alert dash-alert--error" style="margin-top:12px">Domain not registered or has no DNS records.</div>
       </div>`
       container.dataset.loaded = 'true'
+      container.dataset.lookupLoaded = 'true'
+      container.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       return
     }
 
@@ -1046,6 +1033,7 @@ async function runAdminLookup(domain, domainId) {
 
   } catch (err) {
     container.innerHTML = `<div class="dash-alert dash-alert--error" style="margin:12px 0">Lookup failed: ${escHtml(String(err))}</div>`
+    container.dataset.lookupLoaded = 'true'
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
 }
