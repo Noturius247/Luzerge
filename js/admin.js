@@ -250,10 +250,7 @@ function renderApplicationsTable() {
       </td>
     </tr>
     <tr class="admin-expand-row" id="expand-${d.id}" hidden>
-      <td colspan="5">
-        <div class="admin-expand" id="expandContent-${d.id}"></div>
-        <div class="expand-lookup" id="expandLookup-${d.id}"></div>
-      </td>
+      <td colspan="5"><div class="admin-expand" id="expandContent-${d.id}"></div></td>
     </tr>
   `).join('')
 
@@ -941,27 +938,47 @@ function toggleExpand(domainId) {
 // ─── Domain Lookup (Admin) ────────────────────────────────────────────────
 
 async function runAdminLookup(domain, domainId) {
-  // First make sure the row/card is expanded
+  // For table rows (applications, rejected) — write directly into expandContent
   const expandRow = document.getElementById(`expand-${domainId}`)
-  if (expandRow) {
-    if (expandRow.hidden) toggleExpand(domainId)
-  } else {
-    // Active domain card — expand the card body
-    const cardBody = document.getElementById(`cardBody-${domainId}`)
-    const chevron = document.getElementById(`chevron-${domainId}`)
-    if (cardBody && cardBody.hidden) {
+  const expandContent = document.getElementById(`expandContent-${domainId}`)
+
+  // For active domain cards — use expandLookup inside card body
+  const cardBody = document.getElementById(`cardBody-${domainId}`)
+  const chevron = document.getElementById(`chevron-${domainId}`)
+  const cardLookup = document.getElementById(`expandLookup-${domainId}`)
+
+  let container
+
+  if (expandRow && expandContent) {
+    // Table row mode — show expand row and use expandContent as container
+    if (expandRow.hidden) {
+      document.querySelectorAll('.admin-expand-row').forEach(r => { r.hidden = true })
+      expandRow.hidden = false
+    }
+    container = expandContent
+
+    // Toggle off if already has lookup loaded
+    if (container.dataset.lookupLoaded === 'true') {
+      container.innerHTML = ''
+      container.dataset.lookupLoaded = ''
+      expandRow.hidden = true
+      return
+    }
+  } else if (cardBody && cardLookup) {
+    // Card mode — expand card body, use expandLookup container
+    if (cardBody.hidden) {
       cardBody.hidden = false
       if (chevron) chevron.classList.add('active-domain-card__chevron--open')
     }
-  }
+    container = cardLookup
 
-  const container = document.getElementById(`expandLookup-${domainId}`)
-  if (!container) return
-
-  // Toggle off
-  if (container.innerHTML && container.dataset.loaded === 'true') {
-    container.innerHTML = ''
-    container.dataset.loaded = ''
+    // Toggle off
+    if (container.innerHTML && container.dataset.loaded === 'true') {
+      container.innerHTML = ''
+      container.dataset.loaded = ''
+      return
+    }
+  } else {
     return
   }
 
@@ -1024,6 +1041,7 @@ async function runAdminLookup(domain, domainId) {
       ${actionMsg}
     </div>`
     container.dataset.loaded = 'true'
+    container.dataset.lookupLoaded = 'true'
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 
   } catch (err) {
