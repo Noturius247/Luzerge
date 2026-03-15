@@ -69,12 +69,18 @@
         btn.disabled = true
         btn.textContent = 'Redirecting...'
 
-        const { error } = await _supabase.auth.signInWithOAuth({
+        const { data, error } = await _supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
             redirectTo: `${location.origin}/dashboard.html`,
+            skipBrowserRedirect: false,
           },
         })
+
+        // Fallback: if the SDK didn't redirect (extension blocked it), do it manually
+        if (!error && data?.url) {
+          window.location.href = data.url
+        }
 
         if (error) {
           const el = document.getElementById('authError')
