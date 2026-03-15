@@ -116,7 +116,7 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </div>
           <h2 class="dash-panel__title">Submit a Website</h2>
-          <p class="dash-panel__desc">Just enter your domain name — our team will configure everything else (Cloudflare Zone ID, API tokens, DNS). You'll be notified once it's live.</p>
+          <p class="dash-panel__desc">Enter your domain name to scan it first. We'll check its DNS, hosting, and Cloudflare status before you submit.</p>
           <form class="submit-domain-form" id="addDomainForm" novalidate>
             <div class="form-row form-row--inline">
               <div class="form-group form-group--grow">
@@ -125,16 +125,79 @@
                   <span class="input-prefix">https://</span>
                   <input class="form-input" id="inputDomain" type="text" placeholder="yourdomain.com" required autocomplete="off" />
                 </div>
-                <span class="form-hint">We'll handle DNS, SSL, and cache setup for you</span>
+                <span class="form-hint">We'll scan the domain first, then you can submit it</span>
               </div>
-              <button class="btn btn--primary btn--glow" type="submit" id="addDomainBtn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Submit Domain
+              <button class="btn btn--primary btn--glow" type="submit" id="scanDomainBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Scan Domain
               </button>
             </div>
             <div id="addDomainError" class="dash-alert dash-alert--error" hidden></div>
             <div id="addDomainSuccess" class="dash-alert dash-alert--success" hidden></div>
           </form>
+        </section>
+
+        <!-- Domain Report (shown after lookup) -->
+        <section class="dash-panel domain-report-panel" id="domainReportPanel" hidden data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              Domain Report
+            </h2>
+            <button class="btn btn--ghost btn--sm" id="closeReportBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="report-domain-name" id="reportDomainName"></div>
+          <div class="report-grid" id="reportGrid">
+            <div class="report-card">
+              <span class="report-card__label">Status</span>
+              <span class="report-card__value" id="reportStatus">—</span>
+            </div>
+            <div class="report-card">
+              <span class="report-card__label">Platform / DNS</span>
+              <span class="report-card__value" id="reportPlatform">—</span>
+            </div>
+            <div class="report-card">
+              <span class="report-card__label">Hosting Provider</span>
+              <span class="report-card__value" id="reportHosting">—</span>
+            </div>
+            <div class="report-card">
+              <span class="report-card__label">Server IP</span>
+              <span class="report-card__value" id="reportIP">—</span>
+            </div>
+            <div class="report-card">
+              <span class="report-card__label">Country</span>
+              <span class="report-card__value" id="reportCountry">—</span>
+            </div>
+            <div class="report-card">
+              <span class="report-card__label">Cloudflare</span>
+              <span class="report-card__value" id="reportCloudflare">—</span>
+            </div>
+          </div>
+          <div class="report-details" id="reportDetails">
+            <div class="report-detail-group">
+              <h4 class="report-detail-group__title">Nameservers</h4>
+              <ul class="report-ns-list" id="reportNameservers"></ul>
+            </div>
+            <div class="report-detail-group" id="reportRecordsGroup" hidden>
+              <h4 class="report-detail-group__title">DNS Records</h4>
+              <div class="report-records" id="reportRecords"></div>
+            </div>
+          </div>
+          <div class="report-action" id="reportAction"></div>
+          <div class="report-submit" id="reportSubmitSection" hidden>
+            <div class="report-submit__divider"></div>
+            <div class="report-submit__row">
+              <p class="report-submit__text">Ready to submit <strong id="reportSubmitDomain"></strong> for CDN setup?</p>
+              <button class="btn btn--primary btn--glow" type="button" id="reportSubmitBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Submit Domain
+              </button>
+            </div>
+            <div id="reportSubmitError" class="dash-alert dash-alert--error" hidden></div>
+            <div id="reportSubmitSuccess" class="dash-alert dash-alert--success" hidden></div>
+          </div>
         </section>
 
         <section class="dash-panel" id="domainsPanel" data-scroll-reveal>

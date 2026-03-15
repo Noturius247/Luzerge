@@ -5,6 +5,8 @@
 
 'use strict'
 
+const EDGE_BASE = 'https://byzuraeyhrxxpztredri.supabase.co/functions/v1'
+
 let currentUser = null
 let currentProfile = null
 let allDomains = []
@@ -162,6 +164,10 @@ function renderDomains() {
               Configure
             </button>
           ` : ''}
+          <button class="btn btn--outline btn--sm" data-action="lookup" data-domain="${escHtml(d.domain)}" data-id="${d.id}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Lookup
+          </button>
           ${d.status === 'active' ? `
             <button class="btn btn--outline btn--sm" data-action="edit" data-id="${d.id}">Edit</button>
           ` : ''}
@@ -193,6 +199,9 @@ function renderDomains() {
   `).join('')
 
   // Events
+  list.querySelectorAll('[data-action="lookup"]').forEach(btn => {
+    btn.addEventListener('click', () => runAdminLookup(btn.dataset.domain, btn.dataset.id))
+  })
   list.querySelectorAll('[data-action="setup"]').forEach(btn => {
     btn.addEventListener('click', () => openSetupModal(btn.dataset.id))
   })
@@ -202,6 +211,89 @@ function renderDomains() {
   list.querySelectorAll('[data-action="delete"]').forEach(btn => {
     btn.addEventListener('click', () => openDeleteModal(btn.dataset.id, btn.dataset.domain))
   })
+}
+
+// ─── Domain Lookup (Admin) ────────────────────────────────────────────────
+
+async function runAdminLookup(domain, domainId) {
+  // Find or create the report container below the domain card
+  const card = document.querySelector(`[data-action="lookup"][data-id="${domainId}"]`)?.closest('.admin-domain-card')
+  if (!card) return
+
+  // Toggle: if report already exists, remove it
+  const existing = card.querySelector('.admin-report')
+  if (existing) {
+    existing.remove()
+    return
+  }
+
+  // Create report container
+  const report = document.createElement('div')
+  report.className = 'admin-report'
+  report.innerHTML = `<div class="admin-report__loading">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    Looking up <strong>${escHtml(domain)}</strong>...
+  </div>`
+  card.appendChild(report)
+
+  try {
+    const res = await fetch(`${EDGE_BASE}/domain-lookup?domain=${encodeURIComponent(domain)}`)
+    const data = await res.json()
+
+    if (!data.registered) {
+      report.innerHTML = `<div class="admin-report__content">
+        <div class="report-grid report-grid--admin">
+          <div class="report-card"><span class="report-card__label">Status</span><span class="report-card__value"><span class="status-badge status-badge--error">Not Found</span></span></div>
+        </div>
+        <div class="dash-alert dash-alert--error" style="margin-top:12px">Domain not registered or has no DNS records.</div>
+      </div>`
+      return
+    }
+
+    const cfBadge = data.is_on_cloudflare
+      ? '<span class="report-highlight report-highlight--green">Yes</span>'
+      : '<span class="report-highlight report-highlight--amber">No</span>'
+
+    const platformBadge = data.is_on_cloudflare
+      ? `<span class="report-highlight report-highlight--green">${escHtml(data.platform)}</span>`
+      : escHtml(data.platform || 'Unknown')
+
+    const nsHtml = (data.nameservers || []).map(ns => `<code class="report-ns">${escHtml(ns)}</code>`).join(' ')
+
+    const recordsHtml = []
+    if (data.a_records?.length) {
+      data.a_records.forEach(r => recordsHtml.push(`<span class="report-record"><span class="report-record__type report-record__type--a">A</span>${escHtml(r)}</span>`))
+    }
+    if (data.aaaa_records?.length) {
+      data.aaaa_records.forEach(r => recordsHtml.push(`<span class="report-record"><span class="report-record__type report-record__type--aaaa">AAAA</span>${escHtml(r)}</span>`))
+    }
+    if (data.mx_records?.length) {
+      data.mx_records.forEach(r => recordsHtml.push(`<span class="report-record"><span class="report-record__type report-record__type--mx">MX</span>${escHtml(r)}</span>`))
+    }
+
+    const actionMsg = data.is_on_cloudflare
+      ? '<div class="dash-alert dash-alert--success" style="margin-top:12px"><strong>On Cloudflare</strong> — Ask the customer for their Zone ID and API Token, or add their domain to your Cloudflare account.</div>'
+      : '<div class="dash-alert dash-alert--info" style="margin-top:12px"><strong>Not on Cloudflare</strong> — Add this domain to your Cloudflare account and send the customer nameserver change instructions.</div>'
+
+    report.innerHTML = `<div class="admin-report__content">
+      <div class="report-grid report-grid--admin">
+        <div class="report-card"><span class="report-card__label">Status</span><span class="report-card__value"><span class="status-badge status-badge--active">Registered</span></span></div>
+        <div class="report-card"><span class="report-card__label">Platform</span><span class="report-card__value">${platformBadge}</span></div>
+        <div class="report-card"><span class="report-card__label">Hosting</span><span class="report-card__value">${escHtml(data.hosting?.provider || 'Unknown')}</span></div>
+        <div class="report-card"><span class="report-card__label">IP</span><span class="report-card__value">${escHtml(data.hosting?.ip || 'N/A')}</span></div>
+        <div class="report-card"><span class="report-card__label">Country</span><span class="report-card__value">${escHtml(data.hosting?.country || 'N/A')}</span></div>
+        <div class="report-card"><span class="report-card__label">Cloudflare</span><span class="report-card__value">${cfBadge}</span></div>
+      </div>
+      <div class="admin-report__section">
+        <strong>Nameservers:</strong> ${nsHtml || 'None found'}
+      </div>
+      ${recordsHtml.length ? `<div class="admin-report__section"><strong>Records:</strong> ${recordsHtml.join(' ')}</div>` : ''}
+      ${actionMsg}
+    </div>`
+
+  } catch (err) {
+    report.innerHTML = `<div class="dash-alert dash-alert--error" style="margin:12px 0">Lookup failed: ${escHtml(String(err))}</div>`
+  }
 }
 
 // ─── Setup modal ──────────────────────────────────────────────────────────────

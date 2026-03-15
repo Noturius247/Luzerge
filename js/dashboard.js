@@ -12,6 +12,7 @@ let currentProfile = null
 let selectedDomainId = null
 let domainToDelete = null
 let userDomains = []
+let scannedDomain = null  // holds the domain name after a successful scan
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
@@ -69,11 +70,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load domains
   await loadDomains()
 
-  // Add domain form
-  document.getElementById('addDomainForm')?.addEventListener('submit', handleAddDomain)
+  // Scan domain form
+  document.getElementById('addDomainForm')?.addEventListener('submit', handleScanDomain)
+
+  // Submit domain button (inside report panel)
+  document.getElementById('reportSubmitBtn')?.addEventListener('click', handleSubmitDomain)
 
   // Close detail
   document.getElementById('closeDetailBtn')?.addEventListener('click', closeDetail)
+
+  // Close domain report
+  document.getElementById('closeReportBtn')?.addEventListener('click', () => {
+    document.getElementById('domainReportPanel').hidden = true
+  })
 
   // Purge tabs
   document.querySelectorAll('.purge-tab').forEach(tab => {
@@ -325,6 +334,10 @@ async function loadDomains() {
           ${statusIcon(d.status)}
           ${d.status}
         </span>
+        <button class="btn btn--outline btn--sm" data-action="lookup" data-domain="${escHtml(d.domain)}" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Lookup
+        </button>
         ${d.status === 'active' ? `<button class="btn btn--outline btn--sm" data-action="view" data-id="${d.id}" type="button">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Stats
@@ -337,6 +350,12 @@ async function loadDomains() {
   `).join('')
 
   // Events
+  list.querySelectorAll('[data-action="lookup"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      runDomainLookup(btn.dataset.domain)
+    })
+  })
   list.querySelectorAll('[data-action="view"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -374,22 +393,26 @@ function statusIcon(status) {
   }
 }
 
-// ─── Add domain ───────────────────────────────────────────────────────────────
+// ─── Scan & Submit domain (two-step flow) ─────────────────────────────────────
 
-async function handleAddDomain(e) {
+function parseDomainInput() {
+  return document.getElementById('inputDomain').value.trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/\/.*$/, '')
+    .toLowerCase()
+}
+
+async function handleScanDomain(e) {
   e.preventDefault()
 
-  const btn = document.getElementById('addDomainBtn')
+  const btn = document.getElementById('scanDomainBtn')
   const errEl = document.getElementById('addDomainError')
   const successEl = document.getElementById('addDomainSuccess')
   errEl.hidden = true
   successEl.hidden = true
 
-  const domain = document.getElementById('inputDomain').value.trim()
-    .replace(/^https?:\/\//i, '')
-    .replace(/^www\./i, '')
-    .replace(/\/.*$/, '')
-    .toLowerCase()
+  const domain = parseDomainInput()
 
   if (!domain) {
     showAddError('Please enter a domain name.')
@@ -401,12 +424,39 @@ async function handleAddDomain(e) {
     return
   }
 
+  // Check if already submitted
+  const alreadySubmitted = userDomains.find(d => d.domain === domain)
+  if (alreadySubmitted) {
+    showAddError(`${domain} is already submitted.`)
+    return
+  }
+
+  btn.disabled = true
+  btn.innerHTML = '<span class="btn-spinner"></span> Scanning...'
+
+  // Run lookup — this will show the report panel with submit button
+  scannedDomain = domain
+  await runDomainLookup(domain, true)
+
+  btn.disabled = false
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Scan Domain'
+}
+
+async function handleSubmitDomain() {
+  if (!scannedDomain) return
+
+  const btn = document.getElementById('reportSubmitBtn')
+  const errEl = document.getElementById('reportSubmitError')
+  const successEl = document.getElementById('reportSubmitSuccess')
+  errEl.hidden = true
+  successEl.hidden = true
+
   btn.disabled = true
   btn.innerHTML = '<span class="btn-spinner"></span> Submitting...'
 
   const { error } = await _supabase.from('user_domains').insert({
     user_id: currentUser.id,
-    domain,
+    domain: scannedDomain,
     status: 'pending',
   })
 
@@ -414,13 +464,21 @@ async function handleAddDomain(e) {
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Submit Domain'
 
   if (error) {
-    showAddError(error.message.includes('unique') ? `${domain} is already submitted.` : error.message)
+    errEl.textContent = error.message.includes('unique') ? `${scannedDomain} is already submitted.` : error.message
+    errEl.hidden = false
     return
   }
 
-  successEl.innerHTML = `<strong>${escHtml(domain)}</strong> submitted! Our team will set it up and you'll see it go <span class="status-badge status-badge--active" style="display:inline-flex;vertical-align:middle;margin:0 4px">active</span> once ready.`
+  successEl.innerHTML = `<strong>${escHtml(scannedDomain)}</strong> submitted! Our team will set it up and you'll see it go <span class="status-badge status-badge--active" style="display:inline-flex;vertical-align:middle;margin:0 4px">active</span> once ready.`
   successEl.hidden = false
+
+  // Hide the submit button row after success
+  btn.hidden = true
+
+  // Reset the scan form
   document.getElementById('addDomainForm').reset()
+  scannedDomain = null
+
   await loadDomains()
 }
 
@@ -428,6 +486,138 @@ function showAddError(msg) {
   const el = document.getElementById('addDomainError')
   el.textContent = msg
   el.hidden = false
+}
+
+// ─── Domain Lookup ────────────────────────────────────────────────────────
+
+async function runDomainLookup(domain, showSubmit = false) {
+  const panel = document.getElementById('domainReportPanel')
+  panel.hidden = false
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  // Reset submit section
+  const submitSection = document.getElementById('reportSubmitSection')
+  submitSection.hidden = true
+  document.getElementById('reportSubmitError').hidden = true
+  document.getElementById('reportSubmitSuccess').hidden = true
+  document.getElementById('reportSubmitBtn').hidden = false
+
+  // Set loading state
+  document.getElementById('reportDomainName').textContent = domain
+  document.getElementById('reportStatus').innerHTML = '<span class="report-loading">Scanning...</span>'
+  document.getElementById('reportPlatform').textContent = '...'
+  document.getElementById('reportHosting').textContent = '...'
+  document.getElementById('reportIP').textContent = '...'
+  document.getElementById('reportCountry').textContent = '...'
+  document.getElementById('reportCloudflare').textContent = '...'
+  document.getElementById('reportNameservers').innerHTML = '<li>Scanning...</li>'
+  document.getElementById('reportRecordsGroup').hidden = true
+  document.getElementById('reportAction').innerHTML = ''
+
+  try {
+    const res = await fetch(`${EDGE_BASE}/domain-lookup?domain=${encodeURIComponent(domain)}`)
+    const data = await res.json()
+
+    if (!data.registered) {
+      document.getElementById('reportStatus').innerHTML =
+        '<span class="status-badge status-badge--error">Not Found</span>'
+      document.getElementById('reportPlatform').textContent = '—'
+      document.getElementById('reportHosting').textContent = '—'
+      document.getElementById('reportIP').textContent = '—'
+      document.getElementById('reportCountry').textContent = '—'
+      document.getElementById('reportCloudflare').textContent = '—'
+      document.getElementById('reportNameservers').innerHTML = '<li>Domain does not exist</li>'
+      document.getElementById('reportAction').innerHTML =
+        '<div class="dash-alert dash-alert--error">This domain is not registered or does not have DNS records.</div>'
+      return
+    }
+
+    // Status
+    document.getElementById('reportStatus').innerHTML =
+      '<span class="status-badge status-badge--active">Registered</span>'
+
+    // Platform
+    const platformEl = document.getElementById('reportPlatform')
+    platformEl.textContent = data.platform || 'Unknown'
+    if (data.is_on_cloudflare) {
+      platformEl.innerHTML = `<span class="report-highlight report-highlight--green">${escHtml(data.platform)}</span>`
+    }
+
+    // Hosting
+    document.getElementById('reportHosting').textContent = data.hosting?.provider || 'Unknown'
+
+    // IP
+    document.getElementById('reportIP').textContent = data.hosting?.ip || 'N/A'
+
+    // Country
+    const countryCode = data.hosting?.country || ''
+    document.getElementById('reportCountry').textContent = countryCode || 'N/A'
+
+    // Cloudflare status
+    const cfEl = document.getElementById('reportCloudflare')
+    if (data.is_on_cloudflare) {
+      cfEl.innerHTML = '<span class="report-highlight report-highlight--green">Yes — On Cloudflare</span>'
+    } else {
+      cfEl.innerHTML = '<span class="report-highlight report-highlight--amber">No — Not on Cloudflare</span>'
+    }
+
+    // Nameservers
+    const nsList = document.getElementById('reportNameservers')
+    if (data.nameservers?.length) {
+      nsList.innerHTML = data.nameservers.map(ns =>
+        `<li><code>${escHtml(ns)}</code></li>`
+      ).join('')
+    } else {
+      nsList.innerHTML = '<li>No nameservers found</li>'
+    }
+
+    // DNS Records
+    const hasRecords = (data.a_records?.length || data.aaaa_records?.length || data.mx_records?.length)
+    if (hasRecords) {
+      document.getElementById('reportRecordsGroup').hidden = false
+      const recordsHtml = []
+      if (data.a_records?.length) {
+        data.a_records.forEach(r => {
+          recordsHtml.push(`<div class="report-record"><span class="report-record__type report-record__type--a">A</span><span class="report-record__value">${escHtml(r)}</span></div>`)
+        })
+      }
+      if (data.aaaa_records?.length) {
+        data.aaaa_records.forEach(r => {
+          recordsHtml.push(`<div class="report-record"><span class="report-record__type report-record__type--aaaa">AAAA</span><span class="report-record__value">${escHtml(r)}</span></div>`)
+        })
+      }
+      if (data.mx_records?.length) {
+        data.mx_records.forEach(r => {
+          recordsHtml.push(`<div class="report-record"><span class="report-record__type report-record__type--mx">MX</span><span class="report-record__value">${escHtml(r)}</span></div>`)
+        })
+      }
+      document.getElementById('reportRecords').innerHTML = recordsHtml.join('')
+    }
+
+    // Action message
+    const actionEl = document.getElementById('reportAction')
+    if (data.is_on_cloudflare) {
+      actionEl.innerHTML = `<div class="dash-alert dash-alert--success">
+        <strong>Already on Cloudflare!</strong> Our team will configure the CDN settings for this domain. You can provide your Zone ID and API Token to speed things up, or we'll handle everything for you.
+      </div>`
+    } else {
+      actionEl.innerHTML = `<div class="dash-alert dash-alert--info">
+        <strong>Not on Cloudflare yet.</strong> No worries — our team will set up Cloudflare for your domain. You'll just need to update your nameservers when we send you the instructions. It takes about 5 minutes!
+      </div>`
+    }
+
+    // Show "Submit Domain" button if this is a new scan
+    if (showSubmit && data.registered) {
+      submitSection.hidden = false
+      document.getElementById('reportSubmitDomain').textContent = domain
+    }
+
+  } catch (err) {
+    document.getElementById('reportStatus').innerHTML =
+      '<span class="status-badge status-badge--error">Error</span>'
+    document.getElementById('reportAction').innerHTML =
+      `<div class="dash-alert dash-alert--error">Failed to look up domain: ${escHtml(String(err))}</div>`
+  }
 }
 
 // ─── Domain detail ────────────────────────────────────────────────────────────
