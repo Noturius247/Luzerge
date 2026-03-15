@@ -191,10 +191,10 @@
       <div id="panelApplications" data-feature-panel hidden>
         <section class="dash-panel" data-scroll-reveal>
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">All Applications</h2>
+            <h2 class="dash-panel__title">Pending Applications</h2>
             <span class="domain-count" id="appCount"></span>
           </div>
-          <p class="dash-panel__desc">All domain submissions from customers. Click a row to expand details and configure.</p>
+          <p class="dash-panel__desc">Domain submissions awaiting review. Click a row to expand details, then configure and approve.</p>
           <div id="appLoading" class="dash-loading">
             <div class="loading-dots"><span></span><span></span><span></span></div>
             Loading...
@@ -226,24 +226,11 @@
             <h2 class="dash-panel__title">Active Domains</h2>
             <span class="domain-count" id="activeCount"></span>
           </div>
-          <p class="dash-panel__desc">Domains that are live and connected to Cloudflare.</p>
+          <p class="dash-panel__desc">Domains that are live and connected to Cloudflare. Full details shown for each domain.</p>
           <div id="activeEmpty" class="dash-empty" hidden>
             <p>No active domains yet</p>
           </div>
-          <div class="admin-table-wrap" id="activeTableWrap" hidden>
-            <table class="admin-table" id="activeTable">
-              <thead>
-                <tr>
-                  <th>Domain</th>
-                  <th>Owner</th>
-                  <th>Activated</th>
-                  <th>Last Purged</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="activeTableBody"></tbody>
-            </table>
-          </div>
+          <div class="active-detail-list" id="activeDetailList" hidden></div>
         </section>
       </div>
 

@@ -127,7 +127,7 @@ function switchPanel(panelId) {
 async function loadAllDomains() {
   const { data: domains, error } = await _supabase
     .from('user_domains')
-    .select('id, user_id, domain, cloudflare_zone_id, cloudflare_api_token, status, admin_notes, last_purged_at, created_at, updated_at')
+    .select('id, user_id, domain, cloudflare_zone_id, cloudflare_api_token, status, admin_notes, last_purged_at, auto_purge_enabled, auto_purge_interval, created_at, updated_at')
     .order('created_at', { ascending: false })
 
   if (error) return
@@ -217,24 +217,26 @@ function renderApplicationsTable() {
 
   loading.hidden = true
 
-  if (!allDomains.length) {
+  const pending = allDomains.filter(d => d.status === 'pending')
+
+  if (!pending.length) {
     empty.hidden = false
     wrap.hidden = true
+    count.textContent = ''
     return
   }
   empty.hidden = true
   wrap.hidden = false
-  count.textContent = `${allDomains.length} total`
+  count.textContent = `${pending.length} pending`
 
-  body.innerHTML = allDomains.map(d => `
-    <tr class="admin-row admin-row--${d.status}" data-id="${d.id}">
+  body.innerHTML = pending.map(d => `
+    <tr class="admin-row admin-row--pending" data-id="${d.id}">
       <td><strong>${escHtml(d.domain)}</strong></td>
       <td>${escHtml(d.user_name || d.user_email)}</td>
       <td>${formatDate(d.created_at)}</td>
-      <td><span class="status-badge status-badge--${d.status}">${d.status}</span></td>
+      <td><span class="status-badge status-badge--pending">pending</span></td>
       <td class="admin-row__actions">
-        ${d.status === 'pending' ? `<button class="btn btn--primary btn--sm" data-action="setup" data-id="${d.id}" type="button">Configure</button>` : ''}
-        ${d.status === 'active' ? `<button class="btn btn--outline btn--sm" data-action="edit" data-id="${d.id}" type="button">Edit</button>` : ''}
+        <button class="btn btn--primary btn--sm" data-action="setup" data-id="${d.id}" type="button">Configure</button>
         <button class="btn btn--outline btn--sm" data-action="lookup" data-domain="${escHtml(d.domain)}" data-id="${d.id}" type="button">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
@@ -254,8 +256,7 @@ function renderApplicationsTable() {
 // ─── Active table ─────────────────────────────────────────────────────────────
 
 function renderActiveTable() {
-  const body = document.getElementById('activeTableBody')
-  const wrap = document.getElementById('activeTableWrap')
+  const container = document.getElementById('activeDetailList')
   const empty = document.getElementById('activeEmpty')
   const count = document.getElementById('activeCount')
 
@@ -263,36 +264,123 @@ function renderActiveTable() {
 
   if (!active.length) {
     empty.hidden = false
-    wrap.hidden = true
+    if (container) container.hidden = true
+    count.textContent = ''
     return
   }
   empty.hidden = true
-  wrap.hidden = false
+
+  if (!container) return
+  container.hidden = false
   count.textContent = `${active.length} domain${active.length !== 1 ? 's' : ''}`
 
-  body.innerHTML = active.map(d => `
-    <tr class="admin-row admin-row--active" data-id="${d.id}">
-      <td><strong>${escHtml(d.domain)}</strong></td>
-      <td>${escHtml(d.user_name || d.user_email)}</td>
-      <td>${formatDate(d.updated_at || d.created_at)}</td>
-      <td>${d.last_purged_at ? formatDate(d.last_purged_at) : '<span style="color:rgba(255,255,255,0.3)">Never</span>'}</td>
-      <td class="admin-row__actions">
-        <button class="btn btn--outline btn--sm" data-action="edit" data-id="${d.id}" type="button">Edit</button>
-        <button class="btn btn--outline btn--sm" data-action="lookup" data-domain="${escHtml(d.domain)}" data-id="${d.id}" type="button">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          Lookup
-        </button>
-        <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        </button>
-      </td>
-    </tr>
-    <tr class="admin-expand-row" id="expand-${d.id}" hidden>
-      <td colspan="5"><div class="admin-expand" id="expandContent-${d.id}"></div></td>
-    </tr>
+  container.innerHTML = active.map(d => `
+    <div class="active-domain-card" data-id="${d.id}">
+      <div class="active-domain-card__header">
+        <div class="active-domain-card__title">
+          <strong>${escHtml(d.domain)}</strong>
+          <span class="status-badge status-badge--active">active</span>
+        </div>
+        <div class="active-domain-card__actions">
+          <button class="btn btn--outline btn--sm" data-action="adminpurge" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Purge
+          </button>
+          <button class="btn btn--outline btn--sm" data-action="edit" data-id="${d.id}" type="button">Edit</button>
+          <button class="btn btn--outline btn--sm" data-action="lookup" data-domain="${escHtml(d.domain)}" data-id="${d.id}" type="button">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Lookup
+          </button>
+          <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="expand-grid">
+        <div class="expand-section">
+          <h4 class="expand-section__title">Domain Info</h4>
+          <div class="expand-meta">
+            <div class="expand-meta__item"><span class="expand-meta__label">Domain</span><span class="expand-meta__value">${escHtml(d.domain)}</span></div>
+            <div class="expand-meta__item"><span class="expand-meta__label">Submitted</span><span class="expand-meta__value">${formatDate(d.created_at)}</span></div>
+            <div class="expand-meta__item"><span class="expand-meta__label">Activated</span><span class="expand-meta__value">${formatDate(d.updated_at)}</span></div>
+            <div class="expand-meta__item"><span class="expand-meta__label">Last Purged</span><span class="expand-meta__value">${d.last_purged_at ? formatDate(d.last_purged_at) : '—'}</span></div>
+          </div>
+        </div>
+        <div class="expand-section">
+          <h4 class="expand-section__title">Customer</h4>
+          <div class="expand-meta">
+            <div class="expand-meta__item"><span class="expand-meta__label">Name</span><span class="expand-meta__value">${escHtml(d.user_name || '—')}</span></div>
+            <div class="expand-meta__item"><span class="expand-meta__label">Email</span><span class="expand-meta__value">${escHtml(d.user_email)}</span></div>
+          </div>
+        </div>
+        <div class="expand-section">
+          <h4 class="expand-section__title">Cloudflare</h4>
+          <div class="expand-meta">
+            <div class="expand-meta__item"><span class="expand-meta__label">Zone ID</span><span class="expand-meta__value">${d.cloudflare_zone_id ? escHtml(d.cloudflare_zone_id.slice(0, 12)) + '...' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
+            <div class="expand-meta__item"><span class="expand-meta__label">API Token</span><span class="expand-meta__value">${d.cloudflare_api_token ? '<span class="status-badge status-badge--active">Configured</span>' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
+          </div>
+        </div>
+        <div class="expand-section">
+          <h4 class="expand-section__title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Auto-Purge
+          </h4>
+          <div class="auto-purge-controls">
+            <div class="auto-purge-toggle">
+              <label class="toggle-switch ${d.auto_purge_enabled ? 'toggle-switch--on' : ''}">
+                <input type="checkbox" class="admin-auto-toggle" data-id="${d.id}" ${d.auto_purge_enabled ? 'checked' : ''} />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="auto-purge-toggle__label" id="apLabel-${d.id}">${d.auto_purge_enabled ? '<strong>On</strong>' : '<strong>Off</strong>'}</span>
+            </div>
+            <div class="auto-purge-interval ${d.auto_purge_enabled ? '' : 'auto-purge-interval--disabled'}">
+              <label class="form-label">Frequency</label>
+              <select class="form-input form-select admin-auto-interval" data-id="${d.id}" ${d.auto_purge_enabled ? '' : 'disabled'}>
+                <option value="hourly" ${d.auto_purge_interval === 'hourly' ? 'selected' : ''}>Every hour</option>
+                <option value="every6h" ${d.auto_purge_interval === 'every6h' ? 'selected' : ''}>Every 6 hours</option>
+                <option value="every12h" ${d.auto_purge_interval === 'every12h' ? 'selected' : ''}>Every 12 hours</option>
+                <option value="daily" ${(d.auto_purge_interval || 'daily') === 'daily' ? 'selected' : ''}>Once a day</option>
+                <option value="weekly" ${d.auto_purge_interval === 'weekly' ? 'selected' : ''}>Once a week</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${d.admin_notes ? `<div class="expand-section expand-section--full" style="margin-top:8px"><h4 class="expand-section__title">Admin Notes</h4><p class="expand-notes">${escHtml(d.admin_notes)}</p></div>` : ''}
+      <div class="expand-lookup" id="expandLookup-${d.id}"></div>
+    </div>
   `).join('')
 
-  bindTableEvents(document.getElementById('activeTable'))
+  // Bind events on all cards
+  bindTableEvents(container)
+
+  // Bind auto-purge toggles/intervals
+  container.querySelectorAll('.admin-auto-toggle').forEach(toggle => {
+    toggle.addEventListener('change', async () => {
+      const id = toggle.dataset.id
+      const on = toggle.checked
+      const { error } = await _supabase.from('user_domains').update({ auto_purge_enabled: on }).eq('id', id)
+      if (error) { toggle.checked = !on; return }
+      toggle.closest('.toggle-switch').classList.toggle('toggle-switch--on', on)
+      const label = document.getElementById(`apLabel-${id}`)
+      if (label) label.innerHTML = on ? '<strong>On</strong>' : '<strong>Off</strong>'
+      const intervalSelect = container.querySelector(`.admin-auto-interval[data-id="${id}"]`)
+      if (intervalSelect) {
+        intervalSelect.disabled = !on
+        intervalSelect.closest('.auto-purge-interval')?.classList.toggle('auto-purge-interval--disabled', !on)
+      }
+      const d = allDomains.find(d => d.id === id)
+      if (d) d.auto_purge_enabled = on
+    })
+  })
+  container.querySelectorAll('.admin-auto-interval').forEach(select => {
+    select.addEventListener('change', async () => {
+      const id = select.dataset.id
+      await _supabase.from('user_domains').update({ auto_purge_interval: select.value }).eq('id', id)
+      const d = allDomains.find(d => d.id === id)
+      if (d) d.auto_purge_interval = select.value
+    })
+  })
 }
 
 // ─── Rejected table ───────────────────────────────────────────────────────────
@@ -409,6 +497,12 @@ function bindTableEvents(container) {
       openDeleteModal(btn.dataset.id, btn.dataset.domain)
     })
   })
+  container.querySelectorAll('[data-action="adminpurge"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      handleAdminPurge(btn)
+    })
+  })
 }
 
 // ─── Expandable row ───────────────────────────────────────────────────────────
@@ -464,9 +558,38 @@ function toggleExpand(domainId) {
           <p class="expand-notes">${escHtml(domain.admin_notes)}</p>
         </div>
       ` : ''}
+      ${domain.status === 'active' ? `
+        <div class="expand-section expand-section--full">
+          <h4 class="expand-section__title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Auto-Purge Schedule
+          </h4>
+          <p class="expand-notes" style="margin-bottom:12px">Runs on the server 24/7 — no need to keep any device on.</p>
+          <div class="auto-purge-controls">
+            <div class="auto-purge-toggle">
+              <label class="toggle-switch ${domain.auto_purge_enabled ? 'toggle-switch--on' : ''}">
+                <input type="checkbox" class="admin-auto-toggle" data-id="${domain.id}" ${domain.auto_purge_enabled ? 'checked' : ''} />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="auto-purge-toggle__label" id="apLabel-${domain.id}">${domain.auto_purge_enabled ? 'Auto-purge is <strong>on</strong>' : 'Auto-purge is <strong>off</strong>'}</span>
+            </div>
+            <div class="auto-purge-interval ${domain.auto_purge_enabled ? '' : 'auto-purge-interval--disabled'}">
+              <label class="form-label">Frequency</label>
+              <select class="form-input form-select admin-auto-interval" data-id="${domain.id}" ${domain.auto_purge_enabled ? '' : 'disabled'}>
+                <option value="hourly" ${domain.auto_purge_interval === 'hourly' ? 'selected' : ''}>Every hour</option>
+                <option value="every6h" ${domain.auto_purge_interval === 'every6h' ? 'selected' : ''}>Every 6 hours</option>
+                <option value="every12h" ${domain.auto_purge_interval === 'every12h' ? 'selected' : ''}>Every 12 hours</option>
+                <option value="daily" ${(domain.auto_purge_interval || 'daily') === 'daily' ? 'selected' : ''}>Once a day</option>
+                <option value="weekly" ${domain.auto_purge_interval === 'weekly' ? 'selected' : ''}>Once a week</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      ` : ''}
     </div>
     <div class="expand-actions">
       ${domain.status === 'pending' ? `<button class="btn btn--primary btn--sm" data-action="setup" data-id="${domain.id}" type="button">Configure & Approve</button>` : ''}
+      ${domain.status === 'active' ? `<button class="btn btn--outline btn--sm" data-action="adminpurge" data-id="${domain.id}" data-domain="${escHtml(domain.domain)}" type="button"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Purge Cache</button>` : ''}
       ${domain.status === 'active' ? `<button class="btn btn--outline btn--sm" data-action="edit" data-id="${domain.id}" type="button">Edit Config</button>` : ''}
       ${domain.status === 'rejected' ? `<button class="btn btn--outline btn--sm" data-action="setup" data-id="${domain.id}" type="button">Re-review</button>` : ''}
       <button class="btn btn--outline btn--sm" data-action="lookup" data-domain="${escHtml(domain.domain)}" data-id="${domain.id}" type="button">
@@ -483,6 +606,38 @@ function toggleExpand(domainId) {
 
   // Bind expand-level action buttons
   bindTableEvents(content)
+
+  // Bind auto-purge toggle/interval events
+  content.querySelectorAll('.admin-auto-toggle').forEach(toggle => {
+    toggle.addEventListener('change', async () => {
+      const id = toggle.dataset.id
+      const on = toggle.checked
+      const { error } = await _supabase.from('user_domains').update({ auto_purge_enabled: on }).eq('id', id)
+      if (error) {
+        toggle.checked = !on
+        return
+      }
+      toggle.closest('.toggle-switch').classList.toggle('toggle-switch--on', on)
+      const label = document.getElementById(`apLabel-${id}`)
+      if (label) label.innerHTML = on ? 'Auto-purge is <strong>on</strong>' : 'Auto-purge is <strong>off</strong>'
+      const intervalWrap = content.querySelector(`.admin-auto-interval[data-id="${id}"]`)
+      if (intervalWrap) {
+        intervalWrap.disabled = !on
+        intervalWrap.closest('.auto-purge-interval')?.classList.toggle('auto-purge-interval--disabled', !on)
+      }
+      // Update local data
+      const d = allDomains.find(d => d.id === id)
+      if (d) d.auto_purge_enabled = on
+    })
+  })
+  content.querySelectorAll('.admin-auto-interval').forEach(select => {
+    select.addEventListener('change', async () => {
+      const id = select.dataset.id
+      await _supabase.from('user_domains').update({ auto_purge_interval: select.value }).eq('id', id)
+      const d = allDomains.find(d => d.id === id)
+      if (d) d.auto_purge_interval = select.value
+    })
+  })
 }
 
 // ─── Domain Lookup (Admin) ────────────────────────────────────────────────
@@ -713,6 +868,49 @@ async function handleAdminSubmit() {
   adminScannedDomain = null
 
   await loadAllDomains()
+}
+
+// ─── Admin Purge ─────────────────────────────────────────────────────────────
+
+async function handleAdminPurge(btn) {
+  const domainId = btn.dataset.id
+  const domainName = btn.dataset.domain
+  const origHtml = btn.innerHTML
+
+  btn.disabled = true
+  btn.innerHTML = '<span class="btn-spinner"></span> Purging...'
+
+  const session = await getSession()
+  if (!session) { btn.disabled = false; btn.innerHTML = origHtml; return }
+
+  const res = await fetch(`${EDGE_BASE}/purge-cache`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ domain_id: domainId, purge_type: 'everything' }),
+  })
+
+  const data = await res.json()
+  btn.disabled = false
+
+  if (res.ok && data.success) {
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Done!'
+    setTimeout(() => { btn.innerHTML = origHtml }, 2000)
+    await loadAllDomains()
+  } else {
+    btn.innerHTML = origHtml
+    const errMsg = data.cf_response?.errors?.[0]?.message || data.error || 'Purge failed'
+    // Show a toast-like notification
+    const toast = document.getElementById('toast')
+    if (toast) {
+      toast.textContent = `Purge failed: ${errMsg}`
+      toast.hidden = false
+      clearTimeout(toast._timer)
+      toast._timer = setTimeout(() => { toast.hidden = true }, 3000)
+    }
+  }
 }
 
 // ─── Setup modal ──────────────────────────────────────────────────────────────

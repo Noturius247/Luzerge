@@ -287,7 +287,7 @@ async function loadDomains() {
 
   const { data: domains, error } = await _supabase
     .from('user_domains')
-    .select('id, domain, status, admin_notes, last_purged_at, created_at')
+    .select('id, domain, status, admin_notes, last_purged_at, auto_purge_enabled, auto_purge_interval, created_at')
     .order('created_at', { ascending: false })
 
   loading.hidden = true
@@ -338,6 +338,10 @@ async function loadDomains() {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           Lookup
         </button>
+        ${d.status === 'active' ? `<button class="btn btn--outline btn--sm" data-action="quickpurge" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Purge
+        </button>` : ''}
         ${d.status === 'active' ? `<button class="btn btn--outline btn--sm" data-action="view" data-id="${d.id}" type="button">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Stats
@@ -354,6 +358,12 @@ async function loadDomains() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
       runDomainLookup(btn.dataset.domain)
+    })
+  })
+  list.querySelectorAll('[data-action="quickpurge"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      handleQuickPurge(btn)
     })
   })
   list.querySelectorAll('[data-action="view"]').forEach(btn => {
@@ -640,12 +650,13 @@ async function openDetail(domainId) {
 
   const { data: domain } = await _supabase
     .from('user_domains')
-    .select('domain')
+    .select('domain, auto_purge_enabled, auto_purge_interval')
     .eq('id', domainId)
     .single()
 
   if (domain) {
     document.getElementById('detailTitle').textContent = domain.domain
+    renderAutoPurgeSettings(domainId, domain.auto_purge_enabled, domain.auto_purge_interval)
   }
 
   await loadStats(domainId)
@@ -785,6 +796,142 @@ async function handlePurge(type) {
     errorEl.textContent = `Error: ${msg}`
     errorEl.hidden = false
   }
+}
+
+// ─── Auto-Purge Settings in Detail Panel ─────────────────────────────────────
+
+function renderAutoPurgeSettings(domainId, enabled, interval) {
+  let container = document.getElementById('autoPurgeSection')
+  if (!container) {
+    // Create the section after the purge section
+    const purgeSection = document.querySelector('.purge-section')
+    if (!purgeSection) return
+    container = document.createElement('div')
+    container.id = 'autoPurgeSection'
+    container.className = 'auto-purge-section'
+    purgeSection.parentNode.insertBefore(container, purgeSection.nextSibling)
+  }
+
+  const intervalLabels = {
+    hourly: 'Every hour',
+    every6h: 'Every 6 hours',
+    every12h: 'Every 12 hours',
+    daily: 'Once a day',
+    weekly: 'Once a week',
+  }
+
+  container.innerHTML = `
+    <h3 class="purge-section__title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Auto-Purge Schedule
+    </h3>
+    <p class="purge-desc">Automatically purge cache on a schedule — runs 24/7 on our servers, even when your PC is off.</p>
+    <div class="auto-purge-controls">
+      <div class="auto-purge-toggle">
+        <label class="toggle-switch ${enabled ? 'toggle-switch--on' : ''}">
+          <input type="checkbox" id="autoPurgeToggle" ${enabled ? 'checked' : ''} />
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="auto-purge-toggle__label">${enabled ? 'Auto-purge is <strong>on</strong>' : 'Auto-purge is <strong>off</strong>'}</span>
+      </div>
+      <div class="auto-purge-interval ${enabled ? '' : 'auto-purge-interval--disabled'}">
+        <label class="form-label" for="autoPurgeInterval">Frequency</label>
+        <select class="form-input form-select" id="autoPurgeInterval" ${enabled ? '' : 'disabled'}>
+          ${Object.entries(intervalLabels).map(([val, label]) =>
+            `<option value="${val}" ${interval === val ? 'selected' : ''}>${label}</option>`
+          ).join('')}
+        </select>
+      </div>
+    </div>
+  `
+
+  // Bind events
+  const toggle = container.querySelector('#autoPurgeToggle')
+  const select = container.querySelector('#autoPurgeInterval')
+  const intervalWrap = container.querySelector('.auto-purge-interval')
+  const labelEl = container.querySelector('.auto-purge-toggle__label')
+
+  toggle.addEventListener('change', async () => {
+    const on = toggle.checked
+    const ok = await handleAutoPurgeToggle(domainId, on)
+    if (ok) {
+      toggle.closest('.toggle-switch').classList.toggle('toggle-switch--on', on)
+      labelEl.innerHTML = on ? 'Auto-purge is <strong>on</strong>' : 'Auto-purge is <strong>off</strong>'
+      select.disabled = !on
+      intervalWrap.classList.toggle('auto-purge-interval--disabled', !on)
+    } else {
+      toggle.checked = !on // revert
+    }
+  })
+
+  select.addEventListener('change', () => {
+    handleAutoPurgeInterval(domainId, select.value)
+  })
+}
+
+// ─── Quick Purge (from domain card) ──────────────────────────────────────────
+
+async function handleQuickPurge(btn) {
+  const domainId = btn.dataset.id
+  const domainName = btn.dataset.domain
+  const origHtml = btn.innerHTML
+
+  btn.disabled = true
+  btn.innerHTML = '<span class="btn-spinner"></span>'
+
+  const session = await getSession()
+  if (!session) { btn.disabled = false; btn.innerHTML = origHtml; return }
+
+  const res = await fetch(`${EDGE_BASE}/purge-cache`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ domain_id: domainId, purge_type: 'everything' }),
+  })
+
+  const data = await res.json()
+  btn.disabled = false
+
+  if (res.ok && data.success) {
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Done!'
+    showToast(`Cache purged for ${domainName}`)
+    setTimeout(() => { btn.innerHTML = origHtml }, 2000)
+    await loadDomains()
+  } else {
+    btn.innerHTML = origHtml
+    showToast('Purge failed — check Cloudflare config')
+  }
+}
+
+// ─── Auto-Purge Toggle ──────────────────────────────────────────────────────
+
+async function handleAutoPurgeToggle(domainId, enabled) {
+  const { error } = await _supabase
+    .from('user_domains')
+    .update({ auto_purge_enabled: enabled })
+    .eq('id', domainId)
+
+  if (error) {
+    showToast('Failed to update auto-purge')
+    return false
+  }
+  showToast(enabled ? 'Auto-purge enabled' : 'Auto-purge disabled')
+  return true
+}
+
+async function handleAutoPurgeInterval(domainId, interval) {
+  const { error } = await _supabase
+    .from('user_domains')
+    .update({ auto_purge_interval: interval })
+    .eq('id', domainId)
+
+  if (error) {
+    showToast('Failed to update schedule')
+    return
+  }
+  showToast('Auto-purge schedule updated')
 }
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
