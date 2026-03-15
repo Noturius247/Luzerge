@@ -13,6 +13,7 @@ let selectedDomainId = null
 let domainToDelete = null
 let userDomains = []
 let scannedDomain = null  // holds the domain name after a successful scan
+const PLAN_LIMITS = { none: 1, starter: 3, pro: 10, enterprise: 50 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
@@ -67,8 +68,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Logout
   document.getElementById('logoutBtn')?.addEventListener('click', signOut)
 
-  // Load domains
+  // Load domains then overview sections
   await loadDomains()
+  loadOverviewSections()
 
   // Scan domain form
   document.getElementById('addDomainForm')?.addEventListener('submit', handleScanDomain)
@@ -503,6 +505,273 @@ function showAddError(msg) {
   const el = document.getElementById('addDomainError')
   el.textContent = msg
   el.hidden = false
+}
+
+// ─── Overview Sections ────────────────────────────────────────────────────
+
+async function loadOverviewSections() {
+  renderAccountSummary()
+  renderQuickStats()
+  renderChecklist()
+  initQuickActions()
+  await loadActivityFeed()
+}
+
+function renderAccountSummary() {
+  const plan = currentProfile?.plan || 'none'
+  const payment = currentProfile?.payment_status || 'unpaid'
+
+  const badge = document.getElementById('summaryPlanBadge')
+  if (badge) {
+    badge.textContent = plan
+    badge.className = `plan-badge plan-badge--${plan}`
+  }
+
+  const paymentEl = document.getElementById('summaryPayment')
+  if (paymentEl) {
+    paymentEl.innerHTML = `<span class="payment-badge payment-badge--${payment}">${payment}</span>`
+  }
+
+  const usageEl = document.getElementById('summaryDomainUsage')
+  if (usageEl) {
+    const limit = PLAN_LIMITS[plan] || 1
+    usageEl.textContent = `${userDomains.length} / ${limit}`
+  }
+
+  const sinceEl = document.getElementById('summaryMemberSince')
+  if (sinceEl) sinceEl.textContent = formatDate(currentProfile?.created_at)
+
+  const upgradeBtn = document.getElementById('upgradeBtn')
+  if (upgradeBtn && (plan === 'none' || plan === 'starter')) {
+    upgradeBtn.hidden = false
+    upgradeBtn.addEventListener('click', () => {
+      showToast('Contact us at hello@luzerge.com to upgrade your plan')
+    })
+  }
+}
+
+function renderQuickStats() {
+  const activeDomains = userDomains.filter(d => d.status === 'active')
+
+  // Last purge
+  const lastPurged = userDomains
+    .map(d => d.last_purged_at)
+    .filter(Boolean)
+    .sort()
+    .pop()
+  document.getElementById('qsLastPurge').textContent = timeAgo(lastPurged)
+
+  // Active domains count
+  document.getElementById('qsActiveDomains').textContent = activeDomains.length
+
+  // Purges this month — fetch count
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+
+  // Fetch purge count for this month across all user's domains
+  const domainIds = userDomains.map(d => d.id)
+  if (domainIds.length) {
+    _supabase
+      .from('cache_purge_history')
+      .select('id', { count: 'exact', head: true })
+      .in('domain_id', domainIds)
+      .gte('created_at', startOfMonth.toISOString())
+      .then(({ count }) => {
+        document.getElementById('qsPurgesMonth').textContent = count || 0
+      })
+  } else {
+    document.getElementById('qsPurgesMonth').textContent = '0'
+  }
+
+  // Cache hit rate — fetch from domain-stats for active domains
+  if (activeDomains.length) {
+    fetchAverageCacheRate(activeDomains)
+  } else {
+    document.getElementById('qsCacheHitRate').textContent = 'N/A'
+  }
+}
+
+async function fetchAverageCacheRate(activeDomains) {
+  const session = await getSession()
+  if (!session) return
+
+  let totalRate = 0
+  let count = 0
+
+  const promises = activeDomains.slice(0, 5).map(async (d) => {
+    try {
+      const res = await fetch(`${EDGE_BASE}/domain-stats?domain_id=${d.id}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.cf_analytics?.cache_hit_rate != null) {
+        totalRate += data.cf_analytics.cache_hit_rate
+        count++
+      }
+    } catch {}
+  })
+
+  await Promise.all(promises)
+
+  const el = document.getElementById('qsCacheHitRate')
+  el.textContent = count > 0 ? `${Math.round(totalRate / count)}%` : 'N/A'
+}
+
+function renderChecklist() {
+  const steps = [
+    { label: 'Submit your first domain', done: userDomains.length > 0 },
+    { label: 'Get a domain approved', done: userDomains.some(d => d.status === 'active') },
+    { label: 'Purge cache for the first time', done: userDomains.some(d => d.last_purged_at) },
+    { label: 'Enable auto-purge on a domain', done: userDomains.some(d => d.auto_purge_enabled) },
+  ]
+
+  const completed = steps.filter(s => s.done).length
+  document.getElementById('checklistProgress').textContent = `${completed} / ${steps.length}`
+
+  const container = document.getElementById('checklist')
+  container.innerHTML = steps.map(s => `
+    <div class="checklist-item checklist-item--${s.done ? 'done' : 'pending'}">
+      <span class="checklist-item__icon">${s.done ? '&#10003;' : '&#9675;'}</span>
+      <span class="checklist-item__text">${s.label}</span>
+    </div>
+  `).join('')
+
+  // Hide if all complete
+  if (completed === steps.length) {
+    document.getElementById('gettingStartedPanel').hidden = true
+  }
+}
+
+function initQuickActions() {
+  const activeDomains = userDomains.filter(d => d.status === 'active')
+
+  // Purge All
+  const purgeAllBtn = document.getElementById('purgeAllDomainsBtn')
+  if (!activeDomains.length) {
+    purgeAllBtn.disabled = true
+    purgeAllBtn.title = 'No active domains to purge'
+  }
+  purgeAllBtn.addEventListener('click', async () => {
+    if (!activeDomains.length) return
+    if (!confirm(`Purge cache for all ${activeDomains.length} active domain(s)?`)) return
+
+    purgeAllBtn.disabled = true
+    purgeAllBtn.innerHTML = '<span class="btn-spinner"></span> Purging...'
+
+    const session = await getSession()
+    let success = 0
+    for (const d of activeDomains) {
+      try {
+        const res = await fetch(`${EDGE_BASE}/purge-cache`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ domain_id: d.id, purge_type: 'everything' }),
+        })
+        const data = await res.json()
+        if (data.success) success++
+      } catch {}
+    }
+
+    purgeAllBtn.disabled = false
+    purgeAllBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Purge All Domains'
+    showToast(`Purged ${success} of ${activeDomains.length} domain(s)`)
+    await loadDomains()
+    renderQuickStats()
+  })
+
+  // Toggle All Auto-Purge
+  const toggleBtn = document.getElementById('toggleAllAutoPurgeBtn')
+  const allOn = activeDomains.length > 0 && activeDomains.every(d => d.auto_purge_enabled)
+  if (allOn) {
+    toggleBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Disable Auto-Purge on All'
+  }
+  if (!activeDomains.length) {
+    toggleBtn.disabled = true
+    toggleBtn.title = 'No active domains'
+  }
+  toggleBtn.addEventListener('click', async () => {
+    if (!activeDomains.length) return
+    const enabling = !activeDomains.every(d => d.auto_purge_enabled)
+
+    toggleBtn.disabled = true
+    for (const d of activeDomains) {
+      await _supabase.from('user_domains').update({ auto_purge_enabled: enabling }).eq('id', d.id)
+    }
+    toggleBtn.disabled = false
+
+    showToast(enabling ? 'Auto-purge enabled on all domains' : 'Auto-purge disabled on all domains')
+    await loadDomains()
+    renderChecklist()
+    toggleBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${enabling ? 'Disable' : 'Enable'} Auto-Purge on All`
+  })
+}
+
+async function loadActivityFeed() {
+  const feedEl = document.getElementById('activityFeed')
+  const loadingEl = document.getElementById('activityFeedLoading')
+  const emptyEl = document.getElementById('activityFeedEmpty')
+
+  const domainIds = userDomains.map(d => d.id)
+  if (!domainIds.length) {
+    loadingEl.hidden = true
+    emptyEl.hidden = false
+    return
+  }
+
+  const { data: history, error } = await _supabase
+    .from('cache_purge_history')
+    .select('id, purge_type, urls_purged, success, created_at, domain_id')
+    .in('domain_id', domainIds)
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  loadingEl.hidden = true
+
+  if (error || !history?.length) {
+    emptyEl.hidden = false
+    return
+  }
+
+  // Map domain IDs to names
+  const domainMap = {}
+  userDomains.forEach(d => { domainMap[d.id] = d.domain })
+
+  feedEl.hidden = false
+  feedEl.innerHTML = history.map(h => {
+    const domain = domainMap[h.domain_id] || 'Unknown'
+    const typeLabel = h.purge_type === 'everything'
+      ? 'Purged <strong>everything</strong>'
+      : h.purge_type === 'auto'
+        ? '<strong>Auto-purged</strong> cache'
+        : `Purged <strong>${(h.urls_purged || []).length} URL(s)</strong>`
+    return `
+      <div class="activity-item">
+        <div class="activity-item__dot activity-item__dot--${h.success ? 'success' : 'error'}"></div>
+        <div class="activity-item__content">
+          <span class="activity-item__text">${typeLabel} on <strong>${escHtml(domain)}</strong></span>
+          <span class="activity-item__time">${timeAgo(h.created_at)} &middot; ${formatDate(h.created_at)}</span>
+        </div>
+      </div>
+    `
+  }).join('')
+}
+
+function timeAgo(iso) {
+  if (!iso) return 'Never'
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `${days}d ago`
+  return formatDate(iso)
 }
 
 // ─── Domain Lookup ────────────────────────────────────────────────────────

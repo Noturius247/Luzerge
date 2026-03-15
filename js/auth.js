@@ -38,7 +38,7 @@ async function ensureProfile(user) {
   // Try to fetch existing profile
   const { data: profile } = await _supabase
     .from('profiles')
-    .select('id, email, full_name, avatar_url, role')
+    .select('id, email, full_name, avatar_url, role, plan, payment_status, status, created_at')
     .eq('id', user.id)
     .single()
 
@@ -57,7 +57,7 @@ async function ensureProfile(user) {
   const { data: created, error } = await _supabase
     .from('profiles')
     .upsert(newProfile, { onConflict: 'id' })
-    .select('id, email, full_name, avatar_url, role')
+    .select('id, email, full_name, avatar_url, role, plan, payment_status, status, created_at')
     .single()
 
   if (error) {

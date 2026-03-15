@@ -139,6 +139,93 @@
           </div>
         </section>
 
+        <!-- ─── Account Summary ─────────────────────────────────────── -->
+        <section class="dash-panel account-summary" id="accountSummary" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Account Summary</h2>
+            <span class="plan-badge" id="summaryPlanBadge">--</span>
+          </div>
+          <div class="account-summary__grid">
+            <div class="account-summary__item">
+              <span class="account-summary__label">Payment Status</span>
+              <span class="account-summary__value" id="summaryPayment">--</span>
+            </div>
+            <div class="account-summary__item">
+              <span class="account-summary__label">Domains Used</span>
+              <span class="account-summary__value" id="summaryDomainUsage">--</span>
+            </div>
+            <div class="account-summary__item">
+              <span class="account-summary__label">Member Since</span>
+              <span class="account-summary__value" id="summaryMemberSince">--</span>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--sm" id="upgradeBtn" type="button" hidden>Upgrade Plan</button>
+        </section>
+
+        <!-- ─── Quick Stats ─────────────────────────────────────────── -->
+        <section class="dash-panel" id="quickStatsPanel" data-scroll-reveal>
+          <h2 class="dash-panel__title">This Month at a Glance</h2>
+          <div class="stats-row" id="quickStatsRow">
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
+              <span class="stat-box__value" id="qsPurgesMonth">--</span>
+              <span class="stat-box__label">Purges This Month</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+              <span class="stat-box__value" id="qsCacheHitRate">--</span>
+              <span class="stat-box__label">Avg Cache Hit Rate</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+              <span class="stat-box__value" id="qsLastPurge">--</span>
+              <span class="stat-box__label">Last Purge</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+              <span class="stat-box__value" id="qsActiveDomains">--</span>
+              <span class="stat-box__label">Active Domains</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─── Getting Started ─────────────────────────────────────── -->
+        <section class="dash-panel getting-started" id="gettingStartedPanel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Getting Started</h2>
+            <span class="checklist-progress" id="checklistProgress">0 / 4</span>
+          </div>
+          <div class="checklist" id="checklist"></div>
+        </section>
+
+        <!-- ─── Quick Actions ───────────────────────────────────────── -->
+        <section class="dash-panel" id="quickActionsPanel" data-scroll-reveal>
+          <h2 class="dash-panel__title">Quick Actions</h2>
+          <div class="quick-actions-grid">
+            <button class="btn btn--danger btn--glow-red quick-action-btn" id="purgeAllDomainsBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Purge All Domains
+            </button>
+            <button class="btn btn--outline quick-action-btn" id="toggleAllAutoPurgeBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Enable Auto-Purge on All
+            </button>
+          </div>
+        </section>
+
+        <!-- ─── Activity Feed ───────────────────────────────────────── -->
+        <section class="dash-panel" id="activityFeedPanel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Recent Activity</h2>
+          </div>
+          <div id="activityFeedLoading" class="dash-loading">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            Loading activity...
+          </div>
+          <div class="activity-feed" id="activityFeed" hidden></div>
+          <div id="activityFeedEmpty" class="dash-empty dash-empty--sm" hidden>No recent activity yet. Purge a domain to see your activity here.</div>
+        </section>
+
         <section class="dash-panel dash-panel--glow" id="addDomainPanel" data-scroll-reveal>
           <div class="dash-panel__icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>

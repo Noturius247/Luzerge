@@ -1808,10 +1808,145 @@
   transform: translateY(0);
 }
 
+/* ─── Account Summary ────────────────────────────────────────────────────── */
+
+.account-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.account-summary__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.account-summary__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(148, 163, 184, 0.7);
+  font-weight: 600;
+}
+.account-summary__value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+}
+#upgradeBtn {
+  margin-top: 1rem;
+}
+
+/* ─── Activity Feed ──────────────────────────────────────────────────────── */
+
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+}
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.activity-item:last-child {
+  border-bottom: none;
+}
+.activity-item__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+}
+.activity-item__dot--success { background: #34d399; }
+.activity-item__dot--error   { background: #f87171; }
+.activity-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.activity-item__text {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+.activity-item__time {
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.7);
+}
+
+/* ─── Getting Started Checklist ──────────────────────────────────────────── */
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.checklist-item--done {
+  opacity: 0.6;
+}
+.checklist-item--done .checklist-item__text {
+  text-decoration: line-through;
+}
+.checklist-item__icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+.checklist-item--done .checklist-item__icon {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+}
+.checklist-item--pending .checklist-item__icon {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(148, 163, 184, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+}
+.checklist-item__text {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+.checklist-progress {
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.7);
+  font-weight: 500;
+}
+
+/* ─── Quick Actions ──────────────────────────────────────────────────────── */
+
+.quick-actions-grid {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+.quick-action-btn {
+  flex: 1;
+  min-width: 180px;
+}
+
 /* ─── Responsive ────────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
   .sidebar-toggle { display: flex; }
+  .account-summary__grid { grid-template-columns: 1fr; }
+  .quick-actions-grid { flex-direction: column; }
 
   .dash-sidebar {
     position: fixed;
