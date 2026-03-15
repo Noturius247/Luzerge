@@ -15,8 +15,29 @@ let domainToDelete = null
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const session = await requireAuth()
-  if (!session) return
+  // Wait for Supabase to process OAuth tokens from URL hash (if present)
+  const { data: { session } } = await _supabase.auth.getSession()
+
+  if (!session) {
+    // Listen for auth state change in case tokens are still being processed
+    const { data: { subscription } } = _supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        if (event === 'SIGNED_IN' && newSession) {
+          subscription.unsubscribe()
+          window.location.reload()
+        }
+      }
+    )
+    // Give it a moment, then redirect if still no session
+    setTimeout(async () => {
+      const { data: { session: recheck } } = await _supabase.auth.getSession()
+      if (!recheck) {
+        subscription.unsubscribe()
+        window.location.replace('/login.html')
+      }
+    }, 2000)
+    return
+  }
 
   currentUser = session.user
   currentProfile = await getProfile()
