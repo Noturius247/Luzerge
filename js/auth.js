@@ -29,19 +29,53 @@ async function getUser() {
 }
 
 /**
- * Returns the user's profile (including role), or null.
+ * Ensures a profile exists for the current user.
+ * Creates one if missing (handles cases where the DB trigger didn't fire).
  */
-async function getProfile() {
-  const { data: { user } } = await _supabase.auth.getUser()
+async function ensureProfile(user) {
   if (!user) return null
 
+  // Try to fetch existing profile
   const { data: profile } = await _supabase
     .from('profiles')
     .select('id, email, full_name, avatar_url, role')
     .eq('id', user.id)
     .single()
 
-  return profile
+  if (profile) return profile
+
+  // Profile doesn't exist — create it
+  const meta = user.user_metadata || {}
+  const newProfile = {
+    id: user.id,
+    email: user.email,
+    full_name: meta.full_name || meta.name || '',
+    avatar_url: meta.avatar_url || meta.picture || '',
+    role: 'user',
+  }
+
+  const { data: created, error } = await _supabase
+    .from('profiles')
+    .upsert(newProfile, { onConflict: 'id' })
+    .select('id, email, full_name, avatar_url, role')
+    .single()
+
+  if (error) {
+    console.warn('Failed to create profile:', error.message)
+    return null
+  }
+
+  return created
+}
+
+/**
+ * Returns the user's profile (including role), or null.
+ * Auto-creates the profile if it doesn't exist yet.
+ */
+async function getProfile() {
+  const { data: { user } } = await _supabase.auth.getUser()
+  if (!user) return null
+  return ensureProfile(user)
 }
 
 /**

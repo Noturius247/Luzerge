@@ -63,10 +63,17 @@ ALTER TABLE user_domains ADD COLUMN IF NOT EXISTS admin_notes TEXT;
 -- ─── RLS for profiles ────────────────────────────────────────────────────────
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
+-- ─── Admin check function (SECURITY DEFINER bypasses RLS, prevents recursion) ─
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin');
+$$;
+
 -- Drop existing policies first to make migration idempotent
 DROP POLICY IF EXISTS "users read own profile" ON profiles;
 DROP POLICY IF EXISTS "admins read all profiles" ON profiles;
 DROP POLICY IF EXISTS "users update own profile" ON profiles;
+DROP POLICY IF EXISTS "users insert own profile" ON profiles;
 
 CREATE POLICY "users read own profile"
   ON profiles FOR SELECT
@@ -74,13 +81,15 @@ CREATE POLICY "users read own profile"
 
 CREATE POLICY "admins read all profiles"
   ON profiles FOR SELECT
-  USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  USING (is_admin());
 
 CREATE POLICY "users update own profile"
   ON profiles FOR UPDATE
   USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "users insert own profile"
+  ON profiles FOR INSERT
   WITH CHECK (auth.uid() = id);
 
 -- ─── Update user_domains RLS: admins can see & manage all domains ─────────────
@@ -106,21 +115,15 @@ CREATE POLICY "users delete own domains"
 
 CREATE POLICY "admins select all domains"
   ON user_domains FOR SELECT
-  USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  USING (is_admin());
 
 CREATE POLICY "admins update all domains"
   ON user_domains FOR UPDATE
-  USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  USING (is_admin());
 
 CREATE POLICY "admins delete all domains"
   ON user_domains FOR DELETE
-  USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  USING (is_admin());
 
 -- ─── Update cache_purge_history RLS: admins can see all ───────────────────────
 DROP POLICY IF EXISTS "users own purge history" ON cache_purge_history;
@@ -139,13 +142,9 @@ CREATE POLICY "users insert own purge history"
 
 CREATE POLICY "admins select all purge history"
   ON cache_purge_history FOR SELECT
-  USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  USING (is_admin());
 
 CREATE POLICY "admins insert all purge history"
   ON cache_purge_history FOR INSERT
-  WITH CHECK (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+  WITH CHECK (is_admin());
 
