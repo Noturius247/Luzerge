@@ -408,18 +408,53 @@
       </details>
 
       <form id="setupForm" novalidate>
-        <div class="form-row form-row--two">
-          <div class="form-group">
-            <label class="form-label" for="setupZoneId">Cloudflare Zone ID</label>
-            <input class="form-input" id="setupZoneId" type="text" placeholder="abc123def456..." required />
-            <span class="form-hint">Dashboard &rarr; domain &rarr; Overview &rarr; right sidebar &rarr; API</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="setupApiToken">Cloudflare API Token</label>
-            <input class="form-input" id="setupApiToken" type="password" placeholder="Zone-level API token" required />
-            <span class="form-hint">Profile &rarr; API Tokens &rarr; Create Custom Token</span>
+        <div class="form-group">
+          <label class="form-label" for="setupProvider">CDN Provider</label>
+          <select class="form-input" id="setupProvider">
+            <option value="cloudflare">Cloudflare</option>
+            <option value="cloudfront">AWS CloudFront</option>
+            <option value="fastly">Fastly</option>
+            <option value="none">None (monitoring only)</option>
+          </select>
+        </div>
+
+        <!-- Cloudflare fields -->
+        <div id="setupCfFields">
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label class="form-label" for="setupZoneId">Cloudflare Zone ID</label>
+              <input class="form-input" id="setupZoneId" type="text" placeholder="abc123def456..." />
+              <span class="form-hint">Dashboard &rarr; domain &rarr; Overview &rarr; right sidebar &rarr; API</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="setupApiToken">Cloudflare API Token</label>
+              <input class="form-input" id="setupApiToken" type="password" placeholder="Zone-level API token" />
+              <span class="form-hint">Profile &rarr; API Tokens &rarr; Create Custom Token</span>
+            </div>
           </div>
         </div>
+
+        <!-- CloudFront / Fastly fields -->
+        <div id="setupGenericFields" hidden>
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label class="form-label" for="setupDistId" id="setupLabelDistId">Distribution ID</label>
+              <input class="form-input" id="setupDistId" type="text" placeholder="E1A2B3C4D5E6F7" />
+              <span class="form-hint" id="setupHintDistId">Found in your CDN dashboard</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="setupCdnApiKey" id="setupLabelCdnApiKey">API Key</label>
+              <input class="form-input" id="setupCdnApiKey" type="password" placeholder="API key or token" />
+              <span class="form-hint" id="setupHintCdnApiKey">Your CDN API key or access token</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- None provider message -->
+        <div id="setupNoneMsg" class="setup-none-msg" hidden>
+          No credentials needed. This domain will be monitored for uptime, DNS, and SSL only.
+        </div>
+
         <div class="form-group">
           <label class="form-label" for="setupNotes">Admin Notes <span class="form-optional">(optional)</span></label>
           <textarea class="form-input form-textarea" id="setupNotes" rows="2" placeholder="Internal notes about this domain setup..."></textarea>

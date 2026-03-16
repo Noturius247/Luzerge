@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('setupCancelBtn')?.addEventListener('click', closeSetupModal)
   document.getElementById('setupForm')?.addEventListener('submit', handleApprove)
   document.getElementById('setupRejectBtn')?.addEventListener('click', handleReject)
+  document.getElementById('setupProvider')?.addEventListener('change', (e) => {
+    updateSetupProviderFields(e.target.value)
+  })
 
   // Delete modal
   document.getElementById('deleteCancelBtn')?.addEventListener('click', closeDeleteModal)
@@ -129,12 +132,39 @@ function switchPanel(panelId) {
   if (panelId === 'users') renderUsersTable()
 }
 
+// ─── Provider helpers ─────────────────────────────────────────────────────────
+
+const PROVIDER_LABELS = { cloudflare: 'Cloudflare', cloudfront: 'AWS CloudFront', fastly: 'Fastly', none: 'None (monitoring)' }
+
+function providerBadge(provider) {
+  const p = provider || 'cloudflare'
+  const colors = { cloudflare: '#f38020', cloudfront: '#ff9900', fastly: '#ff282d', none: '#6b7280' }
+  const color = colors[p] || '#7c3aed'
+  return `<span class="status-badge" style="background:${color}22;color:${color};border:1px solid ${color}44;font-size:0.7rem">${PROVIDER_LABELS[p] || p}</span>`
+}
+
+function renderCredentialsMeta(d) {
+  const p = d.cdn_provider || 'cloudflare'
+  let html = `<div class="expand-meta__item"><span class="expand-meta__label">Provider</span><span class="expand-meta__value">${providerBadge(p)}</span></div>`
+
+  if (p === 'cloudflare') {
+    html += `<div class="expand-meta__item"><span class="expand-meta__label">Zone ID</span><span class="expand-meta__value">${d.cloudflare_zone_id ? escHtml(d.cloudflare_zone_id.slice(0, 12)) + '...' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>`
+    html += `<div class="expand-meta__item"><span class="expand-meta__label">API Token</span><span class="expand-meta__value">${d.cloudflare_api_token ? '<span class="status-badge status-badge--active">Configured</span>' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>`
+  } else if (p === 'cloudfront' || p === 'fastly') {
+    const idLabel = p === 'cloudfront' ? 'Distribution ID' : 'Service ID'
+    html += `<div class="expand-meta__item"><span class="expand-meta__label">${idLabel}</span><span class="expand-meta__value">${d.cdn_distribution_id ? escHtml(d.cdn_distribution_id.slice(0, 12)) + '...' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>`
+    html += `<div class="expand-meta__item"><span class="expand-meta__label">API Key</span><span class="expand-meta__value">${d.cdn_api_key ? '<span class="status-badge status-badge--active">Configured</span>' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>`
+  }
+  // 'none' — no credentials needed
+  return html
+}
+
 // ─── Load all domains ─────────────────────────────────────────────────────────
 
 async function loadAllDomains() {
   const { data: domains, error } = await _supabase
     .from('user_domains')
-    .select('id, user_id, domain, cloudflare_zone_id, cloudflare_api_token, status, admin_notes, last_purged_at, auto_purge_enabled, auto_purge_interval, created_at, updated_at')
+    .select('id, user_id, domain, cloudflare_zone_id, cloudflare_api_token, cdn_provider, cdn_api_key, cdn_distribution_id, status, admin_notes, last_purged_at, auto_purge_enabled, auto_purge_interval, created_at, updated_at')
     .order('created_at', { ascending: false })
 
   if (error) return
@@ -330,10 +360,9 @@ function renderActiveTable() {
             </div>
           </div>
           <div class="expand-section">
-            <h4 class="expand-section__title">Cloudflare</h4>
+            <h4 class="expand-section__title">CDN Provider</h4>
             <div class="expand-meta">
-              <div class="expand-meta__item"><span class="expand-meta__label">Zone ID</span><span class="expand-meta__value">${d.cloudflare_zone_id ? escHtml(d.cloudflare_zone_id.slice(0, 12)) + '...' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
-              <div class="expand-meta__item"><span class="expand-meta__label">API Token</span><span class="expand-meta__value">${d.cloudflare_api_token ? '<span class="status-badge status-badge--active">Configured</span>' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
+              ${renderCredentialsMeta(d)}
             </div>
           </div>
           <div class="expand-section">
@@ -849,10 +878,9 @@ function toggleExpand(domainId) {
         </div>
       </div>
       <div class="expand-section">
-        <h4 class="expand-section__title">Cloudflare</h4>
+        <h4 class="expand-section__title">CDN Provider</h4>
         <div class="expand-meta">
-          <div class="expand-meta__item"><span class="expand-meta__label">Zone ID</span><span class="expand-meta__value">${domain.cloudflare_zone_id ? escHtml(domain.cloudflare_zone_id.slice(0, 12)) + '...' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
-          <div class="expand-meta__item"><span class="expand-meta__label">API Token</span><span class="expand-meta__value">${domain.cloudflare_api_token ? '<span class="status-badge status-badge--active">Configured</span>' : '<span style="color:rgba(255,255,255,0.3)">Not set</span>'}</span></div>
+          ${renderCredentialsMeta(domain)}
           <div class="expand-meta__item"><span class="expand-meta__label">Last Purged</span><span class="expand-meta__value">${domain.last_purged_at ? formatDate(domain.last_purged_at) : '—'}</span></div>
         </div>
       </div>
@@ -1249,12 +1277,36 @@ function openSetupModal(domainId) {
   document.getElementById('setupDomainUser').textContent = domain.user_name || domain.user_email
   document.getElementById('setupDomainDate').textContent = `Submitted ${formatDate(domain.created_at)}`
 
+  const provider = domain.cdn_provider || 'cloudflare'
+  document.getElementById('setupProvider').value = provider
+  updateSetupProviderFields(provider)
+
   document.getElementById('setupZoneId').value = domain.cloudflare_zone_id || ''
   document.getElementById('setupApiToken').value = domain.cloudflare_api_token || ''
+  document.getElementById('setupDistId').value = domain.cdn_distribution_id || ''
+  document.getElementById('setupCdnApiKey').value = domain.cdn_api_key || ''
   document.getElementById('setupNotes').value = domain.admin_notes || ''
   document.getElementById('setupError').hidden = true
 
   document.getElementById('setupModal').hidden = false
+}
+
+function updateSetupProviderFields(prov) {
+  document.getElementById('setupCfFields').hidden = prov !== 'cloudflare'
+  document.getElementById('setupGenericFields').hidden = prov === 'cloudflare' || prov === 'none'
+  document.getElementById('setupNoneMsg').hidden = prov !== 'none'
+
+  if (prov === 'cloudfront') {
+    document.getElementById('setupLabelDistId').textContent = 'Distribution ID'
+    document.getElementById('setupLabelCdnApiKey').textContent = 'AWS Access Key'
+    document.getElementById('setupHintDistId').textContent = 'Found in CloudFront console → Distributions'
+    document.getElementById('setupHintCdnApiKey').textContent = 'IAM user access key with CloudFront permissions'
+  } else if (prov === 'fastly') {
+    document.getElementById('setupLabelDistId').textContent = 'Service ID'
+    document.getElementById('setupLabelCdnApiKey').textContent = 'API Token'
+    document.getElementById('setupHintDistId').textContent = 'Found in Fastly dashboard → your service'
+    document.getElementById('setupHintCdnApiKey').textContent = 'Account → API tokens → Create token'
+  }
 }
 
 function closeSetupModal() {
@@ -1266,16 +1318,38 @@ async function handleApprove(e) {
   e.preventDefault()
   if (!setupDomainId) return
 
-  const zoneId = document.getElementById('setupZoneId').value.trim()
-  const apiToken = document.getElementById('setupApiToken').value.trim()
+  const provider = document.getElementById('setupProvider').value
   const notes = document.getElementById('setupNotes').value.trim()
   const errEl = document.getElementById('setupError')
 
-  if (!zoneId || !apiToken) {
-    errEl.textContent = 'Zone ID and API Token are required to activate a domain.'
-    errEl.hidden = false
-    return
+  const updateData = {
+    cdn_provider: provider,
+    admin_notes: notes || null,
+    status: 'active',
   }
+
+  if (provider === 'cloudflare') {
+    const zoneId = document.getElementById('setupZoneId').value.trim()
+    const apiToken = document.getElementById('setupApiToken').value.trim()
+    if (!zoneId || !apiToken) {
+      errEl.textContent = 'Zone ID and API Token are required for Cloudflare.'
+      errEl.hidden = false
+      return
+    }
+    updateData.cloudflare_zone_id = zoneId
+    updateData.cloudflare_api_token = apiToken
+  } else if (provider === 'cloudfront' || provider === 'fastly') {
+    const distId = document.getElementById('setupDistId').value.trim()
+    const apiKey = document.getElementById('setupCdnApiKey').value.trim()
+    if (!distId || !apiKey) {
+      errEl.textContent = `${provider === 'cloudfront' ? 'Distribution ID and AWS Access Key' : 'Service ID and API Token'} are required.`
+      errEl.hidden = false
+      return
+    }
+    updateData.cdn_distribution_id = distId
+    updateData.cdn_api_key = apiKey
+  }
+  // 'none' — no credentials needed
 
   const btn = document.getElementById('setupApproveBtn')
   btn.disabled = true
@@ -1283,7 +1357,7 @@ async function handleApprove(e) {
 
   const { error } = await _supabase
     .from('user_domains')
-    .update({ cloudflare_zone_id: zoneId, cloudflare_api_token: apiToken, admin_notes: notes || null, status: 'active' })
+    .update(updateData)
     .eq('id', setupDomainId)
 
   btn.disabled = false
