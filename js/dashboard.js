@@ -235,13 +235,14 @@ function switchPanel(panelId) {
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 
-function showToast(msg) {
+function showToast(msg, isError = false) {
   const toast = document.getElementById('toast')
   if (!toast) return
   toast.textContent = msg
+  toast.classList.toggle('toast--error', isError)
   toast.hidden = false
   clearTimeout(toast._timer)
-  toast._timer = setTimeout(() => { toast.hidden = true }, 2000)
+  toast._timer = setTimeout(() => { toast.hidden = true }, isError ? 5000 : 2000)
 }
 
 // ─── CF-Proxy helper ─────────────────────────────────────────────────────────
@@ -381,7 +382,7 @@ function initCfToggles() {
       } catch (err) {
         input.checked = !input.checked
         label.classList.toggle('toggle-switch--on', input.checked)
-        showToast('Failed to save: ' + err.message)
+        showToast('Failed to save: ' + err.message, true)
       } finally {
         label.style.opacity = ''
         _toggleLocks.delete(lockKey)
@@ -1006,6 +1007,7 @@ async function loadDomains() {
           ${d.last_purged_at ? ` · Last purged ${formatDate(d.last_purged_at)}` : ''}
         </span>
         ${d.status === 'rejected' && d.admin_notes ? `<span class="domain-card__note">Note: ${escHtml(d.admin_notes)}</span>` : ''}
+        ${d.status === 'rejected' ? '<span class="domain-card__hint">Remove this domain and re-submit to try again.</span>' : ''}
       </div>
       <div class="domain-card__actions">
         <span class="status-badge status-badge--${d.status}">
@@ -1176,10 +1178,13 @@ async function handleSubmitDomain() {
   btn.disabled = true
   btn.innerHTML = '<span class="btn-spinner"></span> Submitting...'
 
+  const defaults = loadUserSettings()
   const insertData = {
     user_id: currentUser.id,
     domain: scannedDomain,
     status: isSelfManaged ? 'active' : 'pending',
+    auto_purge_enabled: defaults.defaultAutoPurge || false,
+    auto_purge_interval: parseInt(defaults.defaultPurgeInterval) || 43200,
   }
 
   if (isSelfManaged) {
@@ -1250,11 +1255,28 @@ function showAddError(msg) {
 // ─── Overview Sections ────────────────────────────────────────────────────
 
 async function loadOverviewSections() {
+  updateHeroSub()
   renderAccountSummary()
   renderQuickStats()
   renderChecklist()
   initQuickActions()
   await loadActivityFeed()
+}
+
+function updateHeroSub() {
+  const el = document.getElementById('heroSub')
+  if (!el) return
+  const active = userDomains.filter(d => d.status === 'active').length
+  const pending = userDomains.filter(d => d.status === 'pending').length
+  if (active > 0 && pending > 0) {
+    el.textContent = `You have ${active} active domain${active > 1 ? 's' : ''} and ${pending} pending approval. Monitor performance across all your sites.`
+  } else if (active > 0) {
+    el.textContent = `You have ${active} active domain${active > 1 ? 's' : ''}. Monitor performance, manage cache, and track uptime in real time.`
+  } else if (pending > 0) {
+    el.textContent = `You have ${pending} domain${pending > 1 ? 's' : ''} pending approval. We'll set them up and notify you once ready.`
+  } else {
+    el.textContent = 'Submit your domain and we\'ll handle the technical setup for you. Track your website\'s cache status in real time.'
+  }
 }
 
 function renderAccountSummary() {
@@ -1472,7 +1494,14 @@ async function loadActivityFeed() {
 
   loadingEl.hidden = true
 
-  if (error || !history?.length) {
+  if (error) {
+    emptyEl.textContent = 'Failed to load activity feed'
+    emptyEl.hidden = false
+    return
+  }
+
+  if (!history?.length) {
+    emptyEl.textContent = 'No recent activity yet'
     emptyEl.hidden = false
     return
   }
@@ -1712,7 +1741,9 @@ async function loadStats(domainId) {
       document.getElementById(id).textContent = '—'
     })
     document.getElementById('historyLoading').hidden = true
-    document.getElementById('historyEmpty').hidden = false
+    const emptyEl = document.getElementById('historyEmpty')
+    emptyEl.textContent = 'Failed to load stats'
+    emptyEl.hidden = false
     return
   }
 
@@ -1902,6 +1933,7 @@ function renderAutoPurgeSettings(domainId, enabled, interval) {
 async function handleQuickPurge(btn) {
   const domainId = btn.dataset.id
   const domainName = btn.dataset.domain
+  if (!confirm(`Purge all cached files for ${domainName}?`)) return
   const origHtml = btn.innerHTML
 
   btn.disabled = true
@@ -1929,7 +1961,7 @@ async function handleQuickPurge(btn) {
     await loadDomains()
   } else {
     btn.innerHTML = origHtml
-    showToast('Purge failed — check Cloudflare config')
+    showToast('Purge failed — check Cloudflare config', true)
   }
 }
 
@@ -1942,7 +1974,7 @@ async function handleAutoPurgeToggle(domainId, enabled) {
     .eq('id', domainId)
 
   if (error) {
-    showToast('Failed to update auto-purge')
+    showToast('Failed to update auto-purge', true)
     return false
   }
   showToast(enabled ? 'Auto-purge enabled' : 'Auto-purge disabled')
@@ -1956,7 +1988,7 @@ async function handleAutoPurgeInterval(domainId, interval) {
     .eq('id', domainId)
 
   if (error) {
-    showToast('Failed to update schedule')
+    showToast('Failed to update schedule', true)
     return
   }
   showToast('Auto-purge schedule updated')
@@ -2082,6 +2114,17 @@ function populateProfileSettings() {
   el('settAvatar').value = currentProfile?.avatar_url || ''
   el('settNewPassword').value = ''
   el('settConfirmPassword').value = ''
+  updateAvatarPreview(currentProfile?.avatar_url)
+}
+
+function updateAvatarPreview(url) {
+  const preview = document.getElementById('settAvatarPreview')
+  if (!preview) return
+  if (url && url.trim()) {
+    preview.innerHTML = `<img src="${escHtml(url.trim())}" alt="Avatar" onerror="this.parentElement.innerHTML='<span class=\\'settings-avatar-preview__placeholder\\'>Invalid</span>'" />`
+  } else {
+    preview.innerHTML = '<span class="settings-avatar-preview__placeholder">No preview</span>'
+  }
 }
 
 function populatePlanSettings() {
@@ -2155,6 +2198,9 @@ function populateCredsSettings() {
 function initUserSettingsHandlers() {
   const el = (id) => document.getElementById(id)
 
+  // Avatar preview on input
+  el('settAvatar')?.addEventListener('input', (e) => updateAvatarPreview(e.target.value))
+
   // Profile save
   el('settProfileSaveBtn')?.addEventListener('click', async () => {
     const fullName = el('settFullName').value.trim()
@@ -2169,7 +2215,7 @@ function initUserSettingsHandlers() {
 
     if (Object.keys(updates).length) {
       const { error } = await _supabase.from('profiles').update(updates).eq('id', currentUser.id)
-      if (error) { showToast('Failed to update profile'); return }
+      if (error) { showToast('Failed to update profile', true); return }
       Object.assign(currentProfile, updates)
       // Update nav
       const navUser = document.getElementById('navUser')
@@ -2182,10 +2228,10 @@ function initUserSettingsHandlers() {
 
     // Change password
     if (newPass) {
-      if (newPass !== confirmPass) { showToast('Passwords do not match'); return }
-      if (newPass.length < 6) { showToast('Password must be at least 6 characters'); return }
+      if (newPass !== confirmPass) { showToast('Passwords do not match', true); return }
+      if (newPass.length < 6) { showToast('Password must be at least 6 characters', true); return }
       const { error } = await _supabase.auth.updateUser({ password: newPass })
-      if (error) { showToast('Failed to update password: ' + error.message); return }
+      if (error) { showToast('Failed to update password: ' + error.message, true); return }
       el('settNewPassword').value = ''
       el('settConfirmPassword').value = ''
     }
@@ -2245,7 +2291,8 @@ function initUserSettingsHandlers() {
   // Delete account
   el('settDeleteAccountBtn')?.addEventListener('click', () => {
     if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return
-    if (!confirm('This will permanently delete all your domains and data. Type OK to confirm.')) return
+    const typed = prompt('This will permanently delete all your domains and data.\nType DELETE to confirm:')
+    if (typed !== 'DELETE') { showToast('Account deletion cancelled', true); return }
     showToast('Account deletion requires admin approval. Please contact support.')
   })
 
@@ -2257,7 +2304,7 @@ function initUserSettingsHandlers() {
   // Revoke sessions
   el('settRevokeAllBtn')?.addEventListener('click', async () => {
     const { error } = await _supabase.auth.signOut({ scope: 'others' })
-    if (error) { showToast('Failed to revoke sessions'); return }
+    if (error) { showToast('Failed to revoke sessions', true); return }
     showToast('All other sessions revoked')
   })
 

@@ -155,7 +155,7 @@
         <section class="dash-hero" data-scroll-reveal>
           <div class="dash-hero__text">
             <h1 class="dash-hero__title">Welcome back, <span class="text-accent" id="heroName">there</span></h1>
-            <p class="dash-hero__sub">Submit your domain and we'll handle the technical setup for you. Track your website's cache status in real time.</p>
+            <p class="dash-hero__sub" id="heroSub">Submit your domain and we'll handle the technical setup for you. Track your website's cache status in real time.</p>
           </div>
           <div class="dash-hero__stats">
             <div class="mini-stat">
@@ -293,7 +293,7 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               Domain Report
             </h2>
-            <button class="btn btn--ghost btn--sm" id="closeReportBtn" type="button">
+            <button class="btn btn--ghost btn--sm" id="closeReportBtn" type="button" aria-label="Close report">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
@@ -556,7 +556,10 @@
           </div>
           <p class="dash-panel__desc">Monitor SSL certificate status for all your domains. Certificates are automatically provisioned and renewed.</p>
           <div id="sslLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading SSL data...</div>
-          <div id="sslNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="sslNoDomains" class="dash-empty dash-empty--sm" hidden>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            No active domains yet. Submit a domain to view SSL certificates.
+          </div>
           <div id="sslContent" hidden>
             <div class="feature-table-wrap">
               <table class="history-table" id="sslTable">
@@ -621,7 +624,10 @@
           </div>
           <p class="dash-panel__desc">View DNS records for your domains. Records are managed via Cloudflare.</p>
           <div id="dnsLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading DNS records...</div>
-          <div id="dnsNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="dnsNoDomains" class="dash-empty dash-empty--sm" hidden>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            No active domains yet. Submit a domain to view DNS records.
+          </div>
           <div id="dnsContent" hidden>
             <div class="feature-table-wrap">
               <table class="history-table" id="dnsTable">
@@ -682,6 +688,7 @@
               </div>
             </div>
           </div>
+          <span class="status-badge" id="anlProviderBadge" hidden style="font-size:0.7rem;margin-top:0.5rem"></span>
           <div id="anlError" class="dash-alert dash-alert--error" hidden></div>
         </section>
       </div>
@@ -695,7 +702,10 @@
           </div>
           <p class="dash-panel__desc">Manage Web Application Firewall rules to protect your websites from common attacks.</p>
           <div id="wafLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading security settings...</div>
-          <div id="wafNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="wafNoDomains" class="dash-empty dash-empty--sm" hidden>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            No active domains yet. Submit a domain to view firewall settings.
+          </div>
           <div id="wafContent" hidden>
             <div class="feature-grid">
               <div class="feature-card">
@@ -758,7 +768,10 @@
           </div>
           <p class="dash-panel__desc">Cloudflare image optimization settings for your domain. Some features require a Pro plan on Cloudflare.</p>
           <div id="imgLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading image settings...</div>
-          <div id="imgNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="imgNoDomains" class="dash-empty dash-empty--sm" hidden>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            No active domains yet. Submit a domain to view image optimization.
+          </div>
           <div id="imgContent" hidden>
             <div class="feature-grid">
               <div class="feature-card">
@@ -812,7 +825,10 @@
           </div>
           <p class="dash-panel__desc">Remove unnecessary characters from HTML, CSS, and JavaScript files to reduce file sizes and improve load times.</p>
           <div id="minifyLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading minification settings...</div>
-          <div id="minifyNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="minifyNoDomains" class="dash-empty dash-empty--sm" hidden>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            No active domains yet. Submit a domain to view minification settings.
+          </div>
           <div id="minifyContent" hidden>
             <div class="feature-grid feature-grid--three">
               <div class="feature-card feature-card--center">
@@ -875,7 +891,10 @@
           </div>
           <p class="dash-panel__desc">Always-on DDoS mitigation powered by Cloudflare's global network. Threat data from the last 30 days.</p>
           <div id="ddosLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading threat data...</div>
-          <div id="ddosNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains yet</div>
+          <div id="ddosNoDomains" class="dash-empty dash-empty--sm" hidden>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            No active domains yet. Submit a domain to view DDoS protection data.
+          </div>
           <div id="ddosContent" hidden>
             <div class="stats-row stats-row--mb">
               <div class="stat-box">
@@ -926,7 +945,12 @@
                 <span class="settings-row__label">Avatar URL</span>
                 <span class="settings-row__desc">Link to your profile picture</span>
               </div>
-              <input type="url" class="form-input form-input--sm settings-input" id="settAvatar" placeholder="https://..." />
+              <div class="settings-avatar-wrap">
+                <input type="url" class="form-input form-input--sm settings-input" id="settAvatar" placeholder="https://..." />
+                <div class="settings-avatar-preview" id="settAvatarPreview">
+                  <span class="settings-avatar-preview__placeholder">No preview</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -977,7 +1001,7 @@
                 <span class="settings-row__desc">Automatically enable auto-purge on new domains</span>
               </div>
               <label class="toggle-switch">
-                <input type="checkbox" id="settDefaultAutoPurge" />
+                <input type="checkbox" id="settDefaultAutoPurge" aria-label="Default auto-purge" />
                 <span class="toggle-switch__slider"></span>
               </label>
             </div>
@@ -1043,7 +1067,7 @@
                 <span class="settings-row__desc">Get alerted when an uptime check detects your domain is offline</span>
               </div>
               <label class="toggle-switch">
-                <input type="checkbox" id="settNotifDowntime" checked />
+                <input type="checkbox" id="settNotifDowntime" checked aria-label="Domain downtime alerts" />
                 <span class="toggle-switch__slider"></span>
               </label>
             </div>
@@ -1053,7 +1077,7 @@
                 <span class="settings-row__desc">Alert 14 days before your SSL certificate expires</span>
               </div>
               <label class="toggle-switch">
-                <input type="checkbox" id="settNotifSsl" checked />
+                <input type="checkbox" id="settNotifSsl" checked aria-label="SSL expiry alerts" />
                 <span class="toggle-switch__slider"></span>
               </label>
             </div>
@@ -1063,7 +1087,7 @@
                 <span class="settings-row__desc">Alert when threats exceed 1,000 in 24 hours</span>
               </div>
               <label class="toggle-switch">
-                <input type="checkbox" id="settNotifDdos" checked />
+                <input type="checkbox" id="settNotifDdos" checked aria-label="DDoS threat alerts" />
                 <span class="toggle-switch__slider"></span>
               </label>
             </div>
@@ -1077,7 +1101,7 @@
                 <span class="settings-row__desc">Notification after an auto-purge or manual purge completes</span>
               </div>
               <label class="toggle-switch">
-                <input type="checkbox" id="settNotifPurge" />
+                <input type="checkbox" id="settNotifPurge" aria-label="Cache purge alerts" />
                 <span class="toggle-switch__slider"></span>
               </label>
             </div>
@@ -1087,7 +1111,7 @@
                 <span class="settings-row__desc">Get notified when your domain is approved or rejected by admin</span>
               </div>
               <label class="toggle-switch">
-                <input type="checkbox" id="settNotifStatus" checked />
+                <input type="checkbox" id="settNotifStatus" checked aria-label="Domain status change alerts" />
                 <span class="toggle-switch__slider"></span>
               </label>
             </div>
@@ -1312,11 +1336,11 @@
 
   <!-- Delete confirm modal -->
   <div class="modal-backdrop" id="deleteModal" hidden>
-    <div class="modal">
-      <div class="modal__icon">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+      <div class="modal__icon modal__icon--danger">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
       </div>
-      <h3 class="modal__title">Remove Domain?</h3>
+      <h3 class="modal__title" id="deleteModalTitle">Remove Domain?</h3>
       <p class="modal__desc" id="deleteModalDesc"></p>
       <div class="modal__actions">
         <button class="btn btn--outline" id="deleteCancelBtn" type="button">Cancel</button>
