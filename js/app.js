@@ -361,7 +361,7 @@ function initScrollEffects() {
     rocketStartX = (anchorRect.left / window.innerWidth) * 100 - 3
     rocketStartY = (anchorRect.top / window.innerHeight) * 100 - 4
     if (rocket) {
-      rocket.style.transform = 'translate(' + rocketStartX + 'vw, ' + rocketStartY + 'vh) scale(0.54) rotate(0deg)'
+      rocket.style.transform = 'translate(' + rocketStartX + 'vw, ' + rocketStartY + 'vh) scale(1.2) rotate(0deg)'
     }
   }
 
@@ -400,7 +400,7 @@ function initScrollEffects() {
       // ── Rocket: always visible, starts beside "Business" in hero, arcs to landing pad
       if (rocket && !reducedMotion) {
         // Always visible
-        rocket.style.opacity = 1
+        rocket.style.opacity = 0.4
         rocket.classList.add('is-visible')
 
         // t goes 0→1 over the full scroll
@@ -431,8 +431,8 @@ function initScrollEffects() {
         var x = u*u*u * startX + 3*u*u*eased * cpX + 3*u*eased*eased * liftCpX + eased*eased*eased * endX
         var y = u*u*u * startY + 3*u*u*eased * cpY + 3*u*eased*eased * liftCpY + eased*eased*eased * endY
 
-        // Scale: start 3x bigger (~0.54), grow to full
-        var startScale = 0.54
+        // Scale: start larger (1.2) as background element, shrink to full as it lands
+        var startScale = 1.2
         var scale = startScale + eased * (1 - startScale)
 
         // Rotation depends on scroll direction
