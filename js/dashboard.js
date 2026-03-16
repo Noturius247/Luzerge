@@ -152,6 +152,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // CF toggle switches
   initCfToggles()
 
+  // User settings handlers
+  initUserSettingsHandlers()
+
   // Init starfield
   initDashStarfield()
 
@@ -222,6 +225,12 @@ function switchPanel(panelId) {
   if (panelId === 'waf') populateWafPanel()
   if (panelId === 'ddos') populateDdosPanel()
   if (panelId === 'uptime') populateUptimePanel()
+  if (panelId === 'settingsProfile') populateProfileSettings()
+  if (panelId === 'settingsDomains') populateDomainDefaults()
+  if (panelId === 'settingsNotifications') populateNotifSettings()
+  if (panelId === 'settingsCredentials') populateCredsSettings()
+  if (panelId === 'settingsPlan') populatePlanSettings()
+  if (panelId === 'settingsSecurity') populateSecuritySettings()
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -2048,6 +2057,214 @@ function initScrollReveals() {
   }, { threshold: 0.1 })
 
   els.forEach(el => observer.observe(el))
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+
+const SETTINGS_KEY = 'luzerge_user_settings'
+
+function loadUserSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}
+  } catch { return {} }
+}
+
+function saveUserSettings(data) {
+  const existing = loadUserSettings()
+  Object.assign(existing, data)
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(existing))
+}
+
+function populateProfileSettings() {
+  const el = (id) => document.getElementById(id)
+  el('settFullName').value = currentProfile?.full_name || ''
+  el('settEmail').value = currentProfile?.email || currentUser?.email || ''
+  el('settAvatar').value = currentProfile?.avatar_url || ''
+  el('settNewPassword').value = ''
+  el('settConfirmPassword').value = ''
+}
+
+function populatePlanSettings() {
+  const plan = currentProfile?.plan || 'none'
+  const planName = plan === 'none' ? 'Free' : plan.charAt(0).toUpperCase() + plan.slice(1)
+  const el = (id) => document.getElementById(id)
+
+  el('settPlanName').textContent = planName
+  el('settPlanPrice').textContent = PLAN_PRICES[plan] || '₱0/mo'
+
+  const domainCount = userDomains.length
+  const limit = PLAN_LIMITS[plan] || 1
+  el('settDomainsUsed').textContent = `${domainCount} / ${limit === Infinity ? '∞' : limit}`
+
+  el('settMemberSince').textContent = formatDate(currentUser?.created_at)
+  el('settBillingCycle').textContent = plan === 'none' ? 'N/A' : 'Monthly'
+
+  // Highlight current plan
+  document.querySelectorAll('.plan-option').forEach(opt => {
+    opt.classList.toggle('plan-option--current', opt.dataset.plan === plan)
+  })
+}
+
+function populateSecuritySettings() {
+  const el = (id) => document.getElementById(id)
+  el('settLastLogin').textContent = formatDate(currentUser?.last_sign_in_at)
+  el('settAccountCreated').textContent = formatDate(currentUser?.created_at)
+
+  // Detect browser
+  const ua = navigator.userAgent
+  let browser = 'Unknown Browser'
+  if (ua.includes('Firefox')) browser = 'Firefox'
+  else if (ua.includes('Edg/')) browser = 'Microsoft Edge'
+  else if (ua.includes('Chrome')) browser = 'Google Chrome'
+  else if (ua.includes('Safari')) browser = 'Safari'
+  el('settCurrentDevice').textContent = browser + ' on ' + navigator.platform
+  el('settCurrentMeta').textContent = 'Current session · last active now'
+}
+
+function populateNotifSettings() {
+  const s = loadUserSettings()
+  const el = (id) => document.getElementById(id)
+  if (s.notifDowntime != null) el('settNotifDowntime').checked = s.notifDowntime
+  if (s.notifSsl != null) el('settNotifSsl').checked = s.notifSsl
+  if (s.notifDdos != null) el('settNotifDdos').checked = s.notifDdos
+  if (s.notifPurge != null) el('settNotifPurge').checked = s.notifPurge
+  if (s.notifStatus != null) el('settNotifStatus').checked = s.notifStatus
+  if (s.notifEmail) el('settNotifEmail').value = s.notifEmail
+}
+
+function populateDomainDefaults() {
+  const s = loadUserSettings()
+  const el = (id) => document.getElementById(id)
+  if (s.defaultAutoPurge != null) el('settDefaultAutoPurge').checked = s.defaultAutoPurge
+  if (s.defaultPurgeInterval) el('settDefaultPurgeInterval').value = s.defaultPurgeInterval
+  if (s.defaultProvider) el('settDefaultProvider').value = s.defaultProvider
+  if (s.defaultTTL) el('settDefaultTTL').value = s.defaultTTL
+}
+
+function populateCredsSettings() {
+  const s = loadUserSettings()
+  const el = (id) => document.getElementById(id)
+  if (s.cfToken) el('settCfToken').value = s.cfToken
+  if (s.cfZone) el('settCfZone').value = s.cfZone
+  if (s.awsKey) el('settAwsKey').value = s.awsKey
+  if (s.awsDist) el('settAwsDist').value = s.awsDist
+  if (s.fastlyToken) el('settFastlyToken').value = s.fastlyToken
+  if (s.fastlyService) el('settFastlyService').value = s.fastlyService
+}
+
+function initUserSettingsHandlers() {
+  const el = (id) => document.getElementById(id)
+
+  // Profile save
+  el('settProfileSaveBtn')?.addEventListener('click', async () => {
+    const fullName = el('settFullName').value.trim()
+    const avatarUrl = el('settAvatar').value.trim()
+    const newPass = el('settNewPassword').value
+    const confirmPass = el('settConfirmPassword').value
+
+    // Update profile in Supabase
+    const updates = {}
+    if (fullName !== (currentProfile?.full_name || '')) updates.full_name = fullName
+    if (avatarUrl !== (currentProfile?.avatar_url || '')) updates.avatar_url = avatarUrl
+
+    if (Object.keys(updates).length) {
+      const { error } = await _supabase.from('profiles').update(updates).eq('id', currentUser.id)
+      if (error) { showToast('Failed to update profile'); return }
+      Object.assign(currentProfile, updates)
+      // Update nav
+      const navUser = document.getElementById('navUser')
+      if (navUser) navUser.textContent = currentProfile.email || currentUser.email
+      const navAvatar = document.getElementById('navAvatar')
+      if (navAvatar && updates.avatar_url) {
+        navAvatar.innerHTML = `<img src="${escHtml(updates.avatar_url)}" alt="" />`
+      }
+    }
+
+    // Change password
+    if (newPass) {
+      if (newPass !== confirmPass) { showToast('Passwords do not match'); return }
+      if (newPass.length < 6) { showToast('Password must be at least 6 characters'); return }
+      const { error } = await _supabase.auth.updateUser({ password: newPass })
+      if (error) { showToast('Failed to update password: ' + error.message); return }
+      el('settNewPassword').value = ''
+      el('settConfirmPassword').value = ''
+    }
+
+    showToast('Profile updated')
+  })
+
+  // Domain defaults save
+  el('settDomainsSaveBtn')?.addEventListener('click', () => {
+    saveUserSettings({
+      defaultAutoPurge: el('settDefaultAutoPurge').checked,
+      defaultPurgeInterval: el('settDefaultPurgeInterval').value,
+      defaultProvider: el('settDefaultProvider').value,
+      defaultTTL: el('settDefaultTTL').value,
+    })
+    showToast('Domain defaults saved')
+  })
+
+  // Notifications save
+  el('settNotifSaveBtn')?.addEventListener('click', () => {
+    saveUserSettings({
+      notifDowntime: el('settNotifDowntime').checked,
+      notifSsl: el('settNotifSsl').checked,
+      notifDdos: el('settNotifDdos').checked,
+      notifPurge: el('settNotifPurge').checked,
+      notifStatus: el('settNotifStatus').checked,
+      notifEmail: el('settNotifEmail').value.trim(),
+    })
+    showToast('Notification settings saved')
+  })
+
+  // Credentials save
+  el('settCredsSaveBtn')?.addEventListener('click', () => {
+    saveUserSettings({
+      cfToken: el('settCfToken').value.trim(),
+      cfZone: el('settCfZone').value.trim(),
+      awsKey: el('settAwsKey').value.trim(),
+      awsDist: el('settAwsDist').value.trim(),
+      fastlyToken: el('settFastlyToken').value.trim(),
+      fastlyService: el('settFastlyService').value.trim(),
+    })
+    showToast('Credentials saved')
+  })
+
+  // Upgrade plan button
+  el('settUpgradeBtn')?.addEventListener('click', () => {
+    showToast('Payment integration coming soon')
+  })
+
+  // Plan option click
+  document.querySelectorAll('.plan-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      showToast('Payment integration coming soon')
+    })
+  })
+
+  // Delete account
+  el('settDeleteAccountBtn')?.addEventListener('click', () => {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return
+    if (!confirm('This will permanently delete all your domains and data. Type OK to confirm.')) return
+    showToast('Account deletion requires admin approval. Please contact support.')
+  })
+
+  // 2FA toggle
+  el('sett2faToggle')?.addEventListener('click', () => {
+    showToast('Two-factor authentication coming soon')
+  })
+
+  // Revoke sessions
+  el('settRevokeAllBtn')?.addEventListener('click', async () => {
+    const { error } = await _supabase.auth.signOut({ scope: 'others' })
+    if (error) { showToast('Failed to revoke sessions'); return }
+    showToast('All other sessions revoked')
+  })
+
+  // Generate API token
+  el('settGenerateTokenBtn')?.addEventListener('click', () => {
+    showToast('API tokens coming soon')
+  })
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

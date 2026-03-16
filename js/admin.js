@@ -72,6 +72,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load data
   await loadAllDomains()
 
+  // Settings handlers
+  initSettingsHandlers()
+
   // Starfield & reveals
   initDashStarfield()
   initScrollReveals()
@@ -130,6 +133,23 @@ function switchPanel(panelId) {
   if (panelId === 'active') renderActiveTable()
   if (panelId === 'rejected') renderRejectedTable()
   if (panelId === 'users') renderUsersTable()
+
+  // Settings panels
+  if (panelId === 'settingsProfile') admPopulateProfile()
+  if (panelId === 'settingsPlans') admPopulatePlansStats()
+  if (panelId === 'settingsNotifications') admPopulateNotifSettings()
+  if (panelId === 'settingsUsers') admPopulateUsersTable()
+  if (panelId === 'settingsSecurity') admPopulateSecurity()
+
+  // Monitoring panels
+  if (panelId === 'monAnalytics') admPopulateAnalytics()
+  if (panelId === 'monSsl') admPopulateSsl()
+  if (panelId === 'monDns') admPopulateDns()
+  if (panelId === 'monWaf') admPopulateWaf()
+  if (panelId === 'monImages') admPopulateImages()
+  if (panelId === 'monMinify') admPopulateMinify()
+  if (panelId === 'monUptime') admPopulateUptime()
+  if (panelId === 'monDdos') admPopulateDdos()
 }
 
 // ─── Provider helpers ─────────────────────────────────────────────────────────
@@ -1591,4 +1611,745 @@ function formatDate(iso) {
   if (!iso) return '—'
   const d = new Date(iso)
   return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN MONITORING PANELS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const _admCfCache = {}
+const ADM_CACHE_TTL = 60_000
+
+async function admCfProxy(domainId, action, extra = {}) {
+  const cacheKey = `${domainId}:${action}:${JSON.stringify(extra)}`
+  const cached = _admCfCache[cacheKey]
+  if (cached && Date.now() - cached.ts < ADM_CACHE_TTL) return cached.data
+
+  const session = await getSession()
+  if (!session) return null
+  const params = new URLSearchParams({ domain_id: domainId, action, ...extra })
+  const res = await fetch(`${EDGE_BASE}/cf-proxy?${params}`, {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error || `HTTP ${res.status}`)
+  }
+  const data = await res.json()
+  _admCfCache[cacheKey] = { data, ts: Date.now() }
+  return data
+}
+
+function admGetProvider(domainId) {
+  const d = allDomains.find(x => x.id === domainId)
+  return d?.cdn_provider || 'cloudflare'
+}
+
+function admPopulateDomainSelect(selectId) {
+  const select = document.getElementById(selectId)
+  if (!select) return null
+  const active = allDomains.filter(d => d.status === 'active')
+  select.innerHTML = active.length
+    ? active.map(d => {
+        const prov = d.cdn_provider || 'cloudflare'
+        const owner = d.user_email ? ` (${d.user_email.split('@')[0]})` : ''
+        const label = prov === 'cloudflare' ? '' : ` [${prov}]`
+        return `<option value="${d.id}">${escHtml(d.domain)}${label}${owner}</option>`
+      }).join('')
+    : '<option value="">No active domains</option>'
+  return active.length ? active[0].id : null
+}
+
+function admSettingBadge(value) {
+  const isOn = value === 'on' || value === true
+  return `<span class="status-badge ${isOn ? 'status-badge--active' : 'status-badge--pending'}">${isOn ? 'On' : 'Off'}</span>`
+}
+
+function fmtNum(n) {
+  if (n == null) return '0'
+  return Number(n).toLocaleString()
+}
+
+function formatBytes(bytes) {
+  if (bytes == null || bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
+}
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+
+let _admAnlRange = '24h'
+
+async function admPopulateAnalytics() {
+  const loading = document.getElementById('admAnlLoading')
+  const content = document.getElementById('admAnlContent')
+  const noDomains = document.getElementById('admAnlNoDomains')
+  const error = document.getElementById('admAnlError')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
+
+  const domainId = admPopulateDomainSelect('admAnlDomainSelect')
+  if (!domainId) { loading.hidden = true; noDomains.hidden = false; return }
+
+  const select = document.getElementById('admAnlDomainSelect')
+  select.onchange = () => admPopulateAnalytics()
+
+  document.querySelectorAll('#panelMonAnalytics .purge-tab').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('#panelMonAnalytics .purge-tab').forEach(b => b.classList.remove('purge-tab--active'))
+      btn.classList.add('purge-tab--active')
+      _admAnlRange = btn.dataset.range || '24h'
+      admPopulateAnalytics()
+    }
+  })
+
+  try {
+    const selectedId = select.value || domainId
+    const data = await admCfProxy(selectedId, 'analytics', { since: _admAnlRange })
+    loading.hidden = true
+
+    if (!data.analytics) {
+      error.textContent = data.message || 'No analytics data available for this domain.'
+      error.hidden = false
+      return
+    }
+
+    const a = data.analytics
+    document.getElementById('admAnlRequests').textContent = fmtNum(a.requests_total)
+    document.getElementById('admAnlBandwidth').textContent = formatBytes(a.bandwidth_total)
+    document.getElementById('admAnlVisitors').textContent = a.unique_visitors != null ? fmtNum(a.unique_visitors) : 'N/A'
+    document.getElementById('admAnlCacheRate').textContent = a.cache_hit_rate != null ? a.cache_hit_rate + '%' : 'N/A'
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── SSL ─────────────────────────────────────────────────────────────────────
+
+async function admPopulateSsl() {
+  const loading = document.getElementById('admSslLoading')
+  const content = document.getElementById('admSslContent')
+  const noDomains = document.getElementById('admSslNoDomains')
+  const error = document.getElementById('admSslError')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
+
+  const domainId = admPopulateDomainSelect('admSslDomainSelect')
+  if (!domainId) { loading.hidden = true; noDomains.hidden = false; return }
+
+  const select = document.getElementById('admSslDomainSelect')
+  select.onchange = () => admPopulateSsl()
+
+  try {
+    const selectedId = select.value || domainId
+    const provider = admGetProvider(selectedId)
+    const certData = await admCfProxy(selectedId, 'ssl_certs')
+    loading.hidden = true
+
+    const tbody = document.getElementById('admSslBody')
+
+    if (provider === 'cloudflare') {
+      const certs = certData.certs || []
+      if (certs.length) {
+        tbody.innerHTML = certs.map(c => {
+          const hosts = (c.hosts || []).join(', ')
+          const cls = c.status === 'active' ? 'active' : 'pending'
+          return `<tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(hosts)}</td><td><span class="status-badge status-badge--${cls}">${escHtml(c.status)}</span></td><td>${escHtml(c.issuer || 'Cloudflare')}</td><td>${escHtml(c.type || 'universal')}</td><td>${c.expires_on ? formatDate(c.expires_on) : 'Auto-renewed'}</td></tr>`
+        }).join('')
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No certificate packs found</td></tr>'
+      }
+    } else {
+      const domainName = allDomains.find(d => d.id === selectedId)?.domain || ''
+      if (certData.ssl_valid) {
+        const hdr = certData.headers || {}
+        tbody.innerHTML = `<tr><td>${escHtml(domainName)}</td><td><span class="status-badge status-badge--active">Valid</span></td><td>${escHtml(hdr.server || provider)}</td><td>HTTPS check</td><td>${certData.hsts ? 'HSTS enabled' : 'No HSTS'}</td></tr>`
+      } else {
+        tbody.innerHTML = `<tr><td>${escHtml(domainName)}</td><td><span class="status-badge status-badge--error">Invalid</span></td><td colspan="3">SSL check failed</td></tr>`
+      }
+    }
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── DNS ─────────────────────────────────────────────────────────────────────
+
+async function admPopulateDns() {
+  const loading = document.getElementById('admDnsLoading')
+  const content = document.getElementById('admDnsContent')
+  const noDomains = document.getElementById('admDnsNoDomains')
+  const error = document.getElementById('admDnsError')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
+
+  const domainId = admPopulateDomainSelect('admDnsDomainSelect')
+  if (!domainId) { loading.hidden = true; noDomains.hidden = false; return }
+
+  const select = document.getElementById('admDnsDomainSelect')
+  select.onchange = () => admPopulateDns()
+
+  try {
+    const selectedId = select.value || domainId
+    const provider = admGetProvider(selectedId)
+    const data = await admCfProxy(selectedId, 'dns_records')
+    loading.hidden = true
+
+    const tbody = document.getElementById('admDnsBody')
+
+    if (provider === 'cloudflare') {
+      const records = data.records || []
+      if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No DNS records found</td></tr>'
+      } else {
+        tbody.innerHTML = records.map(r => {
+          const ttl = r.ttl === 1 ? 'Auto' : `${r.ttl}s`
+          return `<tr><td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(r.type)}</span></td><td>${escHtml(r.name)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(r.content)}</td><td>${ttl}</td><td>${r.proxied ? '<span class="status-badge status-badge--active">Proxied</span>' : '<span class="status-badge status-badge--pending">DNS only</span>'}</td></tr>`
+        }).join('')
+      }
+    } else {
+      const recordMap = data.records || {}
+      const domainName = allDomains.find(d => d.id === selectedId)?.domain || ''
+      const rows = []
+      for (const [type, entries] of Object.entries(recordMap)) {
+        for (const entry of entries) {
+          rows.push(`<tr><td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(type)}</span></td><td>${escHtml(domainName)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(entry.data)}</td><td>${entry.ttl ? entry.ttl + 's' : 'N/A'}</td><td><span class="status-badge status-badge--pending">DNS lookup</span></td></tr>`)
+        }
+      }
+      tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="5" class="feature-empty">No DNS records found</td></tr>'
+    }
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── WAF ─────────────────────────────────────────────────────────────────────
+
+async function admPopulateWaf() {
+  const loading = document.getElementById('admWafLoading')
+  const content = document.getElementById('admWafContent')
+  const noDomains = document.getElementById('admWafNoDomains')
+  const error = document.getElementById('admWafError')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
+
+  const domainId = admPopulateDomainSelect('admWafDomainSelect')
+  if (!domainId) { loading.hidden = true; noDomains.hidden = false; return }
+
+  const select = document.getElementById('admWafDomainSelect')
+  select.onchange = () => admPopulateWaf()
+
+  try {
+    const selectedId = select.value || domainId
+    if (admGetProvider(selectedId) !== 'cloudflare') {
+      loading.hidden = true
+      error.textContent = 'WAF settings are only available for Cloudflare domains.'
+      error.hidden = false
+      return
+    }
+
+    const data = await admCfProxy(selectedId, 'settings')
+    loading.hidden = true
+
+    const s = data.settings || {}
+    const level = s.security_level || 'medium'
+    const levelEl = document.getElementById('admWafLevel')
+    levelEl.textContent = level.charAt(0).toUpperCase() + level.slice(1)
+    levelEl.className = `status-badge ${level === 'high' || level === 'under_attack' ? 'status-badge--error' : 'status-badge--active'}`
+
+    document.getElementById('admWafBrowserCheck').innerHTML = admSettingBadge(s.browser_check)
+    document.getElementById('admWafEmailObf').innerHTML = admSettingBadge(s.email_obfuscation)
+    document.getElementById('admWafHotlink').innerHTML = admSettingBadge(s.hotlink_protection)
+
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── Images ──────────────────────────────────────────────────────────────────
+
+async function admPopulateImages() {
+  const loading = document.getElementById('admImgLoading')
+  const content = document.getElementById('admImgContent')
+  const noDomains = document.getElementById('admImgNoDomains')
+  const error = document.getElementById('admImgError')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
+
+  const domainId = admPopulateDomainSelect('admImgDomainSelect')
+  if (!domainId) { loading.hidden = true; noDomains.hidden = false; return }
+
+  const select = document.getElementById('admImgDomainSelect')
+  select.onchange = () => admPopulateImages()
+
+  try {
+    const selectedId = select.value || domainId
+    if (admGetProvider(selectedId) !== 'cloudflare') {
+      loading.hidden = true
+      error.textContent = 'Image optimization settings are only available for Cloudflare domains.'
+      error.hidden = false
+      return
+    }
+
+    const data = await admCfProxy(selectedId, 'settings')
+    loading.hidden = true
+
+    const s = data.settings || {}
+    document.getElementById('admImgMirage').innerHTML = admSettingBadge(s.mirage)
+    document.getElementById('admImgWebp').innerHTML = admSettingBadge(s.webp)
+    document.getElementById('admImgRocket').innerHTML = admSettingBadge(s.rocket_loader)
+
+    const polish = s.polish || 'off'
+    const polishEl = document.getElementById('admImgPolish')
+    polishEl.textContent = polish
+    polishEl.className = `status-badge ${polish !== 'off' ? 'status-badge--active' : 'status-badge--pending'}`
+
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── Minification ────────────────────────────────────────────────────────────
+
+async function admPopulateMinify() {
+  const loading = document.getElementById('admMinifyLoading')
+  const content = document.getElementById('admMinifyContent')
+  const noDomains = document.getElementById('admMinifyNoDomains')
+  const error = document.getElementById('admMinifyError')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
+
+  const domainId = admPopulateDomainSelect('admMinifyDomainSelect')
+  if (!domainId) { loading.hidden = true; noDomains.hidden = false; return }
+
+  const select = document.getElementById('admMinifyDomainSelect')
+  select.onchange = () => admPopulateMinify()
+
+  try {
+    const selectedId = select.value || domainId
+    if (admGetProvider(selectedId) !== 'cloudflare') {
+      loading.hidden = true
+      error.textContent = 'Minification settings are only available for Cloudflare domains.'
+      error.hidden = false
+      return
+    }
+
+    const data = await admCfProxy(selectedId, 'settings')
+    loading.hidden = true
+
+    const s = data.settings || {}
+    const minify = s.minify || { css: 'off', html: 'off', js: 'off' }
+    document.getElementById('admMinHtml').innerHTML = admSettingBadge(minify.html)
+    document.getElementById('admMinCss').innerHTML = admSettingBadge(minify.css)
+    document.getElementById('admMinJs').innerHTML = admSettingBadge(minify.js)
+
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ─── Uptime ──────────────────────────────────────────────────────────────────
+
+async function admPopulateUptime() {
+  const loading = document.getElementById('admUptimeLoading')
+  const list = document.getElementById('admUptimeList')
+  const noDomains = document.getElementById('admUptimeNoDomains')
+
+  loading.hidden = false; list.hidden = true; noDomains.hidden = true
+
+  const activeDomains = allDomains.filter(d => d.status === 'active')
+  if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
+
+  const results = await Promise.all(activeDomains.map(async (d) => {
+    try {
+      const data = await admCfProxy(d.id, 'uptime_check')
+      return { domain: d.domain, owner: d.user_email, provider: d.cdn_provider || 'cloudflare', checks: data.checks || [] }
+    } catch {
+      return { domain: d.domain, owner: d.user_email, provider: d.cdn_provider || 'cloudflare', checks: [] }
+    }
+  }))
+
+  loading.hidden = true
+  list.hidden = false
+
+  list.innerHTML = results.map(r => {
+    const httpsCheck = r.checks.find(c => c.url?.startsWith('https'))
+    const httpCheck = r.checks.find(c => c.url?.startsWith('http://'))
+    const mainCheck = httpsCheck || httpCheck || {}
+    const isUp = mainCheck.ok
+    const latency = mainCheck.latency
+    const pctClass = isUp ? 'good' : 'bad'
+    const statusText = isUp ? 'UP' : 'DOWN'
+    const latencyText = latency != null ? `${latency}ms` : '--'
+
+    return `<div class="uptime-card">
+      <div class="uptime-card__top">
+        <span class="uptime-card__domain">${escHtml(r.domain)}</span>
+        <span class="uptime-card__pct uptime-card__pct--${pctClass}">${statusText}</span>
+      </div>
+      <div style="display:flex;gap:1rem;font-size:0.8rem;color:rgba(255,255,255,0.5);margin-top:0.3rem;flex-wrap:wrap">
+        <span>${escHtml(r.owner || '')}</span>
+        <span>${providerBadge(r.provider)}</span>
+        <span>HTTPS: ${httpsCheck?.ok ? '<span style="color:#22c55e">&#10003;</span>' : '<span style="color:#ef4444">&#10007;</span>'}</span>
+        <span>HTTP: ${httpCheck?.ok ? '<span style="color:#22c55e">&#10003;</span>' : '<span style="color:#ef4444">&#10007;</span>'}</span>
+        <span>Latency: <strong>${latencyText}</strong></span>
+      </div>
+    </div>`
+  }).join('')
+
+  const refreshBtn = document.getElementById('admUptimeRefreshBtn')
+  if (refreshBtn) refreshBtn.onclick = () => {
+    // Clear cache for uptime checks
+    for (const key of Object.keys(_admCfCache)) {
+      if (key.includes('uptime_check')) delete _admCfCache[key]
+    }
+    admPopulateUptime()
+  }
+}
+
+// ─── DDoS ────────────────────────────────────────────────────────────────────
+
+async function admPopulateDdos() {
+  const loading = document.getElementById('admDdosLoading')
+  const content = document.getElementById('admDdosContent')
+  const noDomains = document.getElementById('admDdosNoDomains')
+  const error = document.getElementById('admDdosError')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
+
+  const domainId = admPopulateDomainSelect('admDdosDomainSelect')
+  if (!domainId) { loading.hidden = true; noDomains.hidden = false; return }
+
+  const select = document.getElementById('admDdosDomainSelect')
+  select.onchange = () => admPopulateDdos()
+
+  try {
+    const selectedId = select.value || domainId
+    const provider = admGetProvider(selectedId)
+
+    if (provider === 'none') {
+      loading.hidden = true
+      error.textContent = 'DDoS analytics are not available for monitoring-only domains.'
+      error.hidden = false
+      return
+    }
+
+    const data = await admCfProxy(selectedId, 'analytics', { since: '30d' })
+    loading.hidden = true
+
+    if (!data.analytics) {
+      error.textContent = data.message || 'No analytics data available.'
+      error.hidden = false
+      return
+    }
+
+    const a = data.analytics
+    document.getElementById('admDdosThreats').textContent = fmtNum(a.threats_total)
+    document.getElementById('admDdosRequests').textContent = fmtNum(a.requests_total)
+    document.getElementById('admDdosBandwidth').textContent = formatBytes(a.bandwidth_total)
+    content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    error.textContent = err.message
+    error.hidden = false
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SETTINGS PANELS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PLAN_PRICES_SELF = { none: 0, solo: 0, starter: 299, pro: 999, business: 1999, enterprise: 3499 }
+
+function admPopulatePlansStats() {
+  if (!allProfiles.length) return
+
+  const paidUsers = allProfiles.filter(p => p.plan && p.plan !== 'none')
+  const freeUsers = allProfiles.filter(p => !p.plan || p.plan === 'none')
+
+  let mrr = 0
+  paidUsers.forEach(p => { mrr += PLAN_PRICES_SELF[p.plan] || 0 })
+
+  document.getElementById('settTotalPaidUsers').textContent = paidUsers.length
+  document.getElementById('settFreeUsers').textContent = freeUsers.length
+  document.getElementById('settMRR').textContent = '₱' + mrr.toLocaleString()
+  document.getElementById('settTotalDomains').textContent = allDomains.length
+}
+
+function admPopulateNotifSettings() {
+  const emailEl = document.getElementById('settAlertEmail')
+  if (emailEl && !emailEl.value && currentProfile?.email) {
+    emailEl.value = currentProfile.email
+  }
+}
+
+function admShowToast(msg) {
+  const toast = document.getElementById('toast')
+  if (!toast) return
+  toast.textContent = msg
+  toast.hidden = false
+  clearTimeout(toast._timer)
+  toast._timer = setTimeout(() => { toast.hidden = true }, 2000)
+}
+
+// Settings save/load
+function initSettingsHandlers() {
+  document.getElementById('settGeneralSaveBtn')?.addEventListener('click', () => {
+    const settings = {
+      platformName: document.getElementById('settPlatformName')?.value,
+      supportEmail: document.getElementById('settSupportEmail')?.value,
+      maintenance: document.getElementById('settMaintenance')?.querySelector('input')?.checked,
+      defaultProvider: document.getElementById('settDefaultProvider')?.value,
+      autoApprove: document.getElementById('settAutoApprove')?.querySelector('input')?.checked,
+      defaultPurgeInterval: document.getElementById('settDefaultPurgeInterval')?.value,
+    }
+    localStorage.setItem('luzerge_admin_settings', JSON.stringify(settings))
+    admShowToast('General settings saved')
+  })
+
+  document.getElementById('settNotifSaveBtn')?.addEventListener('click', () => {
+    const notifs = {
+      newDomain: document.getElementById('settNotifNewDomain')?.querySelector('input')?.checked,
+      downtime: document.getElementById('settNotifDowntime')?.querySelector('input')?.checked,
+      sslExpiry: document.getElementById('settNotifSslExpiry')?.querySelector('input')?.checked,
+      newUser: document.getElementById('settNotifNewUser')?.querySelector('input')?.checked,
+      ddos: document.getElementById('settNotifDdos')?.querySelector('input')?.checked,
+      alertEmail: document.getElementById('settAlertEmail')?.value,
+    }
+    localStorage.setItem('luzerge_admin_notifications', JSON.stringify(notifs))
+    admShowToast('Notification settings saved')
+  })
+
+  document.getElementById('settApiSaveBtn')?.addEventListener('click', () => {
+    const api = {
+      cfGlobalToken: document.getElementById('settCfGlobalToken')?.value,
+      cfAccountId: document.getElementById('settCfAccountId')?.value,
+    }
+    localStorage.setItem('luzerge_admin_api', JSON.stringify(api))
+    admShowToast('API settings saved')
+  })
+
+  // Load saved settings
+  try {
+    const saved = JSON.parse(localStorage.getItem('luzerge_admin_settings') || '{}')
+    if (saved.platformName) document.getElementById('settPlatformName').value = saved.platformName
+    if (saved.supportEmail) document.getElementById('settSupportEmail').value = saved.supportEmail
+    if (saved.defaultProvider) document.getElementById('settDefaultProvider').value = saved.defaultProvider
+    if (saved.defaultPurgeInterval) document.getElementById('settDefaultPurgeInterval').value = saved.defaultPurgeInterval
+    if (saved.maintenance) {
+      const el = document.getElementById('settMaintenance')
+      if (el) { el.querySelector('input').checked = true; el.classList.add('toggle-switch--on') }
+    }
+    if (saved.autoApprove === false) {
+      const el = document.getElementById('settAutoApprove')
+      if (el) { el.querySelector('input').checked = false; el.classList.remove('toggle-switch--on') }
+    }
+  } catch {}
+
+  try {
+    const notifs = JSON.parse(localStorage.getItem('luzerge_admin_notifications') || '{}')
+    if (notifs.alertEmail) document.getElementById('settAlertEmail').value = notifs.alertEmail
+    const notifMap = [['newDomain','settNotifNewDomain'],['downtime','settNotifDowntime'],['sslExpiry','settNotifSslExpiry'],['newUser','settNotifNewUser'],['ddos','settNotifDdos']]
+    for (const [key, id] of notifMap) {
+      if (notifs[key] !== undefined) {
+        const el = document.getElementById(id)
+        if (el) { el.querySelector('input').checked = notifs[key]; el.classList.toggle('toggle-switch--on', notifs[key]) }
+      }
+    }
+  } catch {}
+
+  try {
+    const api = JSON.parse(localStorage.getItem('luzerge_admin_api') || '{}')
+    if (api.cfGlobalToken) document.getElementById('settCfGlobalToken').value = api.cfGlobalToken
+    if (api.cfAccountId) document.getElementById('settCfAccountId').value = api.cfAccountId
+  } catch {}
+
+  // ─── Admin Profile save ──────────────────────────────────────────────
+  document.getElementById('admSettProfileSaveBtn')?.addEventListener('click', async () => {
+    const fullName = document.getElementById('admSettFullName')?.value.trim()
+    const avatarUrl = document.getElementById('admSettAvatar')?.value.trim()
+    const newPass = document.getElementById('admSettNewPass')?.value
+    const confirmPass = document.getElementById('admSettConfirmPass')?.value
+
+    const updates = {}
+    if (fullName !== (currentProfile?.full_name || '')) updates.full_name = fullName
+    if (avatarUrl !== (currentProfile?.avatar_url || '')) updates.avatar_url = avatarUrl
+
+    if (Object.keys(updates).length) {
+      const { error } = await _supabase.from('profiles').update(updates).eq('id', currentUser.id)
+      if (error) { admShowToast('Failed to update profile'); return }
+      Object.assign(currentProfile, updates)
+      const navAvatar = document.getElementById('navAvatar')
+      if (navAvatar && updates.avatar_url) {
+        navAvatar.innerHTML = `<img src="${escHtml(updates.avatar_url)}" alt="" />`
+      }
+    }
+
+    if (newPass) {
+      if (newPass !== confirmPass) { admShowToast('Passwords do not match'); return }
+      if (newPass.length < 6) { admShowToast('Password must be at least 6 characters'); return }
+      const { error } = await _supabase.auth.updateUser({ password: newPass })
+      if (error) { admShowToast('Failed to change password: ' + error.message); return }
+      document.getElementById('admSettNewPass').value = ''
+      document.getElementById('admSettConfirmPass').value = ''
+    }
+
+    admShowToast('Profile updated')
+  })
+
+  // ─── 2FA toggle ──────────────────────────────────────────────────────
+  document.getElementById('admSett2faToggle')?.addEventListener('click', () => {
+    admShowToast('Two-factor authentication coming soon')
+  })
+
+  // ─── Revoke sessions ─────────────────────────────────────────────────
+  document.getElementById('admSettRevokeAllBtn')?.addEventListener('click', async () => {
+    const { error } = await _supabase.auth.signOut({ scope: 'others' })
+    if (error) { admShowToast('Failed to revoke sessions'); return }
+    admShowToast('All other sessions revoked')
+  })
+}
+
+// ─── Admin Profile populate ───────────────────────────────────────────────────
+
+function admPopulateProfile() {
+  document.getElementById('admSettFullName').value = currentProfile?.full_name || ''
+  document.getElementById('admSettEmail').value = currentProfile?.email || currentUser?.email || ''
+  document.getElementById('admSettAvatar').value = currentProfile?.avatar_url || ''
+  document.getElementById('admSettNewPass').value = ''
+  document.getElementById('admSettConfirmPass').value = ''
+}
+
+// ─── Admin Security populate ──────────────────────────────────────────────────
+
+function admPopulateSecurity() {
+  document.getElementById('admSettLastLogin').textContent = admFormatDate(currentUser?.last_sign_in_at)
+  document.getElementById('admSettAccountCreated').textContent = admFormatDate(currentUser?.created_at)
+
+  const ua = navigator.userAgent
+  let browser = 'Unknown Browser'
+  if (ua.includes('Firefox')) browser = 'Firefox'
+  else if (ua.includes('Edg/')) browser = 'Microsoft Edge'
+  else if (ua.includes('Chrome')) browser = 'Google Chrome'
+  else if (ua.includes('Safari')) browser = 'Safari'
+  document.getElementById('admSettCurrentDevice').textContent = browser + ' on ' + navigator.platform
+  document.getElementById('admSettCurrentMeta').textContent = 'Current session · last active now'
+}
+
+function admFormatDate(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+// ─── Admin User Management ────────────────────────────────────────────────────
+
+function admPopulateUsersTable() {
+  if (!allProfiles.length) return
+
+  // Stats
+  document.getElementById('admTotalUsers').textContent = allProfiles.length
+  const adminCount = allProfiles.filter(p => p.role === 'admin').length
+  const suspendedCount = allProfiles.filter(p => p.status === 'suspended').length
+  document.getElementById('admActiveUsers').textContent = allProfiles.length - suspendedCount
+  document.getElementById('admAdminCount').textContent = adminCount
+  document.getElementById('admSuspendedUsers').textContent = suspendedCount
+
+  // Table
+  const tbody = document.getElementById('admUsersTableBody')
+  if (!tbody) return
+
+  const planLabels = { none: 'Free', solo: 'Solo', starter: 'Starter', pro: 'Pro', business: 'Business', enterprise: 'Enterprise' }
+
+  tbody.innerHTML = allProfiles.map(p => {
+    const plan = p.plan || 'none'
+    const role = p.role || 'user'
+    const domainCount = allDomains.filter(d => d.user_id === p.id).length
+    const joinDate = admFormatDate(p.created_at)
+    const isSuspended = p.status === 'suspended'
+    const statusBadge = isSuspended
+      ? '<span class="status-badge status-badge--rejected">Suspended</span>'
+      : '<span class="status-badge status-badge--active">Active</span>'
+    const roleBadge = role === 'admin'
+      ? '<span class="status-badge" style="background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.25);font-size:0.7rem">Admin</span>'
+      : '<span class="status-badge" style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);font-size:0.7rem">User</span>'
+    const planBadge = `<span class="status-badge status-badge--${plan === 'none' ? 'pending' : 'active'}" style="font-size:0.7rem">${planLabels[plan] || plan}</span>`
+
+    return `<tr>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <strong style="font-size:0.8rem">${escHtml(p.full_name || '—')}</strong>
+          <span style="font-size:0.7rem;color:rgba(255,255,255,0.5)">${escHtml(p.email || '—')}</span>
+        </div>
+      </td>
+      <td>${planBadge}</td>
+      <td style="text-align:center">${domainCount}</td>
+      <td>${roleBadge}</td>
+      <td>${statusBadge}</td>
+      <td style="font-size:0.75rem;color:rgba(255,255,255,0.6)">${joinDate}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn--ghost btn--sm adm-user-role-btn" data-user-id="${p.id}" data-role="${role}" title="Toggle role" style="font-size:0.7rem;padding:2px 6px">
+            ${role === 'admin' ? '↓ User' : '↑ Admin'}
+          </button>
+          <button class="btn btn--ghost btn--sm adm-user-suspend-btn" data-user-id="${p.id}" data-suspended="${isSuspended ? 'true' : 'false'}" title="${isSuspended ? 'Reactivate' : 'Suspend'}" style="font-size:0.7rem;padding:2px 6px;color:${isSuspended ? '#22c55e' : '#ef4444'}">
+            ${isSuspended ? 'Activate' : 'Suspend'}
+          </button>
+        </div>
+      </td>
+    </tr>`
+  }).join('')
+
+  // Wire action buttons
+  tbody.querySelectorAll('.adm-user-role-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const userId = btn.dataset.userId
+      const currentRole = btn.dataset.role
+      const newRole = currentRole === 'admin' ? 'user' : 'admin'
+      if (userId === currentUser.id) { admShowToast('Cannot change your own role'); return }
+      if (!confirm(`Change this user's role to ${newRole}?`)) return
+      const { error } = await _supabase.from('profiles').update({ role: newRole }).eq('id', userId)
+      if (error) { admShowToast('Failed to update role'); return }
+      const profile = allProfiles.find(p => p.id === userId)
+      if (profile) profile.role = newRole
+      admPopulateUsersTable()
+      admShowToast(`User role changed to ${newRole}`)
+    })
+  })
+
+  tbody.querySelectorAll('.adm-user-suspend-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const userId = btn.dataset.userId
+      const isSuspended = btn.dataset.suspended === 'true'
+      if (userId === currentUser.id) { admShowToast('Cannot suspend yourself'); return }
+      if (!confirm(isSuspended ? 'Reactivate this user?' : 'Suspend this user? They will lose access.')) return
+      const newStatus = isSuspended ? 'active' : 'suspended'
+      const { error } = await _supabase.from('profiles').update({ status: newStatus }).eq('id', userId)
+      if (error) { admShowToast('Failed to update user status'); return }
+      const profile = allProfiles.find(p => p.id === userId)
+      if (profile) profile.status = newStatus
+      admPopulateUsersTable()
+      admShowToast(isSuspended ? 'User reactivated' : 'User suspended')
+    })
+  })
 }

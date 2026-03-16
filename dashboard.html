@@ -110,6 +110,40 @@
             </button>
           </div>
         </div>
+
+        <!-- Settings -->
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" data-section="settings">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Settings
+          </button>
+          <div class="sidebar-section-items" id="sectionSettings">
+            <button type="button" class="sidebar-item" data-panel="settingsProfile">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Profile &amp; Account
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsDomains">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              Domain Defaults
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsNotifications">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Notifications
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsCredentials">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              CDN Credentials
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsPlan">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              Plan &amp; Billing
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsSecurity">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Security
+            </button>
+          </div>
+        </div>
       </nav>
     </aside>
 
@@ -862,6 +896,414 @@
             </div>
           </div>
           <div id="ddosError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: PROFILE & ACCOUNT ═══════════════════ -->
+      <div id="panelSettingsProfile" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <h2 class="dash-panel__title">Profile &amp; Account</h2>
+          <p class="dash-panel__desc">Manage your personal information and account preferences.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Personal Information</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Full Name</span>
+                <span class="settings-row__desc">Your display name across the platform</span>
+              </div>
+              <input type="text" class="form-input form-input--sm settings-input" id="settFullName" placeholder="Your name" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Email Address</span>
+                <span class="settings-row__desc">Used for login and notifications</span>
+              </div>
+              <input type="email" class="form-input form-input--sm settings-input" id="settEmail" disabled />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Avatar URL</span>
+                <span class="settings-row__desc">Link to your profile picture</span>
+              </div>
+              <input type="url" class="form-input form-input--sm settings-input" id="settAvatar" placeholder="https://..." />
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Password</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">New Password</span>
+                <span class="settings-row__desc">Leave blank to keep current password</span>
+              </div>
+              <input type="password" class="form-input form-input--sm settings-input" id="settNewPassword" placeholder="••••••••" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Confirm Password</span>
+                <span class="settings-row__desc">Re-enter your new password</span>
+              </div>
+              <input type="password" class="form-input form-input--sm settings-input" id="settConfirmPassword" placeholder="••••••••" />
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Danger Zone</h3>
+            <div class="settings-row settings-row--danger">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Delete Account</span>
+                <span class="settings-row__desc">Permanently remove your account and all associated domains. This cannot be undone.</span>
+              </div>
+              <button class="btn btn--danger btn--sm" id="settDeleteAccountBtn" type="button">Delete Account</button>
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="settProfileSaveBtn" type="button">Save Profile</button>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: DOMAIN DEFAULTS ═══════════════════ -->
+      <div id="panelSettingsDomains" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <h2 class="dash-panel__title">Domain Defaults</h2>
+          <p class="dash-panel__desc">Set default values applied to newly added domains.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Cache Settings</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Default Auto-Purge</span>
+                <span class="settings-row__desc">Automatically enable auto-purge on new domains</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settDefaultAutoPurge" />
+                <span class="toggle-switch__slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Default Purge Interval</span>
+                <span class="settings-row__desc">How often cache is automatically purged</span>
+              </div>
+              <select class="form-input form-input--sm settings-input" id="settDefaultPurgeInterval">
+                <option value="3600">Every hour</option>
+                <option value="21600">Every 6 hours</option>
+                <option value="43200" selected>Every 12 hours</option>
+                <option value="86400">Every 24 hours</option>
+                <option value="604800">Every 7 days</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">CDN Preferences</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Preferred CDN Provider</span>
+                <span class="settings-row__desc">Default provider when adding self-managed domains</span>
+              </div>
+              <select class="form-input form-input--sm settings-input" id="settDefaultProvider">
+                <option value="cloudflare">Cloudflare</option>
+                <option value="cloudfront">AWS CloudFront</option>
+                <option value="fastly">Fastly</option>
+                <option value="none">None (monitoring only)</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Default Cache TTL</span>
+                <span class="settings-row__desc">Browser cache TTL for new domains (Cloudflare only)</span>
+              </div>
+              <select class="form-input form-input--sm settings-input" id="settDefaultTTL">
+                <option value="1800">30 minutes</option>
+                <option value="3600">1 hour</option>
+                <option value="14400" selected>4 hours</option>
+                <option value="86400">1 day</option>
+                <option value="604800">7 days</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="settDomainsSaveBtn" type="button">Save Defaults</button>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: NOTIFICATIONS ═══════════════════ -->
+      <div id="panelSettingsNotifications" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <h2 class="dash-panel__title">Notification Settings</h2>
+          <p class="dash-panel__desc">Control which email alerts you receive.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Monitoring Alerts</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Domain Goes Down</span>
+                <span class="settings-row__desc">Get alerted when an uptime check detects your domain is offline</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settNotifDowntime" checked />
+                <span class="toggle-switch__slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">SSL Expiry Warning</span>
+                <span class="settings-row__desc">Alert 14 days before your SSL certificate expires</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settNotifSsl" checked />
+                <span class="toggle-switch__slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">DDoS Threat Spike</span>
+                <span class="settings-row__desc">Alert when threats exceed 1,000 in 24 hours</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settNotifDdos" checked />
+                <span class="toggle-switch__slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Domain Alerts</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Cache Purge Completed</span>
+                <span class="settings-row__desc">Notification after an auto-purge or manual purge completes</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settNotifPurge" />
+                <span class="toggle-switch__slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Domain Status Change</span>
+                <span class="settings-row__desc">Get notified when your domain is approved or rejected by admin</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settNotifStatus" checked />
+                <span class="toggle-switch__slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Notification Email</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Alert Email</span>
+                <span class="settings-row__desc">Send alerts to a different email (leave blank to use your login email)</span>
+              </div>
+              <input type="email" class="form-input form-input--sm settings-input" id="settNotifEmail" placeholder="alerts@example.com" />
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="settNotifSaveBtn" type="button">Save Notifications</button>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: CDN CREDENTIALS ═══════════════════ -->
+      <div id="panelSettingsCredentials" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <h2 class="dash-panel__title">CDN Credentials</h2>
+          <p class="dash-panel__desc">Manage saved API credentials for your CDN providers. Per-domain credentials override these defaults.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Cloudflare</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">API Token</span>
+                <span class="settings-row__desc">Cloudflare API token with zone read/edit permissions</span>
+              </div>
+              <input type="password" class="form-input form-input--sm settings-input" id="settCfToken" placeholder="••••••••" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Zone ID</span>
+                <span class="settings-row__desc">Default Cloudflare zone identifier</span>
+              </div>
+              <input type="text" class="form-input form-input--sm settings-input" id="settCfZone" placeholder="Zone ID" />
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">AWS CloudFront</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Access Key</span>
+                <span class="settings-row__desc">IAM user access key with CloudFront permissions</span>
+              </div>
+              <input type="password" class="form-input form-input--sm settings-input" id="settAwsKey" placeholder="••••••••" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Distribution ID</span>
+                <span class="settings-row__desc">Default CloudFront distribution identifier</span>
+              </div>
+              <input type="text" class="form-input form-input--sm settings-input" id="settAwsDist" placeholder="Distribution ID" />
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Fastly</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">API Token</span>
+                <span class="settings-row__desc">Fastly API token for cache management</span>
+              </div>
+              <input type="password" class="form-input form-input--sm settings-input" id="settFastlyToken" placeholder="••••••••" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Service ID</span>
+                <span class="settings-row__desc">Default Fastly service identifier</span>
+              </div>
+              <input type="text" class="form-input form-input--sm settings-input" id="settFastlyService" placeholder="Service ID" />
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="settCredsSaveBtn" type="button">Save Credentials</button>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: PLAN & BILLING ═══════════════════ -->
+      <div id="panelSettingsPlan" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <h2 class="dash-panel__title">Plan &amp; Billing</h2>
+          <p class="dash-panel__desc">View your current plan, usage, and billing information.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Current Plan</h3>
+            <div class="plan-card" id="settPlanCard">
+              <div class="plan-card__header">
+                <span class="plan-card__name" id="settPlanName">Free</span>
+                <span class="plan-card__price" id="settPlanPrice">₱0/mo</span>
+              </div>
+              <div class="plan-card__details">
+                <div class="plan-card__detail">
+                  <span class="plan-card__detail-label">Domains Used</span>
+                  <span class="plan-card__detail-value" id="settDomainsUsed">0 / 1</span>
+                </div>
+                <div class="plan-card__detail">
+                  <span class="plan-card__detail-label">Member Since</span>
+                  <span class="plan-card__detail-value" id="settMemberSince">—</span>
+                </div>
+                <div class="plan-card__detail">
+                  <span class="plan-card__detail-label">Billing Cycle</span>
+                  <span class="plan-card__detail-value" id="settBillingCycle">—</span>
+                </div>
+              </div>
+              <button class="btn btn--primary btn--sm" id="settUpgradeBtn" type="button">Upgrade Plan</button>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Available Plans</h3>
+            <div class="plans-grid" id="settPlansGrid">
+              <div class="plan-option" data-plan="none">
+                <span class="plan-option__name">Free</span>
+                <span class="plan-option__price">₱0/mo</span>
+                <span class="plan-option__limit">1 domain</span>
+              </div>
+              <div class="plan-option" data-plan="solo">
+                <span class="plan-option__name">Solo</span>
+                <span class="plan-option__price">₱99/mo</span>
+                <span class="plan-option__limit">1 domain</span>
+              </div>
+              <div class="plan-option" data-plan="starter">
+                <span class="plan-option__name">Starter</span>
+                <span class="plan-option__price">₱299/mo</span>
+                <span class="plan-option__limit">3 domains</span>
+              </div>
+              <div class="plan-option" data-plan="pro">
+                <span class="plan-option__name">Pro</span>
+                <span class="plan-option__price">₱999/mo</span>
+                <span class="plan-option__limit">10 domains</span>
+              </div>
+              <div class="plan-option" data-plan="business">
+                <span class="plan-option__name">Business</span>
+                <span class="plan-option__price">₱1,999/mo</span>
+                <span class="plan-option__limit">50 domains</span>
+              </div>
+              <div class="plan-option" data-plan="enterprise">
+                <span class="plan-option__name">Enterprise</span>
+                <span class="plan-option__price">₱3,499/mo</span>
+                <span class="plan-option__limit">Unlimited</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Billing History</h3>
+            <div id="settBillingHistory" class="billing-history">
+              <p class="settings-empty">No billing history yet.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: SECURITY ═══════════════════ -->
+      <div id="panelSettingsSecurity" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <h2 class="dash-panel__title">Security</h2>
+          <p class="dash-panel__desc">Manage your account security settings and active sessions.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Two-Factor Authentication</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">2FA Status</span>
+                <span class="settings-row__desc">Add an extra layer of security to your account</span>
+              </div>
+              <div class="settings-row__action">
+                <span class="settings-badge settings-badge--off" id="sett2faStatus">Disabled</span>
+                <button class="btn btn--outline btn--sm" id="sett2faToggle" type="button">Enable 2FA</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Active Sessions</h3>
+            <div id="settSessionsList" class="sessions-list">
+              <div class="session-item session-item--current">
+                <div class="session-item__info">
+                  <span class="session-item__device" id="settCurrentDevice">Current Browser</span>
+                  <span class="session-item__meta" id="settCurrentMeta">This session</span>
+                </div>
+                <span class="settings-badge settings-badge--on">Active</span>
+              </div>
+            </div>
+            <button class="btn btn--outline btn--sm" id="settRevokeAllBtn" type="button" style="margin-top:0.75rem">Revoke All Other Sessions</button>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Login History</h3>
+            <div id="settLoginHistory" class="login-history">
+              <div class="login-history__item">
+                <span class="login-history__date" id="settLastLogin">—</span>
+                <span class="login-history__detail">Last successful login</span>
+              </div>
+              <div class="login-history__item">
+                <span class="login-history__date" id="settAccountCreated">—</span>
+                <span class="login-history__detail">Account created</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">API Access Tokens</h3>
+            <p class="settings-group__desc">Generate tokens for programmatic access to the Luzerge API.</p>
+            <div id="settApiTokensList" class="api-tokens-list">
+              <p class="settings-empty">No API tokens generated yet.</p>
+            </div>
+            <button class="btn btn--outline btn--sm" id="settGenerateTokenBtn" type="button">Generate New Token</button>
+          </div>
         </section>
       </div>
 
