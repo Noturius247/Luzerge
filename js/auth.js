@@ -16,7 +16,16 @@ const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
  * Returns the current session, or null if not logged in.
  */
 async function getSession() {
+  // getSession() reads from cache and may return an expired token.
+  // Try it first, then refresh if the token is close to expiry.
   const { data: { session } } = await _supabase.auth.getSession()
+  if (!session) return null
+  // If token expires within 60s, force a refresh
+  const expiresAt = session.expires_at // unix seconds
+  if (expiresAt && expiresAt - Math.floor(Date.now() / 1000) < 60) {
+    const { data: { session: refreshed } } = await _supabase.auth.refreshSession()
+    return refreshed
+  }
   return session
 }
 

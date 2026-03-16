@@ -11,6 +11,7 @@
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="stylesheet" href="/css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
 </head>
 <body class="dash-page dash-page--admin">
   <canvas id="dashStarfield" class="page-starfield" aria-hidden="true"></canvas>
@@ -428,7 +429,7 @@
       <div id="panelMonAnalytics" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">Analytics (All Domains)</h2>
+            <h2 class="dash-panel__title">Analytics</h2>
             <div style="display:flex;gap:.5rem;align-items:center">
               <select class="form-input form-input--sm panel-domain-select" id="admAnlDomainSelect"></select>
               <div class="date-range-pills">
@@ -441,26 +442,52 @@
           <div id="admAnlLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading analytics...</div>
           <div id="admAnlNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="admAnlContent" hidden>
-            <div class="stats-row">
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-                <span class="stat-box__value" id="admAnlRequests">--</span>
-                <span class="stat-box__label">Total Requests</span>
+            <!-- Summary stat cards -->
+            <div class="stats-row" id="admAnlStats" style="margin-bottom:1.5rem"></div>
+
+            <!-- Trend chart -->
+            <div class="anl-chart-wrap" style="margin-bottom:1.5rem">
+              <canvas id="admAnlChart" height="280"></canvas>
+            </div>
+
+            <!-- Per-domain table -->
+            <h3 class="anl-section-title">Per-Domain Breakdown</h3>
+            <div class="feature-table-wrap" style="margin-bottom:1.5rem">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>Requests</th><th>Cached</th><th>Bandwidth</th><th>Visitors</th><th>Threats</th><th>Cache Rate</th></tr></thead>
+                <tbody id="admAnlBody"></tbody>
+              </table>
+            </div>
+
+            <!-- Breakdown tables 2x2 grid -->
+            <div class="anl-breakdown-grid">
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">Top Countries</h3>
+                <table class="history-table">
+                  <thead><tr><th>Country</th><th>Requests</th><th>Bandwidth</th><th>Threats</th></tr></thead>
+                  <tbody id="admAnlCountries"></tbody>
+                </table>
               </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
-                <span class="stat-box__value" id="admAnlBandwidth">--</span>
-                <span class="stat-box__label">Bandwidth</span>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">HTTP Status Codes</h3>
+                <table class="history-table">
+                  <thead><tr><th>Status</th><th>Requests</th><th>% of Total</th></tr></thead>
+                  <tbody id="admAnlStatus"></tbody>
+                </table>
               </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
-                <span class="stat-box__value" id="admAnlVisitors">--</span>
-                <span class="stat-box__label">Unique Visitors</span>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">Content Types</h3>
+                <table class="history-table">
+                  <thead><tr><th>Type</th><th>Requests</th><th>Bandwidth</th></tr></thead>
+                  <tbody id="admAnlContentType"></tbody>
+                </table>
               </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-                <span class="stat-box__value" id="admAnlCacheRate">--</span>
-                <span class="stat-box__label">Cache Hit Rate</span>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">SSL / TLS Versions</h3>
+                <table class="history-table">
+                  <thead><tr><th>Protocol</th><th>Requests</th><th>% of Total</th></tr></thead>
+                  <tbody id="admAnlSsl"></tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -472,7 +499,7 @@
       <div id="panelMonSsl" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">SSL / TLS Certificates (All Domains)</h2>
+            <h2 class="dash-panel__title">SSL / TLS Certificates</h2>
             <select class="form-input form-input--sm panel-domain-select" id="admSslDomainSelect"></select>
           </div>
           <div id="admSslLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading SSL data...</div>
@@ -480,7 +507,7 @@
           <div id="admSslContent" hidden>
             <div class="feature-table-wrap">
               <table class="history-table">
-                <thead><tr><th>Host</th><th>Status</th><th>Issuer</th><th>Type</th><th>Expires</th></tr></thead>
+                <thead><tr><th>Domain</th><th>Host</th><th>Status</th><th>Issuer</th><th>Type</th><th>Expires</th></tr></thead>
                 <tbody id="admSslBody"></tbody>
               </table>
             </div>
@@ -493,7 +520,7 @@
       <div id="panelMonDns" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">DNS Records (All Domains)</h2>
+            <h2 class="dash-panel__title">DNS Records</h2>
             <select class="form-input form-input--sm panel-domain-select" id="admDnsDomainSelect"></select>
           </div>
           <div id="admDnsLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading DNS records...</div>
@@ -501,7 +528,7 @@
           <div id="admDnsContent" hidden>
             <div class="feature-table-wrap">
               <table class="history-table">
-                <thead><tr><th>Type</th><th>Name</th><th>Value</th><th>TTL</th><th>Proxied</th></tr></thead>
+                <thead><tr><th>Domain</th><th>Type</th><th>Name</th><th>Value</th><th>TTL</th><th>Proxied</th></tr></thead>
                 <tbody id="admDnsBody"></tbody>
               </table>
             </div>
@@ -514,17 +541,17 @@
       <div id="panelMonWaf" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">WAF / Firewall (All Domains)</h2>
+            <h2 class="dash-panel__title">WAF / Firewall</h2>
             <select class="form-input form-input--sm panel-domain-select" id="admWafDomainSelect"></select>
           </div>
           <div id="admWafLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading security settings...</div>
           <div id="admWafNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="admWafContent" hidden>
-            <div class="feature-grid">
-              <div class="feature-card"><div class="feature-card__top"><div class="feature-card__info"><span class="feature-card__name">Security Level</span></div><span class="status-badge" id="admWafLevel">--</span></div></div>
-              <div class="feature-card"><div class="feature-card__top"><div class="feature-card__info"><span class="feature-card__name">Browser Check</span></div><span class="status-badge" id="admWafBrowserCheck">--</span></div></div>
-              <div class="feature-card"><div class="feature-card__top"><div class="feature-card__info"><span class="feature-card__name">Email Obfuscation</span></div><span class="status-badge" id="admWafEmailObf">--</span></div></div>
-              <div class="feature-card"><div class="feature-card__top"><div class="feature-card__info"><span class="feature-card__name">Hotlink Protection</span></div><span class="status-badge" id="admWafHotlink">--</span></div></div>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>Security Level</th><th>Browser Check</th><th>Email Obfuscation</th><th>Hotlink Protection</th></tr></thead>
+                <tbody id="admWafBody"></tbody>
+              </table>
             </div>
           </div>
           <div id="admWafError" class="dash-alert dash-alert--error" hidden></div>
@@ -535,17 +562,17 @@
       <div id="panelMonImages" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">Image Optimization (All Domains)</h2>
+            <h2 class="dash-panel__title">Image Optimization</h2>
             <select class="form-input form-input--sm panel-domain-select" id="admImgDomainSelect"></select>
           </div>
           <div id="admImgLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading image settings...</div>
           <div id="admImgNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="admImgContent" hidden>
-            <div class="feature-grid">
-              <div class="feature-card"><div class="feature-card__top"><div class="feature-card__info"><span class="feature-card__name">Mirage</span></div><span class="status-badge" id="admImgMirage">--</span></div></div>
-              <div class="feature-card"><div class="feature-card__top"><div class="feature-card__info"><span class="feature-card__name">Polish</span></div><span class="status-badge" id="admImgPolish">--</span></div></div>
-              <div class="feature-card"><div class="feature-card__top"><div class="feature-card__info"><span class="feature-card__name">WebP</span></div><span class="status-badge" id="admImgWebp">--</span></div></div>
-              <div class="feature-card"><div class="feature-card__top"><div class="feature-card__info"><span class="feature-card__name">Rocket Loader</span></div><span class="status-badge" id="admImgRocket">--</span></div></div>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>Mirage</th><th>Polish</th><th>WebP</th><th>Rocket Loader</th></tr></thead>
+                <tbody id="admImgBody"></tbody>
+              </table>
             </div>
           </div>
           <div id="admImgError" class="dash-alert dash-alert--error" hidden></div>
@@ -556,16 +583,17 @@
       <div id="panelMonMinify" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">Minification (All Domains)</h2>
+            <h2 class="dash-panel__title">Minification</h2>
             <select class="form-input form-input--sm panel-domain-select" id="admMinifyDomainSelect"></select>
           </div>
           <div id="admMinifyLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading minification settings...</div>
           <div id="admMinifyNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="admMinifyContent" hidden>
-            <div class="feature-grid feature-grid--three">
-              <div class="feature-card feature-card--center"><span class="feature-card__name">HTML</span><span class="status-badge" id="admMinHtml">--</span></div>
-              <div class="feature-card feature-card--center"><span class="feature-card__name">CSS</span><span class="status-badge" id="admMinCss">--</span></div>
-              <div class="feature-card feature-card--center"><span class="feature-card__name">JavaScript</span><span class="status-badge" id="admMinJs">--</span></div>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>HTML</th><th>CSS</th><th>JavaScript</th></tr></thead>
+                <tbody id="admMinifyBody"></tbody>
+              </table>
             </div>
           </div>
           <div id="admMinifyError" class="dash-alert dash-alert--error" hidden></div>
@@ -576,7 +604,7 @@
       <div id="panelMonUptime" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">Uptime Monitoring (All Domains)</h2>
+            <h2 class="dash-panel__title">Uptime Monitoring</h2>
             <button class="btn btn--outline btn--sm" id="admUptimeRefreshBtn" type="button">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
               Check Now
@@ -584,7 +612,14 @@
           </div>
           <div id="admUptimeLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Checking uptime...</div>
           <div id="admUptimeNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains to monitor</div>
-          <div id="admUptimeList" class="uptime-list" hidden></div>
+          <div id="admUptimeContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Owner</th><th>Provider</th><th>Status</th><th>HTTPS</th><th>HTTP</th><th>Latency</th></tr></thead>
+                <tbody id="admUptimeBody"></tbody>
+              </table>
+            </div>
+          </div>
         </section>
       </div>
 
@@ -592,28 +627,17 @@
       <div id="panelMonDdos" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">DDoS Protection (All Domains)</h2>
+            <h2 class="dash-panel__title">DDoS Protection</h2>
             <select class="form-input form-input--sm panel-domain-select" id="admDdosDomainSelect"></select>
           </div>
           <div id="admDdosLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading threat data...</div>
           <div id="admDdosNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="admDdosContent" hidden>
-            <div class="stats-row">
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-                <span class="stat-box__value" id="admDdosThreats">--</span>
-                <span class="stat-box__label">Threats (30d)</span>
-              </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-                <span class="stat-box__value" id="admDdosRequests">--</span>
-                <span class="stat-box__label">Requests (30d)</span>
-              </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-                <span class="stat-box__value" id="admDdosBandwidth">--</span>
-                <span class="stat-box__label">Bandwidth (30d)</span>
-              </div>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>Threats (30d)</th><th>Requests (30d)</th><th>Bandwidth (30d)</th></tr></thead>
+                <tbody id="admDdosBody"></tbody>
+              </table>
             </div>
           </div>
           <div id="admDdosError" class="dash-alert dash-alert--error" hidden></div>
@@ -1209,6 +1233,27 @@
       <div class="modal__actions">
         <button class="btn btn--outline" id="deleteCancelBtn">Cancel</button>
         <button class="btn btn--danger" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2FA Setup modal -->
+  <div class="modal-backdrop" id="admTfaModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="admTfaModalTitle">
+      <h3 class="modal__title" id="admTfaModalTitle">Set Up Two-Factor Authentication</h3>
+      <p class="modal__desc">Scan this QR code with your authenticator app:</p>
+      <div style="text-align:center;margin:1rem 0">
+        <img id="admTfaQrImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="2FA QR Code" style="border-radius:8px;background:#fff;padding:8px;max-width:200px" />
+      </div>
+      <p class="modal__desc" style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Or enter manually: <code id="admTfaSecret" style="user-select:all"></code></p>
+      <div class="form-group" style="margin-top:1rem">
+        <label class="form-label" for="admTfaCode">Enter the 6-digit code</label>
+        <input class="form-input" id="admTfaCode" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+      </div>
+      <div id="admTfaError" class="dash-alert dash-alert--error" hidden></div>
+      <div class="modal__actions">
+        <button class="btn btn--outline" id="admTfaCancelBtn" type="button">Cancel</button>
+        <button class="btn btn--primary" id="admTfaVerifyBtn" type="button">Verify &amp; Enable</button>
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
+import { getCorsHeaders, corsHeaders } from '../_shared/cors.ts'
 
 /**
  * CDN Proxy Edge Function
@@ -9,6 +9,8 @@ import { corsHeaders } from '../_shared/cors.ts'
  */
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -17,13 +19,13 @@ serve(async (req: Request) => {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json({ error: 'Unauthorized' }, 401)
 
+    const jwt = authHeader.replace('Bearer ', '')
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt)
     if (authError || !user) return json({ error: 'Unauthorized' }, 401)
 
     const url = new URL(req.url)
@@ -231,19 +233,112 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
         case '30d': sinceDate = new Date(now.getTime() - 30 * 86400000); break
         default: sinceDate = new Date(now.getTime() - 86400000); break
       }
-      const cfUrl = `/zones/${zoneId}/analytics/dashboard?since=${sinceDate.toISOString()}&until=${now.toISOString()}&continuous=false`
-      const data = await cfFetch(cfUrl, token)
-      if (!data.success) return json({ error: 'Failed to fetch analytics', cf_errors: data.errors }, 502)
-      const totals = data.result?.totals
-      if (!totals) return json({ analytics: null, provider: 'cloudflare' })
-      const bwTotal = totals.bandwidth?.all ?? 0
-      const bwCached = totals.bandwidth?.cached ?? 0
+      const query = `query {
+        viewer {
+          zones(filter: {zoneTag: "${zoneId}"}) {
+            httpRequests1dGroups(limit: 1000, filter: {date_geq: "${sinceDate.toISOString().split('T')[0]}", date_leq: "${now.toISOString().split('T')[0]}"}) {
+              dimensions { date }
+              sum {
+                requests
+                cachedRequests
+                bytes
+                cachedBytes
+                threats
+                responseStatusMap { edgeResponseStatus requests }
+                contentTypeMap { edgeResponseContentTypeName requests bytes }
+                countryMap { clientCountryName requests threats bytes }
+                clientSSLMap { clientSSLProtocol requests }
+              }
+              uniq { uniques }
+            }
+          }
+        }
+      }`
+      const gqlRes = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      })
+      const gqlData = await gqlRes.json()
+      const groups = gqlData?.data?.viewer?.zones?.[0]?.httpRequests1dGroups
+      if (!groups || !groups.length) return json({ analytics: null, provider: 'cloudflare' })
+
+      // Aggregate totals
+      const totals = { requests: 0, cachedRequests: 0, bytes: 0, cachedBytes: 0, threats: 0, uniques: 0 }
+      const daily: Array<Record<string, unknown>> = []
+      const countryMap: Record<string, Record<string, number>> = {}
+      const statusMap: Record<number, number> = {}
+      const contentMap: Record<string, Record<string, number>> = {}
+      const sslMap: Record<string, number> = {}
+
+      for (const g of groups) {
+        totals.requests += g.sum?.requests ?? 0
+        totals.cachedRequests += g.sum?.cachedRequests ?? 0
+        totals.bytes += g.sum?.bytes ?? 0
+        totals.cachedBytes += g.sum?.cachedBytes ?? 0
+        totals.threats += g.sum?.threats ?? 0
+        totals.uniques += g.uniq?.uniques ?? 0
+
+        daily.push({
+          date: g.dimensions?.date,
+          requests: g.sum?.requests ?? 0,
+          cachedRequests: g.sum?.cachedRequests ?? 0,
+          bytes: g.sum?.bytes ?? 0,
+          cachedBytes: g.sum?.cachedBytes ?? 0,
+          threats: g.sum?.threats ?? 0,
+          uniques: g.uniq?.uniques ?? 0,
+        })
+
+        for (const c of g.sum?.countryMap || []) {
+          const k = c.clientCountryName || 'Unknown'
+          if (!countryMap[k]) countryMap[k] = { requests: 0, threats: 0, bytes: 0 }
+          countryMap[k].requests += c.requests ?? 0
+          countryMap[k].threats += c.threats ?? 0
+          countryMap[k].bytes += c.bytes ?? 0
+        }
+        for (const s of g.sum?.responseStatusMap || []) {
+          statusMap[s.edgeResponseStatus] = (statusMap[s.edgeResponseStatus] || 0) + (s.requests ?? 0)
+        }
+        for (const ct of g.sum?.contentTypeMap || []) {
+          const k = ct.edgeResponseContentTypeName || 'Other'
+          if (!contentMap[k]) contentMap[k] = { requests: 0, bytes: 0 }
+          contentMap[k].requests += ct.requests ?? 0
+          contentMap[k].bytes += ct.bytes ?? 0
+        }
+        for (const sl of g.sum?.clientSSLMap || []) {
+          const k = sl.clientSSLProtocol || 'None'
+          sslMap[k] = (sslMap[k] || 0) + (sl.requests ?? 0)
+        }
+      }
+
+      // Sort and limit breakdowns
+      const sortedCountries = Object.entries(countryMap)
+        .map(([name, v]) => ({ country: name, ...v }))
+        .sort((a, b) => b.requests - a.requests).slice(0, 20)
+      const sortedStatus = Object.entries(statusMap)
+        .map(([code, reqs]) => ({ status: Number(code), requests: reqs }))
+        .sort((a, b) => b.requests - a.requests)
+      const sortedContent = Object.entries(contentMap)
+        .map(([name, v]) => ({ type: name, ...v }))
+        .sort((a, b) => b.requests - a.requests).slice(0, 15)
+      const sortedSsl = Object.entries(sslMap)
+        .map(([proto, reqs]) => ({ protocol: proto, requests: reqs }))
+        .sort((a, b) => b.requests - a.requests)
+
       return json({
         analytics: {
-          requests_total: totals.requests?.all ?? 0, requests_cached: totals.requests?.cached ?? 0,
-          bandwidth_total: bwTotal, bandwidth_cached: bwCached,
-          cache_hit_rate: bwTotal > 0 ? Math.round((bwCached / bwTotal) * 100) : 0,
-          unique_visitors: totals.uniques?.all ?? 0, threats_total: totals.threats?.all ?? 0,
+          requests_total: totals.requests, requests_cached: totals.cachedRequests,
+          bandwidth_total: totals.bytes, bandwidth_cached: totals.cachedBytes,
+          cache_hit_rate: totals.bytes > 0 ? Math.round((totals.cachedBytes / totals.bytes) * 100) : 0,
+          unique_visitors: totals.uniques, threats_total: totals.threats,
+          daily,
+          countryMap: sortedCountries,
+          responseStatusMap: sortedStatus,
+          contentTypeMap: sortedContent,
+          clientSSLMap: sortedSsl,
         },
         provider: 'cloudflare',
       })

@@ -1,8 +1,10 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
+import { getCorsHeaders } from '../_shared/cors.ts'
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -15,13 +17,13 @@ serve(async (req: Request) => {
       })
     }
 
+    const jwt = authHeader.replace('Bearer ', '')
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt)
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -66,34 +68,45 @@ serve(async (req: Request) => {
       .eq('domain_id', domainId)
       .gte('created_at', since)
 
-    // Optionally fetch Cloudflare zone analytics (last 24h)
+    // Optionally fetch Cloudflare zone analytics (last 24h) via GraphQL
     let cfAnalytics = null
     if (domain.cloudflare_zone_id && domain.cloudflare_api_token) {
       try {
-        const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-        const until = new Date().toISOString()
-        const cfUrl = `https://api.cloudflare.com/client/v4/zones/${domain.cloudflare_zone_id}/analytics/dashboard?since=${since24h}&until=${until}&continuous=false`
-
-        const cfRes = await fetch(cfUrl, {
+        const now = new Date()
+        const sinceDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+        const query = `query {
+          viewer {
+            zones(filter: {zoneTag: "${domain.cloudflare_zone_id}"}) {
+              httpRequests1dGroups(limit: 1, filter: {date_geq: "${sinceDate.toISOString().split('T')[0]}", date_leq: "${now.toISOString().split('T')[0]}"}) {
+                sum { requests cachedRequests bytes cachedBytes threats }
+                uniq { uniques }
+              }
+            }
+          }
+        }`
+        const gqlRes = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+          method: 'POST',
           headers: {
-            'Authorization': `Bearer ${domain.cloudflare_api_token}`,
+            Authorization: `Bearer ${domain.cloudflare_api_token}`,
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({ query }),
         })
 
-        if (cfRes.ok) {
-          const cfData = await cfRes.json()
-          const totals = cfData?.result?.totals
-          if (totals) {
-            const cached = totals.bandwidth?.cached ?? 0
-            const total = totals.bandwidth?.all ?? 0
+        if (gqlRes.ok) {
+          const gqlData = await gqlRes.json()
+          const groups = gqlData?.data?.viewer?.zones?.[0]?.httpRequests1dGroups
+          if (groups?.length) {
+            const g = groups[0]
+            const total = g.sum?.bytes ?? 0
+            const cached = g.sum?.cachedBytes ?? 0
             cfAnalytics = {
-              requests_total: totals.requests?.all ?? 0,
-              requests_cached: totals.requests?.cached ?? 0,
+              requests_total: g.sum?.requests ?? 0,
+              requests_cached: g.sum?.cachedRequests ?? 0,
               bandwidth_total_bytes: total,
               bandwidth_cached_bytes: cached,
               cache_hit_rate: total > 0 ? Math.round((cached / total) * 100) : 0,
-              threats_total: totals.threats?.all ?? 0,
+              threats_total: g.sum?.threats ?? 0,
             }
           }
         }

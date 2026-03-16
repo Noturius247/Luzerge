@@ -261,10 +261,14 @@ async function cfProxy(domainId, action, extra = {}) {
   if (!session) return null
   const params = new URLSearchParams({ domain_id: domainId, action, ...extra })
   const res = await fetch(`${EDGE_BASE}/cf-proxy?${params}`, {
-    headers: { Authorization: `Bearer ${session.access_token}` },
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY,
+    },
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
+    if (res.status === 401) throw new Error('Session expired — please reload the page')
     throw new Error(err.error || `HTTP ${res.status}`)
   }
   const data = await res.json()
@@ -286,6 +290,7 @@ async function cfProxyPost(domainId, action, body) {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${session.access_token}`,
+      apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
@@ -1364,7 +1369,7 @@ async function fetchAverageCacheRate(activeDomains) {
   const promises = activeDomains.slice(0, 5).map(async (d) => {
     try {
       const res = await fetch(`${EDGE_BASE}/domain-stats?domain_id=${d.id}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
       })
       if (!res.ok) return
       const data = await res.json()
@@ -1430,6 +1435,7 @@ function initQuickActions() {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${session.access_token}`,
+            apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ domain_id: d.id, purge_type: 'everything' }),
@@ -1733,7 +1739,7 @@ async function loadStats(domainId) {
   if (!session) return
 
   const res = await fetch(`${EDGE_BASE}/domain-stats?domain_id=${domainId}`, {
-    headers: { Authorization: `Bearer ${session.access_token}` },
+    headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
   })
 
   if (!res.ok) {
@@ -1828,6 +1834,7 @@ async function handlePurge(type) {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${session.access_token}`,
+      apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
@@ -1946,6 +1953,7 @@ async function handleQuickPurge(btn) {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${session.access_token}`,
+      apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ domain_id: domainId, purge_type: 'everything' }),
@@ -2148,7 +2156,7 @@ function populatePlanSettings() {
   })
 }
 
-function populateSecuritySettings() {
+async function populateSecuritySettings() {
   const el = (id) => document.getElementById(id)
   el('settLastLogin').textContent = formatDate(currentUser?.last_sign_in_at)
   el('settAccountCreated').textContent = formatDate(currentUser?.created_at)
@@ -2162,6 +2170,24 @@ function populateSecuritySettings() {
   else if (ua.includes('Safari')) browser = 'Safari'
   el('settCurrentDevice').textContent = browser + ' on ' + navigator.platform
   el('settCurrentMeta').textContent = 'Current session · last active now'
+
+  // Check 2FA status
+  const factors = await _supabase.auth.mfa.listFactors()
+  const has2fa = (factors.data?.totp || []).some(f => f.status === 'verified')
+  update2faUI(has2fa)
+
+  // Load API tokens
+  await loadApiTokens()
+}
+
+function update2faUI(enabled) {
+  const statusEl = document.getElementById('sett2faStatus')
+  const btn = document.getElementById('sett2faToggle')
+  if (statusEl) {
+    statusEl.textContent = enabled ? 'Enabled' : 'Disabled'
+    statusEl.className = `settings-badge settings-badge--${enabled ? 'on' : 'off'}`
+  }
+  if (btn) btn.textContent = enabled ? 'Disable 2FA' : 'Enable 2FA'
 }
 
 function populateNotifSettings() {
@@ -2276,15 +2302,37 @@ function initUserSettingsHandlers() {
     showToast('Credentials saved')
   })
 
-  // Upgrade plan button
+  // Upgrade plan button — scrolls to plans grid
   el('settUpgradeBtn')?.addEventListener('click', () => {
-    showToast('Payment integration coming soon')
+    document.getElementById('settPlansGrid')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   })
 
-  // Plan option click
+  // Plan option click — change plan
   document.querySelectorAll('.plan-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      showToast('Payment integration coming soon')
+    opt.addEventListener('click', async () => {
+      const newPlan = opt.dataset.plan
+      const currentPlan = currentProfile?.plan || 'none'
+      if (newPlan === currentPlan) { showToast('You are already on this plan'); return }
+
+      const planName = newPlan === 'none' ? 'Free' : newPlan.charAt(0).toUpperCase() + newPlan.slice(1)
+      const price = PLAN_PRICES[newPlan] || 'Free'
+      const isDowngrade = Object.keys(PLAN_LIMITS).indexOf(newPlan) < Object.keys(PLAN_LIMITS).indexOf(currentPlan)
+
+      const action = isDowngrade ? 'Downgrade' : 'Upgrade'
+      if (!confirm(`${action} to ${planName} (${price})?\n\nDomain limit: ${PLAN_LIMITS[newPlan] === Infinity ? 'Unlimited' : PLAN_LIMITS[newPlan]}`)) return
+
+      const { error } = await _supabase.from('profiles').update({
+        plan: newPlan,
+        payment_status: newPlan === 'none' ? 'unpaid' : 'paid',
+      }).eq('id', currentUser.id)
+
+      if (error) { showToast('Failed to change plan: ' + error.message, true); return }
+
+      currentProfile.plan = newPlan
+      currentProfile.payment_status = newPlan === 'none' ? 'unpaid' : 'paid'
+      populatePlanSettings()
+      renderAccountSummary()
+      showToast(`${action}d to ${planName}!`)
     })
   })
 
@@ -2297,8 +2345,82 @@ function initUserSettingsHandlers() {
   })
 
   // 2FA toggle
-  el('sett2faToggle')?.addEventListener('click', () => {
-    showToast('Two-factor authentication coming soon')
+  el('sett2faToggle')?.addEventListener('click', async () => {
+    const factors = await _supabase.auth.mfa.listFactors()
+    const totpFactors = (factors.data?.totp || []).filter(f => f.status === 'verified')
+
+    if (totpFactors.length > 0) {
+      // Already enabled — unenroll
+      if (!confirm('Disable two-factor authentication? This will make your account less secure.')) return
+      const { error } = await _supabase.auth.mfa.unenroll({ factorId: totpFactors[0].id })
+      if (error) { showToast('Failed to disable 2FA: ' + error.message, true); return }
+      update2faUI(false)
+      showToast('Two-factor authentication disabled')
+      return
+    }
+
+    // Enroll — show QR modal
+    const { data, error } = await _supabase.auth.mfa.enroll({ factorType: 'totp', issuer: 'Luzerge' })
+    if (error) { showToast('Failed to start 2FA setup: ' + error.message, true); return }
+
+    window._tfaFactorId = data.id
+    document.getElementById('tfaQrImg').src = data.totp.qr_code
+    document.getElementById('tfaSecret').textContent = data.totp.secret
+    document.getElementById('tfaCode').value = ''
+    document.getElementById('tfaError').hidden = true
+    document.getElementById('tfaModal').hidden = false
+  })
+
+  // 2FA modal cancel
+  document.getElementById('tfaCancelBtn')?.addEventListener('click', async () => {
+    // Unenroll the unverified factor
+    if (window._tfaFactorId) {
+      await _supabase.auth.mfa.unenroll({ factorId: window._tfaFactorId }).catch(() => {})
+      window._tfaFactorId = null
+    }
+    document.getElementById('tfaModal').hidden = true
+  })
+
+  // 2FA modal verify
+  document.getElementById('tfaVerifyBtn')?.addEventListener('click', async () => {
+    const code = document.getElementById('tfaCode').value.trim()
+    const errEl = document.getElementById('tfaError')
+    errEl.hidden = true
+
+    if (!/^\d{6}$/.test(code)) {
+      errEl.textContent = 'Please enter a valid 6-digit code.'
+      errEl.hidden = false
+      return
+    }
+
+    const btn = document.getElementById('tfaVerifyBtn')
+    btn.disabled = true
+    btn.textContent = 'Verifying...'
+
+    // Challenge + verify
+    const { data: challenge, error: chalErr } = await _supabase.auth.mfa.challenge({ factorId: window._tfaFactorId })
+    if (chalErr) {
+      errEl.textContent = 'Challenge failed: ' + chalErr.message
+      errEl.hidden = false
+      btn.disabled = false
+      btn.textContent = 'Verify & Enable'
+      return
+    }
+
+    const { error: verifyErr } = await _supabase.auth.mfa.verify({ factorId: window._tfaFactorId, challengeId: challenge.id, code })
+    btn.disabled = false
+    btn.textContent = 'Verify & Enable'
+
+    if (verifyErr) {
+      errEl.textContent = 'Invalid code. Please try again.'
+      errEl.hidden = false
+      return
+    }
+
+    window._tfaFactorId = null
+    document.getElementById('tfaModal').hidden = true
+    update2faUI(true)
+    showToast('Two-factor authentication enabled!')
   })
 
   // Revoke sessions
@@ -2309,8 +2431,87 @@ function initUserSettingsHandlers() {
   })
 
   // Generate API token
-  el('settGenerateTokenBtn')?.addEventListener('click', () => {
-    showToast('API tokens coming soon')
+  el('settGenerateTokenBtn')?.addEventListener('click', async () => {
+    const name = prompt('Token name (e.g., "CI Pipeline"):')
+    if (!name) return
+
+    const btn = el('settGenerateTokenBtn')
+    btn.disabled = true
+    btn.textContent = 'Generating...'
+
+    // Generate a random token
+    const rawToken = 'lzg_' + crypto.randomUUID().replace(/-/g, '')
+    // Hash it for storage
+    const encoder = new TextEncoder()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(rawToken))
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const tokenHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+    const { error } = await _supabase.from('api_tokens').insert({
+      user_id: currentUser.id,
+      name: name.trim(),
+      token_hash: tokenHash,
+    })
+
+    btn.disabled = false
+    btn.textContent = 'Generate New Token'
+
+    if (error) { showToast('Failed to create token: ' + error.message, true); return }
+
+    // Show the raw token (only chance to copy it)
+    const tokenDisplay = document.createElement('div')
+    tokenDisplay.className = 'dash-alert dash-alert--success'
+    tokenDisplay.style.marginBottom = '1rem'
+    tokenDisplay.innerHTML = `
+      <strong>Token created!</strong> Copy it now — you won't see it again.<br>
+      <code style="user-select:all;word-break:break-all;display:block;margin-top:6px;padding:6px;background:rgba(0,0,0,0.3);border-radius:4px">${escHtml(rawToken)}</code>
+    `
+    const listEl = document.getElementById('settApiTokensList')
+    listEl.parentNode.insertBefore(tokenDisplay, listEl)
+    setTimeout(() => tokenDisplay.remove(), 30000)
+
+    await loadApiTokens()
+    showToast(`Token "${name}" created`)
+  })
+}
+
+// ─── API Tokens ──────────────────────────────────────────────────────────────
+
+async function loadApiTokens() {
+  const listEl = document.getElementById('settApiTokensList')
+  if (!listEl) return
+
+  const { data: tokens, error } = await _supabase
+    .from('api_tokens')
+    .select('id, name, last_used, created_at')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+
+  if (error || !tokens?.length) {
+    listEl.innerHTML = '<p class="settings-empty">No API tokens generated yet.</p>'
+    return
+  }
+
+  listEl.innerHTML = tokens.map(t => `
+    <div class="api-token-item">
+      <div class="api-token-item__info">
+        <strong class="api-token-item__name">${escHtml(t.name)}</strong>
+        <span class="api-token-item__meta">Created ${formatDate(t.created_at)}${t.last_used ? ' · Last used ' + formatDate(t.last_used) : ' · Never used'}</span>
+      </div>
+      <button class="btn btn--ghost btn--sm btn--danger-text api-revoke-btn" data-token-id="${t.id}" type="button" aria-label="Revoke token">Revoke</button>
+    </div>
+  `).join('')
+
+  // Bind revoke buttons
+  listEl.querySelectorAll('.api-revoke-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Revoke this API token? Any integrations using it will stop working.')) return
+      const tokenId = btn.dataset.tokenId
+      const { error: delErr } = await _supabase.from('api_tokens').delete().eq('id', tokenId)
+      if (delErr) { showToast('Failed to revoke token', true); return }
+      showToast('Token revoked')
+      await loadApiTokens()
+    })
   })
 }
 

@@ -1349,6 +1349,29 @@
     </div>
   </div>
 
+  <!-- 2FA Setup modal -->
+  <div class="modal-backdrop" id="tfaModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tfaModalTitle">
+      <h3 class="modal__title" id="tfaModalTitle">Set Up Two-Factor Authentication</h3>
+      <div id="tfaStep1">
+        <p class="modal__desc">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.):</p>
+        <div id="tfaQrWrap" style="text-align:center;margin:1rem 0">
+          <img id="tfaQrImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="2FA QR Code" style="border-radius:8px;background:#fff;padding:8px;max-width:200px" />
+        </div>
+        <p class="modal__desc" style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Or enter this secret manually: <code id="tfaSecret" style="user-select:all"></code></p>
+        <div class="form-group" style="margin-top:1rem">
+          <label class="form-label" for="tfaCode">Enter the 6-digit code from your app</label>
+          <input class="form-input" id="tfaCode" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+        </div>
+        <div id="tfaError" class="dash-alert dash-alert--error" hidden></div>
+        <div class="modal__actions">
+          <button class="btn btn--outline" id="tfaCancelBtn" type="button">Cancel</button>
+          <button class="btn btn--primary" id="tfaVerifyBtn" type="button">Verify &amp; Enable</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast notification -->
   <div class="toast" id="toast" hidden></div>
 

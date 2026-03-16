@@ -5,7 +5,10 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
+import { getCorsHeaders, corsHeaders as defaultCorsHeaders } from '../_shared/cors.ts'
+
+// Module-level variable set per-request for use in helper functions
+let corsHeaders = defaultCorsHeaders
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -198,6 +201,7 @@ function handlePing(): Response {
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
+  corsHeaders = getCorsHeaders(req)
   const url = new URL(req.url)
 
   // Handle CORS preflight
