@@ -98,7 +98,10 @@ function initSidebar() {
   // Collapsible sidebar sections
   document.querySelectorAll('.sidebar-section-toggle').forEach(label => {
     label.addEventListener('click', () => {
-      label.closest('.sidebar-section')?.classList.toggle('sidebar-section--collapsed')
+      const section = label.closest('.sidebar-section')
+      section?.classList.toggle('sidebar-section--collapsed')
+      const isCollapsed = section?.classList.contains('sidebar-section--collapsed')
+      label.setAttribute('aria-expanded', String(!isCollapsed))
     })
   })
 
@@ -187,7 +190,7 @@ async function loadAllDomains() {
     .select('id, user_id, domain, cloudflare_zone_id, cloudflare_api_token, cdn_provider, cdn_api_key, cdn_distribution_id, status, admin_notes, last_purged_at, auto_purge_enabled, auto_purge_interval, created_at, updated_at')
     .order('created_at', { ascending: false })
 
-  if (error) return
+  if (error) { showToast('Failed to load domains: ' + error.message, true); return }
 
   // Fetch ALL user profiles (not just those with domains)
   let profilesMap = {}
@@ -356,7 +359,7 @@ function renderActiveTable() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             Lookup
           </button>
-          <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
+          <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button" aria-label="Delete domain">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         </div>
@@ -451,7 +454,7 @@ function renderActiveTable() {
       const id = toggle.dataset.id
       const on = toggle.checked
       const { error } = await _supabase.from('user_domains').update({ auto_purge_enabled: on }).eq('id', id)
-      if (error) { toggle.checked = !on; return }
+      if (error) { toggle.checked = !on; showToast('Failed to update auto-purge', true); return }
       toggle.closest('.toggle-switch').classList.toggle('toggle-switch--on', on)
       const label = document.getElementById(`apLabel-${id}`)
       if (label) label.innerHTML = on ? '<strong>On</strong>' : '<strong>Off</strong>'
@@ -467,7 +470,8 @@ function renderActiveTable() {
   container.querySelectorAll('.admin-auto-interval').forEach(select => {
     select.addEventListener('change', async () => {
       const id = select.dataset.id
-      await _supabase.from('user_domains').update({ auto_purge_interval: select.value }).eq('id', id)
+      const { error } = await _supabase.from('user_domains').update({ auto_purge_interval: select.value }).eq('id', id)
+      if (error) { showToast('Failed to update interval', true); return }
       const d = allDomains.find(d => d.id === id)
       if (d) d.auto_purge_interval = select.value
     })
@@ -506,7 +510,7 @@ function renderRejectedTable() {
       <td>${escHtml(d.admin_notes || '—')}</td>
       <td class="admin-row__actions">
         <button class="btn btn--outline btn--sm" data-action="setup" data-id="${d.id}" type="button">Re-review</button>
-        <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button">
+        <button class="btn btn--ghost btn--sm btn--danger-text" data-action="delete" data-id="${d.id}" data-domain="${escHtml(d.domain)}" type="button" aria-label="Delete domain">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
       </td>
@@ -650,7 +654,7 @@ function renderUsersTable() {
           .eq('id', userId)
 
         if (error) {
-          showToast(`Failed to update: ${error.message}`)
+          showToast(`Failed to update: ${error.message}`, true)
           return
         }
 
@@ -677,7 +681,7 @@ function renderUsersTable() {
           .eq('id', userId)
 
         if (error) {
-          showToast(`Failed to update: ${error.message}`)
+          showToast(`Failed to update: ${error.message}`, true)
           return
         }
 
@@ -704,7 +708,7 @@ function renderUsersTable() {
           .eq('id', userId)
 
         if (error) {
-          showToast(`Failed to update: ${error.message}`)
+          showToast(`Failed to update: ${error.message}`, true)
           return
         }
 
@@ -967,6 +971,7 @@ function toggleExpand(domainId) {
       const { error } = await _supabase.from('user_domains').update({ auto_purge_enabled: on }).eq('id', id)
       if (error) {
         toggle.checked = !on
+        showToast('Failed to update auto-purge', true)
         return
       }
       toggle.closest('.toggle-switch').classList.toggle('toggle-switch--on', on)
@@ -985,7 +990,8 @@ function toggleExpand(domainId) {
   content.querySelectorAll('.admin-auto-interval').forEach(select => {
     select.addEventListener('change', async () => {
       const id = select.dataset.id
-      await _supabase.from('user_domains').update({ auto_purge_interval: select.value }).eq('id', id)
+      const { error } = await _supabase.from('user_domains').update({ auto_purge_interval: select.value }).eq('id', id)
+      if (error) { showToast('Failed to update interval', true); return }
       const d = allDomains.find(d => d.id === id)
       if (d) d.auto_purge_interval = select.value
     })
@@ -1275,14 +1281,7 @@ async function handleAdminPurge(btn) {
   } else {
     btn.innerHTML = origHtml
     const errMsg = data.cf_response?.errors?.[0]?.message || data.error || 'Purge failed'
-    // Show a toast-like notification
-    const toast = document.getElementById('toast')
-    if (toast) {
-      toast.textContent = `Purge failed: ${errMsg}`
-      toast.hidden = false
-      clearTimeout(toast._timer)
-      toast._timer = setTimeout(() => { toast.hidden = true }, 3000)
-    }
+    showToast(`Purge failed: ${errMsg}`, true)
   }
 }
 
@@ -1395,6 +1394,7 @@ async function handleApprove(e) {
 
 async function handleReject() {
   if (!setupDomainId) return
+  if (!confirm('Reject this domain application?')) return
 
   const notes = document.getElementById('setupNotes').value.trim()
   const btn = document.getElementById('setupRejectBtn')
@@ -1430,7 +1430,7 @@ async function handleQuickReject(domainId, domainName) {
     .eq('id', domainId)
 
   if (error) {
-    showToast(`Failed to reject: ${error.message}`)
+    showToast(`Failed to reject: ${error.message}`, true)
     return
   }
 
@@ -1468,7 +1468,12 @@ async function confirmDelete() {
   btn.textContent = 'Delete'
   closeDeleteModal()
 
-  if (!error) await loadAllDomains()
+  if (error) {
+    showToast('Failed to delete domain: ' + error.message, true)
+    return
+  }
+  showToast('Domain deleted')
+  await loadAllDomains()
 }
 
 // ─── Starfield ────────────────────────────────────────────────────────────────
@@ -1594,13 +1599,14 @@ function renderPagination(containerEl, tableKey, total, page, totalPages, render
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function showToast(msg, duration = 2500) {
+function showToast(msg, isError = false) {
   const toast = document.getElementById('toast')
   if (!toast) return
   toast.textContent = msg
+  toast.classList.toggle('toast--error', isError)
   toast.hidden = false
   clearTimeout(toast._timer)
-  toast._timer = setTimeout(() => { toast.hidden = true }, duration)
+  toast._timer = setTimeout(() => { toast.hidden = true }, isError ? 5000 : 2500)
 }
 
 function escHtml(str) {
@@ -2103,13 +2109,14 @@ function admPopulateNotifSettings() {
   }
 }
 
-function admShowToast(msg) {
+function admShowToast(msg, isError = false) {
   const toast = document.getElementById('toast')
   if (!toast) return
   toast.textContent = msg
+  toast.classList.toggle('toast--error', isError)
   toast.hidden = false
   clearTimeout(toast._timer)
-  toast._timer = setTimeout(() => { toast.hidden = true }, 2000)
+  toast._timer = setTimeout(() => { toast.hidden = true }, isError ? 5000 : 2000)
 }
 
 // Settings save/load
@@ -2197,7 +2204,7 @@ function initSettingsHandlers() {
 
     if (Object.keys(updates).length) {
       const { error } = await _supabase.from('profiles').update(updates).eq('id', currentUser.id)
-      if (error) { admShowToast('Failed to update profile'); return }
+      if (error) { admShowToast('Failed to update profile', true); return }
       Object.assign(currentProfile, updates)
       const navAvatar = document.getElementById('navAvatar')
       if (navAvatar && updates.avatar_url) {
@@ -2206,10 +2213,10 @@ function initSettingsHandlers() {
     }
 
     if (newPass) {
-      if (newPass !== confirmPass) { admShowToast('Passwords do not match'); return }
-      if (newPass.length < 6) { admShowToast('Password must be at least 6 characters'); return }
+      if (newPass !== confirmPass) { admShowToast('Passwords do not match', true); return }
+      if (newPass.length < 6) { admShowToast('Password must be at least 6 characters', true); return }
       const { error } = await _supabase.auth.updateUser({ password: newPass })
-      if (error) { admShowToast('Failed to change password: ' + error.message); return }
+      if (error) { admShowToast('Failed to change password: ' + error.message, true); return }
       document.getElementById('admSettNewPass').value = ''
       document.getElementById('admSettConfirmPass').value = ''
     }
@@ -2224,8 +2231,9 @@ function initSettingsHandlers() {
 
   // ─── Revoke sessions ─────────────────────────────────────────────────
   document.getElementById('admSettRevokeAllBtn')?.addEventListener('click', async () => {
+    if (!confirm('Revoke all other sessions? You will remain signed in.')) return
     const { error } = await _supabase.auth.signOut({ scope: 'others' })
-    if (error) { admShowToast('Failed to revoke sessions'); return }
+    if (error) { admShowToast('Failed to revoke sessions', true); return }
     admShowToast('All other sessions revoked')
   })
 }
@@ -2265,7 +2273,11 @@ function admFormatDate(iso) {
 // ─── Admin User Management ────────────────────────────────────────────────────
 
 function admPopulateUsersTable() {
-  if (!allProfiles.length) return
+  if (!allProfiles.length) {
+    const tbody = document.getElementById('admUsersTableBody')
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.4)">No users found.</td></tr>'
+    return
+  }
 
   // Stats
   document.getElementById('admTotalUsers').textContent = allProfiles.length
@@ -2326,10 +2338,10 @@ function admPopulateUsersTable() {
       const userId = btn.dataset.userId
       const currentRole = btn.dataset.role
       const newRole = currentRole === 'admin' ? 'user' : 'admin'
-      if (userId === currentUser.id) { admShowToast('Cannot change your own role'); return }
+      if (userId === currentUser.id) { admShowToast('Cannot change your own role', true); return }
       if (!confirm(`Change this user's role to ${newRole}?`)) return
       const { error } = await _supabase.from('profiles').update({ role: newRole }).eq('id', userId)
-      if (error) { admShowToast('Failed to update role'); return }
+      if (error) { admShowToast('Failed to update role', true); return }
       const profile = allProfiles.find(p => p.id === userId)
       if (profile) profile.role = newRole
       admPopulateUsersTable()
@@ -2341,11 +2353,11 @@ function admPopulateUsersTable() {
     btn.addEventListener('click', async () => {
       const userId = btn.dataset.userId
       const isSuspended = btn.dataset.suspended === 'true'
-      if (userId === currentUser.id) { admShowToast('Cannot suspend yourself'); return }
+      if (userId === currentUser.id) { admShowToast('Cannot suspend yourself', true); return }
       if (!confirm(isSuspended ? 'Reactivate this user?' : 'Suspend this user? They will lose access.')) return
       const newStatus = isSuspended ? 'active' : 'suspended'
       const { error } = await _supabase.from('profiles').update({ status: newStatus }).eq('id', userId)
-      if (error) { admShowToast('Failed to update user status'); return }
+      if (error) { admShowToast('Failed to update user status', true); return }
       const profile = allProfiles.find(p => p.id === userId)
       if (profile) profile.status = newStatus
       admPopulateUsersTable()

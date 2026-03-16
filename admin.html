@@ -46,7 +46,7 @@
         </button>
 
         <div class="sidebar-section">
-          <button type="button" class="sidebar-section-label sidebar-section-toggle" data-section="overview">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="overview">
             <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             Overview
           </button>
@@ -59,7 +59,7 @@
         </div>
 
         <div class="sidebar-section">
-          <button type="button" class="sidebar-section-label sidebar-section-toggle" data-section="domains">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="domains">
             <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             Domains
           </button>
@@ -81,7 +81,7 @@
         </div>
 
         <div class="sidebar-section">
-          <button type="button" class="sidebar-section-label sidebar-section-toggle" data-section="management">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="management">
             <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             Management
           </button>
@@ -94,7 +94,7 @@
         </div>
 
         <div class="sidebar-section">
-          <button type="button" class="sidebar-section-label sidebar-section-toggle" data-section="monitoring">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="monitoring">
             <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             Monitoring
           </button>
@@ -135,7 +135,7 @@
         </div>
 
         <div class="sidebar-section">
-          <button type="button" class="sidebar-section-label sidebar-section-toggle" data-section="settings">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="settings">
             <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             Settings
           </button>
@@ -209,7 +209,7 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               Domain Report
             </h2>
-            <button class="btn btn--ghost btn--sm" id="adminCloseReportBtn" type="button">
+            <button class="btn btn--ghost btn--sm" id="adminCloseReportBtn" type="button" aria-label="Close report">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
@@ -647,7 +647,7 @@
                 <span class="settings-row__label">Maintenance Mode</span>
                 <span class="settings-row__desc">Disable user access temporarily</span>
               </div>
-              <label class="toggle-switch" id="settMaintenance"><input type="checkbox"><span class="toggle-slider"></span></label>
+              <label class="toggle-switch" id="settMaintenance"><input type="checkbox" aria-label="Toggle maintenance mode"><span class="toggle-slider"></span></label>
             </div>
           </div>
 
@@ -670,7 +670,7 @@
                 <span class="settings-row__label">Auto-Approve Self-Managed</span>
                 <span class="settings-row__desc">Self-managed domains go active immediately without admin review</span>
               </div>
-              <label class="toggle-switch toggle-switch--on" id="settAutoApprove"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              <label class="toggle-switch toggle-switch--on" id="settAutoApprove"><input type="checkbox" checked aria-label="Toggle auto-approve domains"><span class="toggle-slider"></span></label>
             </div>
             <div class="settings-row">
               <div class="settings-row__info">
@@ -760,35 +760,35 @@
                 <span class="settings-row__label">New Domain Submission</span>
                 <span class="settings-row__desc">Get notified when a user submits a domain for managed setup</span>
               </div>
-              <label class="toggle-switch toggle-switch--on" id="settNotifNewDomain"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              <label class="toggle-switch toggle-switch--on" id="settNotifNewDomain"><input type="checkbox" checked aria-label="Toggle new domain notifications"><span class="toggle-slider"></span></label>
             </div>
             <div class="settings-row">
               <div class="settings-row__info">
                 <span class="settings-row__label">Domain Goes Down</span>
                 <span class="settings-row__desc">Alert when an uptime check fails for any active domain</span>
               </div>
-              <label class="toggle-switch toggle-switch--on" id="settNotifDowntime"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              <label class="toggle-switch toggle-switch--on" id="settNotifDowntime"><input type="checkbox" checked aria-label="Toggle downtime notifications"><span class="toggle-slider"></span></label>
             </div>
             <div class="settings-row">
               <div class="settings-row__info">
                 <span class="settings-row__label">SSL Expiry Warning</span>
                 <span class="settings-row__desc">Alert 14 days before a certificate expires</span>
               </div>
-              <label class="toggle-switch toggle-switch--on" id="settNotifSslExpiry"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              <label class="toggle-switch toggle-switch--on" id="settNotifSslExpiry"><input type="checkbox" checked aria-label="Toggle SSL expiry notifications"><span class="toggle-slider"></span></label>
             </div>
             <div class="settings-row">
               <div class="settings-row__info">
                 <span class="settings-row__label">New User Signup</span>
                 <span class="settings-row__desc">Notification when a new user registers</span>
               </div>
-              <label class="toggle-switch" id="settNotifNewUser"><input type="checkbox"><span class="toggle-slider"></span></label>
+              <label class="toggle-switch" id="settNotifNewUser"><input type="checkbox" aria-label="Toggle new user notifications"><span class="toggle-slider"></span></label>
             </div>
             <div class="settings-row">
               <div class="settings-row__info">
                 <span class="settings-row__label">DDoS Threat Spike</span>
                 <span class="settings-row__desc">Alert when threats exceed 1,000 in 24 hours</span>
               </div>
-              <label class="toggle-switch toggle-switch--on" id="settNotifDdos"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              <label class="toggle-switch toggle-switch--on" id="settNotifDdos"><input type="checkbox" checked aria-label="Toggle DDoS alert notifications"><span class="toggle-slider"></span></label>
             </div>
           </div>
 
@@ -1070,9 +1070,9 @@
 
   <!-- Domain setup modal -->
   <div class="modal-backdrop" id="setupModal" hidden>
-    <div class="modal modal--wide">
+    <div class="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="setupModalTitle">
       <div class="modal__header">
-        <h3 class="modal__title">
+        <h3 class="modal__title" id="setupModalTitle">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Configure Domain
         </h3>
@@ -1200,11 +1200,11 @@
 
   <!-- Delete confirm modal -->
   <div class="modal-backdrop" id="deleteModal" hidden>
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
       <div class="modal__icon modal__icon--danger">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
       </div>
-      <h3 class="modal__title">Delete Domain?</h3>
+      <h3 class="modal__title" id="deleteModalTitle">Delete Domain?</h3>
       <p class="modal__desc" id="deleteModalDesc"></p>
       <div class="modal__actions">
         <button class="btn btn--outline" id="deleteCancelBtn">Cancel</button>
