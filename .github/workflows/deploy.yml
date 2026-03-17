@@ -89,7 +89,8 @@ jobs:
             RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
             NOTIFICATION_EMAIL=${{ secrets.NOTIFICATION_EMAIL }} \
             ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
-            HMAC_PEPPER=${{ secrets.HMAC_PEPPER }}
+            HMAC_PEPPER=${{ secrets.HMAC_PEPPER }} \
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
 
   # ─── Job 3: Deploy Frontend ──────────────────────────────────────────────────
   deploy-frontend:
