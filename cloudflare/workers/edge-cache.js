@@ -52,7 +52,7 @@ const SECURITY_HEADERS = {
   'X-Permitted-Cross-Domain-Policies': 'none',
   'Content-Security-Policy': [
     "default-src 'self'",
-    "script-src 'self' https://www.googletagmanager.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net",
+    "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net",
     "style-src 'self' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https://lh3.googleusercontent.com https://www.googletagmanager.com",
