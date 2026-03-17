@@ -332,8 +332,9 @@ serve(async (req: Request) => {
       })
     }
 
-    const apiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!apiKey) {
+    const geminiKey = Deno.env.get('GEMINI_API_KEY')
+    const groqKey = Deno.env.get('GROQ_API_KEY')
+    if (!geminiKey && !groqKey) {
       return new Response(JSON.stringify({ error: 'Chat is temporarily unavailable' }), {
         status: 503,
         headers: { ...cors, 'Content-Type': 'application/json' },
@@ -355,67 +356,27 @@ serve(async (req: Request) => {
       }
     }
 
-    // Build conversation history for Gemini
-    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = []
-
-    // Add conversation history (limited)
+    // Build conversation history (OpenAI/Groq format — also used to build Gemini format)
     const recentHistory = Array.isArray(history) ? history.slice(-MAX_HISTORY) : []
-    for (const turn of recentHistory) {
-      if (turn.role && turn.text) {
-        contents.push({
-          role: turn.role === 'user' ? 'user' : 'model',
-          parts: [{ text: turn.text }],
-        })
-      }
+
+    // ─── Try Gemini first, fall back to Groq ───
+    let reply: string | null = null
+
+    if (geminiKey) {
+      reply = await callGemini(geminiKey, systemPrompt, recentHistory, message.trim())
     }
 
-    // Add current message
-    contents.push({
-      role: 'user',
-      parts: [{ text: message.trim() }],
-    })
+    if (!reply && groqKey) {
+      console.log('Gemini unavailable, falling back to Groq')
+      reply = await callGroq(groqKey, systemPrompt, recentHistory, message.trim())
+    }
 
-    // Call Gemini API
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: systemPrompt }],
-          },
-          contents,
-          generationConfig: {
-            temperature: 0.7,
-            topP: 0.9,
-            maxOutputTokens: 500,
-          },
-          safetySettings: [
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          ],
-        }),
-      },
-    )
-
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text()
-      console.error('Gemini API error:', geminiRes.status, errText)
-      // Return detailed error in dev, generic in prod
-      const detail = geminiRes.status === 429 ? 'Rate limit reached. Please wait a moment.' : 'Failed to get response. Please try again.'
-      return new Response(JSON.stringify({ error: detail, _debug: { status: geminiRes.status, body: errText.substring(0, 300) } }), {
+    if (!reply) {
+      return new Response(JSON.stringify({ error: 'Failed to get response. Please try again.' }), {
         status: 502,
         headers: { ...cors, 'Content-Type': 'application/json' },
       })
     }
-
-    const geminiData = await geminiRes.json()
-    const reply =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Sorry, I couldn't generate a response. Please try again."
 
     return new Response(JSON.stringify({ reply }), {
       status: 200,
@@ -429,3 +390,92 @@ serve(async (req: Request) => {
     })
   }
 })
+
+// ─── Gemini API call ─────────────────────────────────────────────
+async function callGemini(apiKey: string, systemPrompt: string, history: Array<{ role: string; text: string }>, message: string): Promise<string | null> {
+  try {
+    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = []
+    for (const turn of history) {
+      if (turn.role && turn.text) {
+        contents.push({
+          role: turn.role === 'user' ? 'user' : 'model',
+          parts: [{ text: turn.text }],
+        })
+      }
+    }
+    contents.push({ role: 'user', parts: [{ text: message }] })
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents,
+          generationConfig: { temperature: 0.7, topP: 0.9, maxOutputTokens: 500 },
+          safetySettings: [
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          ],
+        }),
+      },
+    )
+
+    if (!res.ok) {
+      console.error('Gemini error:', res.status, await res.text().catch(() => ''))
+      return null // triggers Groq fallback
+    }
+
+    const data = await res.json()
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || null
+  } catch (err) {
+    console.error('Gemini exception:', err)
+    return null
+  }
+}
+
+// ─── Groq API call (fallback) ────────────────────────────────────
+async function callGroq(apiKey: string, systemPrompt: string, history: Array<{ role: string; text: string }>, message: string): Promise<string | null> {
+  try {
+    const messages: Array<{ role: string; content: string }> = [
+      { role: 'system', content: systemPrompt },
+    ]
+    for (const turn of history) {
+      if (turn.role && turn.text) {
+        messages.push({
+          role: turn.role === 'user' ? 'user' : 'assistant',
+          content: turn.text,
+        })
+      }
+    }
+    messages.push({ role: 'user', content: message })
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        temperature: 0.7,
+        max_tokens: 500,
+      }),
+    })
+
+    if (!res.ok) {
+      console.error('Groq error:', res.status, await res.text().catch(() => ''))
+      return null
+    }
+
+    const data = await res.json()
+    return data?.choices?.[0]?.message?.content || null
+  } catch (err) {
+    console.error('Groq exception:', err)
+    return null
+  }
+}
