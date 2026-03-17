@@ -247,16 +247,10 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
       const since = url.searchParams.get('since') || '24h'
       const now = new Date()
       const domainIdStr = domain.id as string
-      const useDb = since === '12m' || since === '1y'
 
-      // For 12m/1y, serve from stored analytics_daily table
-      if (useDb && supabase) {
-        let sinceDate: Date
-        if (since === '1y') {
-          sinceDate = new Date(now.getFullYear() - 1, 0, 1) // Jan 1 of last year
-        } else {
-          sinceDate = new Date(now.getTime() - 365 * 86400000) // 12 months ago
-        }
+      // For 1y, serve monthly-aggregated data from stored analytics_daily table
+      if (since === '1y' && supabase) {
+        const sinceDate = new Date(now.getTime() - 365 * 86400000)
 
         const { data: rows } = await supabase
           .from('analytics_daily')
@@ -268,26 +262,31 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
 
         if (!rows || !rows.length) return json({ analytics: null, provider: 'cloudflare', message: 'No historical data yet. Data is saved daily when you view 24h/7d/30d ranges.' })
 
+        // Aggregate daily rows into monthly buckets
         const totals = { requests: 0, cachedRequests: 0, bytes: 0, cachedBytes: 0, threats: 0, uniques: 0 }
-        const daily: Array<Record<string, unknown>> = []
+        const monthlyMap: Record<string, { requests: number; cachedRequests: number; bytes: number; cachedBytes: number; threats: number; uniques: number }> = {}
 
         for (const r of rows) {
+          const monthKey = r.date.substring(0, 7) + '-01' // e.g. "2026-03-01"
+          if (!monthlyMap[monthKey]) monthlyMap[monthKey] = { requests: 0, cachedRequests: 0, bytes: 0, cachedBytes: 0, threats: 0, uniques: 0 }
+          const m = monthlyMap[monthKey]
+          m.requests += r.requests ?? 0
+          m.cachedRequests += r.cached_requests ?? 0
+          m.bytes += r.bytes ?? 0
+          m.cachedBytes += r.cached_bytes ?? 0
+          m.threats += r.threats ?? 0
+          m.uniques += r.uniques ?? 0
           totals.requests += r.requests ?? 0
           totals.cachedRequests += r.cached_requests ?? 0
           totals.bytes += r.bytes ?? 0
           totals.cachedBytes += r.cached_bytes ?? 0
           totals.threats += r.threats ?? 0
           totals.uniques += r.uniques ?? 0
-          daily.push({
-            date: r.date,
-            requests: r.requests ?? 0,
-            cachedRequests: r.cached_requests ?? 0,
-            bytes: r.bytes ?? 0,
-            cachedBytes: r.cached_bytes ?? 0,
-            threats: r.threats ?? 0,
-            uniques: r.uniques ?? 0,
-          })
         }
+
+        const daily = Object.entries(monthlyMap)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([date, v]) => ({ date, ...v }))
 
         return json({
           analytics: {
@@ -303,18 +302,25 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
         })
       }
 
-      // For 24h/7d/30d, fetch live from Cloudflare API
+      // For 24h, use hourly Cloudflare API; for 7d/30d, use daily
+      const isHourly = since === '24h'
       let sinceDate: Date
       switch (since) {
         case '7d': sinceDate = new Date(now.getTime() - 7 * 86400000); break
         case '30d': sinceDate = new Date(now.getTime() - 30 * 86400000); break
         default: sinceDate = new Date(now.getTime() - 86400000); break
       }
+
+      const groupType = isHourly ? 'httpRequests1hGroups' : 'httpRequests1dGroups'
+      const filterField = isHourly ? 'datetime' : 'date'
+      const sinceStr = isHourly ? sinceDate.toISOString() : sinceDate.toISOString().split('T')[0]
+      const untilStr = isHourly ? now.toISOString() : now.toISOString().split('T')[0]
+
       const query = `query {
         viewer {
           zones(filter: {zoneTag: "${zoneId}"}) {
-            httpRequests1dGroups(limit: 1000, filter: {date_geq: "${sinceDate.toISOString().split('T')[0]}", date_leq: "${now.toISOString().split('T')[0]}"}) {
-              dimensions { date }
+            ${groupType}(limit: 1000, filter: {${filterField}_geq: "${sinceStr}", ${filterField}_leq: "${untilStr}"}) {
+              dimensions { ${isHourly ? 'datetime' : 'date'} }
               sum {
                 requests
                 cachedRequests
@@ -340,7 +346,7 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
         body: JSON.stringify({ query }),
       })
       const gqlData = await gqlRes.json()
-      const groups = gqlData?.data?.viewer?.zones?.[0]?.httpRequests1dGroups
+      const groups = gqlData?.data?.viewer?.zones?.[0]?.[groupType]
       if (!groups || !groups.length) return json({ analytics: null, provider: 'cloudflare' })
 
       // Aggregate totals
@@ -360,7 +366,7 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
         totals.uniques += g.uniq?.uniques ?? 0
 
         daily.push({
-          date: g.dimensions?.date,
+          date: isHourly ? g.dimensions?.datetime : g.dimensions?.date,
           requests: g.sum?.requests ?? 0,
           cachedRequests: g.sum?.cachedRequests ?? 0,
           bytes: g.sum?.bytes ?? 0,
@@ -391,8 +397,8 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
         }
       }
 
-      // Save daily snapshots to analytics_daily for long-term history
-      if (supabase && daily.length > 0) {
+      // Save daily snapshots to analytics_daily for long-term history (skip for hourly data)
+      if (!isHourly && supabase && daily.length > 0) {
         const rows = daily
           .filter(d => d.date) // skip entries without a date
           .map(d => ({

@@ -1877,10 +1877,12 @@ async function admPopulateAnalytics() {
       chartWrap.hidden = false
       const reqData = dates.map(d => dailyMap[d].requests)
       const bwData = dates.map(d => dailyMap[d].bytes)
-      const isLongRange = _admAnlRange === '12m' || _admAnlRange === '1y'
+      const is24h = _admAnlRange === '24h'
+      const isYearly = _admAnlRange === '1y'
       const labels = dates.map(d => {
-        const dt = new Date(d + 'T00:00:00')
-        if (isLongRange) return dt.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+        if (is24h && d.includes('T')) return new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+        const dt = new Date(d + (d.includes('T') ? '' : 'T00:00:00'))
+        if (isYearly) return dt.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
         return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
       })
 
