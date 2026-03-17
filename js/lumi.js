@@ -244,36 +244,56 @@
       }
     })
 
-    // ─── Live face: eyes follow cursor ─────────────────────────
-    const pupils = document.querySelectorAll('.lumi-face__pupil')
-    document.addEventListener('mousemove', (e) => {
-      pupils.forEach(p => {
-        const svg = p.closest('svg')
-        if (!svg) return
-        const rect = svg.getBoundingClientRect()
-        const cx = rect.left + rect.width / 2
-        const cy = rect.top + rect.height / 2
-        const dx = (e.clientX - cx) / window.innerWidth * 3
-        const dy = (e.clientY - cy) / window.innerHeight * 3
-        const clamp = (v, max) => Math.max(-max, Math.min(max, v))
-        p.setAttribute('cx', parseFloat(p.dataset.origCx || p.getAttribute('cx')) + clamp(dx, 2.2))
-        p.setAttribute('cy', parseFloat(p.dataset.origCy || p.getAttribute('cy')) + clamp(dy, 1.8))
-        if (!p.dataset.origCx) {
-          p.dataset.origCx = p.getAttribute('cx')
-          p.dataset.origCy = p.getAttribute('cy')
+    // ─── Live face: eyes follow cursor (throttled via rAF) ─────
+    var _rafPending = false
+    var _lastMx = 0, _lastMy = 0
+    var clamp = function (v, max) { return Math.max(-max, Math.min(max, v)) }
+
+    function updatePupils() {
+      _rafPending = false
+      var pupils = document.querySelectorAll('.lumi-face__pupil')
+      var ww = window.innerWidth, wh = window.innerHeight
+      for (var i = 0; i < pupils.length; i++) {
+        var p = pupils[i]
+        var svg = p.closest('svg')
+        if (!svg) continue
+        // Cache original positions
+        if (!p._ox) {
+          p._ox = parseFloat(p.getAttribute('cx'))
+          p._oy = parseFloat(p.getAttribute('cy'))
         }
-      })
-    })
+        var rect = svg.getBoundingClientRect()
+        var dx = (_lastMx - rect.left - rect.width / 2) / ww * 3
+        var dy = (_lastMy - rect.top - rect.height / 2) / wh * 3
+        p.setAttribute('cx', p._ox + clamp(dx, 2.2))
+        p.setAttribute('cy', p._oy + clamp(dy, 1.8))
+      }
+    }
+
+    document.addEventListener('mousemove', function (e) {
+      _lastMx = e.clientX
+      _lastMy = e.clientY
+      if (!_rafPending) {
+        _rafPending = true
+        requestAnimationFrame(updatePupils)
+      }
+    }, { passive: true })
 
     // Blink every 3-5 seconds
     function blink() {
-      const eyes = document.querySelectorAll('.lumi-face__eye')
-      const pups = document.querySelectorAll('.lumi-face__pupil')
-      eyes.forEach(e => { e._r = e.getAttribute('r'); e.setAttribute('r', '0.5') })
-      pups.forEach(p => { p._r = p.getAttribute('r'); p.setAttribute('r', '0') })
-      setTimeout(() => {
-        eyes.forEach(e => e.setAttribute('r', e._r))
-        pups.forEach(p => p.setAttribute('r', p._r))
+      var eyes = document.querySelectorAll('.lumi-face__eye')
+      var pups = document.querySelectorAll('.lumi-face__pupil')
+      for (var i = 0; i < eyes.length; i++) {
+        eyes[i]._r = eyes[i].getAttribute('r')
+        eyes[i].setAttribute('r', '0.5')
+      }
+      for (var j = 0; j < pups.length; j++) {
+        pups[j]._r = pups[j].getAttribute('r')
+        pups[j].setAttribute('r', '0')
+      }
+      setTimeout(function () {
+        for (var i = 0; i < eyes.length; i++) eyes[i].setAttribute('r', eyes[i]._r)
+        for (var j = 0; j < pups.length; j++) pups[j].setAttribute('r', pups[j]._r)
       }, 150)
       setTimeout(blink, 3000 + Math.random() * 2000)
     }
