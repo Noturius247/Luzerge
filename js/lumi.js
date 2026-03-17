@@ -8,11 +8,26 @@
   const SUPABASE_URL = window.__LUZERGE_CONFIG?.SUPABASE_URL || 'https://byzuraeyhrxxpztredri.supabase.co'
   const SUPABASE_ANON_KEY = window.__LUZERGE_CONFIG?.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5enVyYWV5aHJ4eHB6dHJlZHJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjgxMTYsImV4cCI6MjA4OTAwNDExNn0.b_Plo15IWR8g5XPlN8XUs7Cpo2WZwt0UkrawfssIgZU'
   const ENDPOINT = SUPABASE_URL + '/functions/v1/lumi-chat'
-  const WELCOME = "Hi! I'm Lumi, your Luzerge assistant. Ask me anything about our plans, features, or how to get started."
+  const WELCOME_GUEST = "Hi! I'm Lumi, your Luzerge assistant. Ask me anything about our plans, features, or how to get started."
+  const WELCOME_USER = "Hi! I'm Lumi, your Luzerge assistant. I can see your account data — ask me about your domains, uptime, plan, or anything else!"
 
   let isOpen = false
   let isLoading = false
   let history = [] // { role: 'user'|'model', text: string }
+
+  // Try to get the logged-in user's access token from Supabase session storage
+  function getUserToken() {
+    try {
+      // Supabase stores session in localStorage with key: sb-<project-ref>-auth-token
+      const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0]
+      const raw = localStorage.getItem('sb-' + projectRef + '-auth-token')
+      if (raw) {
+        const session = JSON.parse(raw)
+        if (session && session.access_token) return session.access_token
+      }
+    } catch (_) { /* not logged in or no access */ }
+    return null
+  }
 
   // ─── Create DOM ────────────────────────────────────────────────
 
@@ -224,11 +239,15 @@
     showTyping(messages)
 
     try {
+      // Use user's JWT if logged in, otherwise fall back to anon key
+      const userToken = getUserToken()
+      const authToken = userToken || SUPABASE_ANON_KEY
+
       const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + authToken,
           'apikey': SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ message: text, history: history.slice(-10) }),
@@ -264,8 +283,9 @@
     const sendBtn = win.querySelector('#lumiSend')
     const closeBtn = win.querySelector('.lumi-close')
 
-    // Welcome message
-    addMessage(messages, WELCOME, 'bot')
+    // Welcome message (personalized if logged in)
+    const welcome = getUserToken() ? WELCOME_USER : WELCOME_GUEST
+    addMessage(messages, welcome, 'bot')
 
     // Toggle
     fab.addEventListener('click', () => {
