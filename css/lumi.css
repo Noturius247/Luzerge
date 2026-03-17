@@ -22,13 +22,12 @@
   transform: scale(1.08);
   box-shadow: 0 6px 28px rgba(59, 130, 246, 0.5);
 }
-.lumi-fab svg {
-  width: 26px;
-  height: 26px;
-  transition: transform 0.2s ease;
+.lumi-fab svg.lumi-face {
+  width: 36px;
+  height: 36px;
 }
-.lumi-fab[aria-expanded="true"] svg {
-  transform: rotate(90deg);
+.lumi-fab[aria-expanded="true"] svg.lumi-face {
+  transform: none;
 }
 
 .lumi-fab__badge {
@@ -234,6 +233,57 @@
   color: #475569;
   padding: 4px 0 8px;
 }
+
+/* ─── Lumi Face Animations ───────────────────────────────────── */
+
+.lumi-face__pupil {
+  transition: cx 0.12s ease-out, cy 0.12s ease-out;
+}
+.lumi-face__eye {
+  transition: r 0.08s ease;
+}
+.lumi-face__glow {
+  animation: lumi-glow-rotate 6s linear infinite;
+  transform-origin: center;
+}
+@keyframes lumi-glow-rotate {
+  0% { stroke-dasharray: 20 158; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 80 98; stroke-dashoffset: -40; }
+  100% { stroke-dasharray: 20 158; stroke-dashoffset: -176; }
+}
+
+.lumi-face__spark--1 {
+  animation: lumi-spark1 3s ease-in-out infinite;
+}
+.lumi-face__spark--2 {
+  animation: lumi-spark2 4s ease-in-out infinite 0.5s;
+}
+.lumi-face__spark--3 {
+  animation: lumi-spark3 3.5s ease-in-out infinite 1s;
+}
+@keyframes lumi-spark1 {
+  0%, 100% { opacity: 0.4; transform: translate(0, 0) scale(1); }
+  50% { opacity: 1; transform: translate(2px, -3px) scale(1.5); }
+}
+@keyframes lumi-spark2 {
+  0%, 100% { opacity: 0.3; transform: translate(0, 0) scale(1); }
+  50% { opacity: 1; transform: translate(-3px, 2px) scale(1.8); }
+}
+@keyframes lumi-spark3 {
+  0%, 100% { opacity: 0.3; transform: translate(0, 0) scale(1); }
+  50% { opacity: 1; transform: translate(2px, -2px) scale(1.6); }
+}
+
+.lumi-face__mouth {
+  transform-origin: center 42px;
+  animation: lumi-mouth-breathe 4s ease-in-out infinite;
+}
+@keyframes lumi-mouth-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.85); }
+}
+
+.lumi-face--sm { width: 28px; height: 28px; }
 
 /* ─── Mobile ─────────────────────────────────────────────────── */
 @media (max-width: 480px) {

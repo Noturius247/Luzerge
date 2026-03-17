@@ -23,8 +23,16 @@
     fab.setAttribute('aria-label', 'Chat with Lumi')
     fab.setAttribute('aria-expanded', 'false')
     fab.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      <svg class="lumi-face" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle class="lumi-face__glow" cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="2"/>
+        <circle class="lumi-face__eye lumi-face__eye--l" cx="22" cy="28" r="3.5" fill="#fff"/>
+        <circle class="lumi-face__eye lumi-face__eye--r" cx="42" cy="28" r="3.5" fill="#fff"/>
+        <circle class="lumi-face__pupil lumi-face__pupil--l" cx="22" cy="28" r="1.8" fill="#0a0e1a"/>
+        <circle class="lumi-face__pupil lumi-face__pupil--r" cx="42" cy="28" r="1.8" fill="#0a0e1a"/>
+        <path class="lumi-face__mouth" d="M22 40 Q32 48 42 40" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <circle class="lumi-face__spark lumi-face__spark--1" cx="12" cy="16" r="1.2" fill="#06b6d4"/>
+        <circle class="lumi-face__spark lumi-face__spark--2" cx="52" cy="14" r="1" fill="#3b82f6"/>
+        <circle class="lumi-face__spark lumi-face__spark--3" cx="50" cy="50" r="0.8" fill="#a855f7"/>
       </svg>
       <span class="lumi-fab__badge"></span>
     `
@@ -37,8 +45,12 @@
     win.innerHTML = `
       <div class="lumi-header">
         <div class="lumi-avatar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          <svg class="lumi-face lumi-face--sm" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle class="lumi-face__eye lumi-face__eye--l" cx="22" cy="28" r="3.5" fill="#fff"/>
+            <circle class="lumi-face__eye lumi-face__eye--r" cx="42" cy="28" r="3.5" fill="#fff"/>
+            <circle class="lumi-face__pupil lumi-face__pupil--l" cx="22" cy="28" r="1.8" fill="#0a0e1a"/>
+            <circle class="lumi-face__pupil lumi-face__pupil--r" cx="42" cy="28" r="1.8" fill="#0a0e1a"/>
+            <path class="lumi-face__mouth" d="M22 40 Q32 48 42 40" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
           </svg>
         </div>
         <div class="lumi-header__info">
@@ -200,6 +212,41 @@
         fab.setAttribute('aria-expanded', 'false')
       }
     })
+
+    // ─── Live face: eyes follow cursor ─────────────────────────
+    const pupils = document.querySelectorAll('.lumi-face__pupil')
+    document.addEventListener('mousemove', (e) => {
+      pupils.forEach(p => {
+        const svg = p.closest('svg')
+        if (!svg) return
+        const rect = svg.getBoundingClientRect()
+        const cx = rect.left + rect.width / 2
+        const cy = rect.top + rect.height / 2
+        const dx = (e.clientX - cx) / window.innerWidth * 3
+        const dy = (e.clientY - cy) / window.innerHeight * 3
+        const clamp = (v, max) => Math.max(-max, Math.min(max, v))
+        p.setAttribute('cx', parseFloat(p.dataset.origCx || p.getAttribute('cx')) + clamp(dx, 2.2))
+        p.setAttribute('cy', parseFloat(p.dataset.origCy || p.getAttribute('cy')) + clamp(dy, 1.8))
+        if (!p.dataset.origCx) {
+          p.dataset.origCx = p.getAttribute('cx')
+          p.dataset.origCy = p.getAttribute('cy')
+        }
+      })
+    })
+
+    // Blink every 3-5 seconds
+    function blink() {
+      const eyes = document.querySelectorAll('.lumi-face__eye')
+      const pups = document.querySelectorAll('.lumi-face__pupil')
+      eyes.forEach(e => { e._r = e.getAttribute('r'); e.setAttribute('r', '0.5') })
+      pups.forEach(p => { p._r = p.getAttribute('r'); p.setAttribute('r', '0') })
+      setTimeout(() => {
+        eyes.forEach(e => e.setAttribute('r', e._r))
+        pups.forEach(p => p.setAttribute('r', p._r))
+      }, 150)
+      setTimeout(blink, 3000 + Math.random() * 2000)
+    }
+    setTimeout(blink, 2000)
   }
 
   // Start when DOM is ready
