@@ -77,7 +77,8 @@ jobs:
           supabase functions deploy encrypt-credentials \
             --project-ref $SUPABASE_PROJECT_ID
           supabase functions deploy cf-proxy \
-            --project-ref $SUPABASE_PROJECT_ID
+            --project-ref $SUPABASE_PROJECT_ID \
+            --no-verify-jwt
 
       - name: Set Function Secrets
         env:
