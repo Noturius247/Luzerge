@@ -56,7 +56,7 @@ const SECURITY_HEADERS = {
     "style-src 'self' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https://lh3.googleusercontent.com https://www.googletagmanager.com",
-    "connect-src 'self' https://*.supabase.co https://www.google-analytics.com",
+    "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://cdn.jsdelivr.net",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
