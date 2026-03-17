@@ -34,12 +34,58 @@ interface AnalyticsPayload {
 // ─── Validation helpers ───────────────────────────────────────────────────────
 
 function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  // RFC 5322 simplified — single @, valid domain with TLD, no consecutive dots
+  return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(email)
 }
 
 function sanitize(str: string): string {
-  return str.trim().replace(/[<>]/g, '')
+  return str
+    .trim()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
 }
+
+// ─── Rate limiting (in-memory, per-function instance) ──────────────────────
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_WINDOW = 60_000  // 1 minute
+const RATE_LIMITS: Record<string, number> = {
+  contact: 5,     // 5 submissions per minute per IP
+  analytics: 60,  // 60 events per minute per IP
+  default: 30,
+}
+
+function isRateLimited(key: string, route: string): boolean {
+  const now = Date.now()
+  const limit = RATE_LIMITS[route] ?? RATE_LIMITS.default
+  const entry = rateLimitMap.get(key)
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
+    return false
+  }
+
+  entry.count++
+  return entry.count > limit
+}
+
+function rateLimitResponse(): Response {
+  return new Response(
+    JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+    { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } }
+  )
+}
+
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.resetAt) rateLimitMap.delete(key)
+  }
+}, 300_000)
 
 // ─── Email notification via Resend ─────────────────────────────────────────
 
@@ -62,12 +108,12 @@ async function sendNotificationEmail(lead: ContactPayload): Promise<void> {
       html: `
         <h2>New Contact Form Submission</h2>
         <table cellpadding="8" style="border-collapse:collapse">
-          <tr><td><strong>Name:</strong></td><td>${lead.name}</td></tr>
-          <tr><td><strong>Email:</strong></td><td>${lead.email}</td></tr>
-          ${lead.phone ? `<tr><td><strong>Phone:</strong></td><td>${lead.phone}</td></tr>` : ''}
-          ${lead.company ? `<tr><td><strong>Company:</strong></td><td>${lead.company}</td></tr>` : ''}
-          ${lead.service ? `<tr><td><strong>Service:</strong></td><td>${lead.service}</td></tr>` : ''}
-          <tr><td><strong>Message:</strong></td><td>${lead.message}</td></tr>
+          <tr><td><strong>Name:</strong></td><td>${sanitize(lead.name)}</td></tr>
+          <tr><td><strong>Email:</strong></td><td>${sanitize(lead.email)}</td></tr>
+          ${lead.phone ? `<tr><td><strong>Phone:</strong></td><td>${sanitize(lead.phone)}</td></tr>` : ''}
+          ${lead.company ? `<tr><td><strong>Company:</strong></td><td>${sanitize(lead.company)}</td></tr>` : ''}
+          ${lead.service ? `<tr><td><strong>Service:</strong></td><td>${sanitize(lead.service)}</td></tr>` : ''}
+          <tr><td><strong>Message:</strong></td><td>${sanitize(lead.message)}</td></tr>
         </table>
         <p style="color:#666;font-size:12px">
           Submitted via luzerge.com contact form
@@ -97,6 +143,10 @@ async function handleContact(
     })
   }
 
+  // Rate limit by IP
+  const clientIp = req.headers.get('CF-Connecting-IP') ?? req.headers.get('X-Forwarded-For') ?? 'unknown'
+  if (isRateLimited(`contact:${clientIp}`, 'contact')) return rateLimitResponse()
+
   // Validate required fields
   if (!body.name || !body.email || !body.message) {
     return new Response(
@@ -112,6 +162,13 @@ async function handleContact(
     )
   }
 
+  if (body.name.length < 2 || body.name.length > 100) {
+    return new Response(
+      JSON.stringify({ error: 'Name must be 2–100 characters' }),
+      { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
   if (body.message.length < 10 || body.message.length > 2000) {
     return new Response(
       JSON.stringify({ error: 'Message must be 10–2000 characters' }),
@@ -119,8 +176,25 @@ async function handleContact(
     )
   }
 
+  // Validate optional phone (digits, spaces, dashes, parens, plus sign only)
+  if (body.phone && !/^[0-9+\-() ]{7,20}$/.test(body.phone)) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid phone number format' }),
+      { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // Validate service against allowed values
+  const ALLOWED_SERVICES = ['monitoring', 'cdn', 'performance', 'security', 'managed', 'general', null, undefined]
+  if (body.service && !ALLOWED_SERVICES.includes(body.service)) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid service selection' }),
+      { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
   // Extract IP and User-Agent from Cloudflare headers
-  const ip = req.headers.get('CF-Connecting-IP') ?? req.headers.get('X-Forwarded-For')
+  const ip = clientIp
   const ua = req.headers.get('User-Agent')
 
   // Insert lead into database
@@ -166,6 +240,12 @@ async function handleAnalytics(
     body = await req.json()
   } catch {
     return new Response('Invalid JSON', { status: 400, headers: corsHeaders })
+  }
+
+  // Rate limit by IP
+  const analyticsIp = req.headers.get('CF-Connecting-IP') ?? req.headers.get('X-Forwarded-For') ?? 'unknown'
+  if (isRateLimited(`analytics:${analyticsIp}`, 'analytics')) {
+    return new Response(null, { status: 429, headers: corsHeaders })
   }
 
   if (!body.event_type) {

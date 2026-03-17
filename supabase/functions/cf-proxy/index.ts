@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getCorsHeaders, corsHeaders } from '../_shared/cors.ts'
+import { decrypt, isEncrypted } from '../_shared/crypto.ts'
 
 /**
  * CDN Proxy Edge Function
@@ -36,11 +37,29 @@ serve(async (req: Request) => {
 
     const { data: domain, error: domainError } = await supabase
       .from('user_domains')
-      .select('id, domain, cloudflare_zone_id, cloudflare_api_token, cdn_provider, cdn_api_key, cdn_distribution_id')
+      .select('id, domain, cloudflare_zone_id, cloudflare_api_token, cloudflare_api_token_enc, cdn_provider, cdn_api_key, cdn_api_key_enc, cdn_distribution_id')
       .eq('id', domainId)
       .single()
 
     if (domainError || !domain) return json({ error: 'Domain not found' }, 404)
+
+    // Decrypt credentials if stored encrypted (Layer 2: AES-256-GCM)
+    if (domain.cloudflare_api_token_enc) {
+      try {
+        domain.cloudflare_api_token = await decrypt(domain.cloudflare_api_token_enc)
+      } catch (err) {
+        console.error('Failed to decrypt CF token:', err)
+        return json({ error: 'Failed to decrypt credentials' }, 500)
+      }
+    }
+    if (domain.cdn_api_key_enc) {
+      try {
+        domain.cdn_api_key = await decrypt(domain.cdn_api_key_enc)
+      } catch (err) {
+        console.error('Failed to decrypt CDN key:', err)
+        return json({ error: 'Failed to decrypt credentials' }, 500)
+      }
+    }
 
     const provider = domain.cdn_provider || 'cloudflare'
 

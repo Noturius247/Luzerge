@@ -190,7 +190,7 @@ async function loadAllDomains() {
     .select('id, user_id, domain, cloudflare_zone_id, cloudflare_api_token, cdn_provider, cdn_api_key, cdn_distribution_id, status, admin_notes, last_purged_at, auto_purge_enabled, auto_purge_interval, created_at, updated_at')
     .order('created_at', { ascending: false })
 
-  if (error) { showToast('Failed to load domains: ' + error.message, true); return }
+  if (error) { console.error('Load domains error:', error); showToast('Failed to load domains. Please try again.', true); return }
 
   // Fetch ALL user profiles (not just those with domains)
   let profilesMap = {}
@@ -654,7 +654,7 @@ function renderUsersTable() {
           .eq('id', userId)
 
         if (error) {
-          showToast(`Failed to update: ${error.message}`, true)
+          console.error('Update error:', error); showToast('Failed to update. Please try again.', true)
           return
         }
 
@@ -681,7 +681,7 @@ function renderUsersTable() {
           .eq('id', userId)
 
         if (error) {
-          showToast(`Failed to update: ${error.message}`, true)
+          console.error('Update error:', error); showToast('Failed to update. Please try again.', true)
           return
         }
 
@@ -708,7 +708,7 @@ function renderUsersTable() {
           .eq('id', userId)
 
         if (error) {
-          showToast(`Failed to update: ${error.message}`, true)
+          console.error('Update error:', error); showToast('Failed to update. Please try again.', true)
           return
         }
 
@@ -1234,7 +1234,8 @@ async function handleAdminSubmit() {
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Submit Domain'
 
   if (error) {
-    errEl.textContent = error.message.includes('unique') ? `${adminScannedDomain} is already submitted.` : error.message
+    console.error('Submit domain error:', error)
+    errEl.textContent = error.message?.includes('unique') ? `${adminScannedDomain} is already submitted.` : 'Failed to submit domain. Please try again.'
     errEl.hidden = false
     return
   }
@@ -1384,7 +1385,8 @@ async function handleApprove(e) {
   btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Approve & Activate'
 
   if (error) {
-    errEl.textContent = error.message
+    console.error('Activate error:', error)
+    errEl.textContent = 'Failed to activate domain. Please try again.'
     errEl.hidden = false
     return
   }
@@ -1411,7 +1413,8 @@ async function handleReject() {
   btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Reject'
 
   if (error) {
-    document.getElementById('setupError').textContent = error.message
+    console.error('Reject error:', error)
+    document.getElementById('setupError').textContent = 'Failed to reject domain. Please try again.'
     document.getElementById('setupError').hidden = false
     return
   }
@@ -1431,7 +1434,8 @@ async function handleQuickReject(domainId, domainName) {
     .eq('id', domainId)
 
   if (error) {
-    showToast(`Failed to reject: ${error.message}`, true)
+    console.error('Reject error:', error)
+    showToast('Failed to reject domain. Please try again.', true)
     return
   }
 
@@ -1470,7 +1474,8 @@ async function confirmDelete() {
   closeDeleteModal()
 
   if (error) {
-    showToast('Failed to delete domain: ' + error.message, true)
+    console.error('Delete domain error:', error)
+    showToast('Failed to delete domain. Please try again.', true)
     return
   }
   showToast('Domain deleted')
@@ -1611,7 +1616,7 @@ function showToast(msg, isError = false) {
 }
 
 function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;')
 }
 
 function formatDate(iso) {

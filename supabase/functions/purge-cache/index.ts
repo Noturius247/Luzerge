@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getCorsHeaders } from '../_shared/cors.ts'
+import { decrypt } from '../_shared/crypto.ts'
 
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req)
@@ -43,7 +44,7 @@ serve(async (req: Request) => {
     // Fetch domain (RLS ensures user owns it)
     const { data: domain, error: domainError } = await supabase
       .from('user_domains')
-      .select('id, domain, cloudflare_zone_id, cloudflare_api_token, status')
+      .select('id, domain, cloudflare_zone_id, cloudflare_api_token, cloudflare_api_token_enc, status')
       .eq('id', domain_id)
       .single()
 
@@ -51,6 +52,18 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: 'Domain not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
+    }
+
+    // Decrypt credential if stored encrypted (AES-256-GCM)
+    if (domain.cloudflare_api_token_enc) {
+      try {
+        domain.cloudflare_api_token = await decrypt(domain.cloudflare_api_token_enc)
+      } catch (err) {
+        console.error('Failed to decrypt CF token:', err)
+        return new Response(JSON.stringify({ error: 'Failed to decrypt credentials' }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
     }
 
     if (!domain.cloudflare_zone_id || !domain.cloudflare_api_token) {

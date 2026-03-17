@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { decrypt } from '../_shared/crypto.ts'
 
 /**
  * Auto-Purge Edge Function
@@ -47,11 +48,10 @@ serve(async (req: Request) => {
     // Fetch all domains with auto-purge enabled and CF credentials configured
     const { data: domains, error } = await supabase
       .from('user_domains')
-      .select('id, domain, user_id, cloudflare_zone_id, cloudflare_api_token, auto_purge_interval, last_purged_at')
+      .select('id, domain, user_id, cloudflare_zone_id, cloudflare_api_token, cloudflare_api_token_enc, auto_purge_interval, last_purged_at')
       .eq('auto_purge_enabled', true)
       .eq('status', 'active')
       .not('cloudflare_zone_id', 'is', null)
-      .not('cloudflare_api_token', 'is', null)
 
     if (error) {
       return new Response(JSON.stringify({ error: 'Failed to fetch domains', detail: error.message }), {
@@ -82,6 +82,14 @@ serve(async (req: Request) => {
         }
       }
 
+      // Decrypt API token if encrypted, skip if no token available
+      let apiToken = d.cloudflare_api_token
+      if (d.cloudflare_api_token_enc) {
+        try { apiToken = await decrypt(d.cloudflare_api_token_enc) }
+        catch { results.push({ domain: d.domain, success: false }); continue }
+      }
+      if (!apiToken) { results.push({ domain: d.domain, success: false }); continue }
+
       // Call Cloudflare purge API
       try {
         const cfRes = await fetch(
@@ -89,7 +97,7 @@ serve(async (req: Request) => {
           {
             method: 'POST',
             headers: {
-              Authorization: `Bearer ${d.cloudflare_api_token}`,
+              Authorization: `Bearer ${apiToken}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ purge_everything: true }),

@@ -536,6 +536,117 @@
             <div id="purgeError" class="dash-alert dash-alert--error" hidden></div>
           </div>
           <div class="auto-purge-section" id="autoPurgeSection"></div>
+
+          <!-- Domain Settings -->
+          <div class="domain-settings-section" id="domainSettingsSection">
+            <h3 class="purge-section__title">Domain Settings</h3>
+
+            <!-- CDN Credentials -->
+            <div class="settings-group" style="margin-bottom:1.5rem">
+              <h4 class="settings-group__title" style="font-size:0.8125rem">CDN Credentials</h4>
+              <div class="settings-row">
+                <div class="settings-row__info" style="flex:1">
+                  <span class="settings-row__label">CDN Provider</span>
+                </div>
+                <select class="form-input form-input--sm settings-input" id="detailCdnProvider" style="width:180px">
+                  <option value="cloudflare">Cloudflare</option>
+                  <option value="cloudfront">AWS CloudFront</option>
+                  <option value="fastly">Fastly</option>
+                  <option value="none">None (monitoring only)</option>
+                </select>
+              </div>
+              <div id="detailCfFields">
+                <div class="settings-row">
+                  <div class="settings-row__info" style="flex:1">
+                    <span class="settings-row__label">Zone ID</span>
+                    <span class="settings-row__desc">Found in Cloudflare Dashboard → Overview → API section</span>
+                  </div>
+                  <input type="text" class="form-input form-input--sm settings-input" id="detailZoneId" placeholder="e.g. 0234a5b6c7d8..." autocomplete="off" />
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row__info" style="flex:1">
+                    <span class="settings-row__label">API Token</span>
+                    <span class="settings-row__desc">Create at My Profile → API Tokens → "Edit zone DNS" template</span>
+                  </div>
+                  <input type="password" class="form-input form-input--sm settings-input" id="detailApiToken" placeholder="Your API token" autocomplete="off" />
+                </div>
+              </div>
+              <div id="detailGenericFields" hidden>
+                <div class="settings-row">
+                  <div class="settings-row__info" style="flex:1">
+                    <span class="settings-row__label" id="detailDistLabel">Distribution ID</span>
+                  </div>
+                  <input type="text" class="form-input form-input--sm settings-input" id="detailDistId" placeholder="e.g. E1A2B3C4D5E6F7" autocomplete="off" />
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row__info" style="flex:1">
+                    <span class="settings-row__label" id="detailApiKeyLabel">API Key</span>
+                  </div>
+                  <input type="password" class="form-input form-input--sm settings-input" id="detailApiKey" placeholder="Your API key" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Uptime Monitoring -->
+            <div class="settings-group" style="margin-bottom:1.5rem">
+              <h4 class="settings-group__title" style="font-size:0.8125rem">Uptime Monitoring</h4>
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Enable Uptime Monitoring</span>
+                  <span class="settings-row__desc">Check this domain's availability at regular intervals</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="detailUptimeEnabled" checked />
+                  <span class="toggle-switch__slider"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__info" style="flex:1">
+                  <span class="settings-row__label">Check Interval</span>
+                </div>
+                <select class="form-input form-input--sm settings-input" id="detailUptimeInterval" style="width:180px">
+                  <option value="1min">Every 1 minute</option>
+                  <option value="5min" selected>Every 5 minutes</option>
+                  <option value="15min">Every 15 minutes</option>
+                  <option value="30min">Every 30 minutes</option>
+                  <option value="60min">Every 60 minutes</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Public Status Page -->
+            <div class="settings-group" style="margin-bottom:1.5rem">
+              <h4 class="settings-group__title" style="font-size:0.8125rem">Public Status Page</h4>
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Enable Public Status Page</span>
+                  <span class="settings-row__desc">Share a public URL showing your domain's uptime status</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="detailStatusEnabled" />
+                  <span class="toggle-switch__slider"></span>
+                </label>
+              </div>
+              <div id="detailStatusUrl" hidden style="margin-top:8px">
+                <div class="settings-row">
+                  <div class="settings-row__info" style="flex:1">
+                    <span class="settings-row__label">Status Page URL</span>
+                  </div>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <input type="text" class="form-input form-input--sm settings-input" id="detailStatusLink" readonly style="font-size:12px;color:#94a3b8" />
+                    <button class="btn btn--outline btn--sm" id="detailCopyStatusBtn" type="button">Copy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn--primary" id="detailSettingsSaveBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Domain Settings
+            </button>
+            <span id="detailSettingsStatus" style="margin-left:12px;font-size:13px;color:#22c55e" hidden></span>
+          </div>
+
           <div class="history-section">
             <h3 class="history-section__title">Recent Purges</h3>
             <div id="historyLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading...</div>

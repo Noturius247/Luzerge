@@ -48,14 +48,20 @@ const SECURITY_HEADERS = {
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  'X-Permitted-Cross-Domain-Policies': 'none',
   'Content-Security-Policy': [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "script-src 'self' https://www.googletagmanager.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net",
+    "style-src 'self' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: https:",
+    "img-src 'self' data: https://lh3.googleusercontent.com https://www.googletagmanager.com",
     "connect-src 'self' https://*.supabase.co https://www.google-analytics.com",
     "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
   ].join('; '),
 }
 

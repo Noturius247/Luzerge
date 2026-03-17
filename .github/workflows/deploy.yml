@@ -27,9 +27,21 @@ jobs:
 
       - name: Check for secrets in code
         run: |
-          # Basic check to prevent accidental service role key commits
-          if grep -rn "service_role" index.html js/ css/ 2>/dev/null; then
-            echo "ERROR: Possible service role key in source!"
+          FAIL=0
+          # Check for service role keys, API tokens, passwords in frontend code
+          for PATTERN in "service_role" "SUPABASE_SERVICE_ROLE" "SUPABASE_DB_PASSWORD" "CLOUDFLARE_API_TOKEN" "RESEND_API_KEY" "eyJhbGciOi.*service_role"; do
+            if grep -rn "$PATTERN" index.html js/ css/ login.html dashboard.html admin.html 2>/dev/null; then
+              echo "ERROR: Found secret pattern '$PATTERN' in source files!"
+              FAIL=1
+            fi
+          done
+          # Check for .env files that shouldn't be committed
+          if [ -f ".env.local" ] && git ls-files --error-unmatch .env.local 2>/dev/null; then
+            echo "ERROR: .env.local is tracked by git!"
+            FAIL=1
+          fi
+          if [ "$FAIL" -eq 1 ]; then
+            echo "Secret scan FAILED — review findings above"
             exit 1
           fi
           echo "Secret scan passed."
@@ -62,6 +74,8 @@ jobs:
           supabase functions deploy api \
             --project-ref $SUPABASE_PROJECT_ID \
             --no-verify-jwt
+          supabase functions deploy encrypt-credentials \
+            --project-ref $SUPABASE_PROJECT_ID
 
       - name: Set Function Secrets
         env:
@@ -70,7 +84,9 @@ jobs:
           supabase secrets set \
             --project-ref $SUPABASE_PROJECT_ID \
             RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
-            NOTIFICATION_EMAIL=${{ secrets.NOTIFICATION_EMAIL }}
+            NOTIFICATION_EMAIL=${{ secrets.NOTIFICATION_EMAIL }} \
+            ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }} \
+            HMAC_PEPPER=${{ secrets.HMAC_PEPPER }}
 
   # ─── Job 3: Deploy Frontend ──────────────────────────────────────────────────
   deploy-frontend:
@@ -164,13 +180,19 @@ jobs:
         run: |
           HEADERS=$(curl -sI https://luzerge.com)
           echo "$HEADERS"
-          for HEADER in "x-content-type-options" "x-frame-options"; do
+          FAIL=0
+          for HEADER in "x-content-type-options" "x-frame-options" "strict-transport-security" "content-security-policy" "referrer-policy" "permissions-policy" "x-permitted-cross-domain-policies"; do
             if echo "$HEADERS" | grep -qi "$HEADER"; then
               echo "PASS: $HEADER present"
             else
-              echo "WARN: $HEADER missing"
+              echo "FAIL: $HEADER missing"
+              FAIL=1
             fi
           done
+          if [ "$FAIL" -eq 1 ]; then
+            echo "ERROR: Required security headers are missing!"
+            exit 1
+          fi
 
       - name: Notify on success
         if: success()

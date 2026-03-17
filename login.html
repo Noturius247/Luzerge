@@ -85,10 +85,14 @@
         btn.disabled = true
         btn.textContent = 'Redirecting...'
 
+        // Whitelist allowed redirect origins to prevent open-redirect attacks
+        const ALLOWED_ORIGINS = ['https://luzerge.com', 'https://www.luzerge.com', 'http://localhost:3000', 'http://localhost:5500', 'http://localhost:5501']
+        const origin = ALLOWED_ORIGINS.includes(location.origin) ? location.origin : 'https://luzerge.com'
+
         const { data, error } = await _supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${location.origin}/dashboard.html`,
+            redirectTo: `${origin}/dashboard.html`,
             skipBrowserRedirect: false,
           },
         })

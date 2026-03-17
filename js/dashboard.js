@@ -152,6 +152,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // CF toggle switches
   initCfToggles()
 
+  // Domain settings handlers (detail panel)
+  initDomainSettingsHandlers()
+
   // User settings handlers
   initUserSettingsHandlers()
 
@@ -1130,7 +1133,8 @@ async function loadDomains() {
   loading.hidden = true
 
   if (error) {
-    list.innerHTML = `<div class="dash-alert dash-alert--error">Failed to load domains: ${escHtml(error.message)}</div>`
+    list.innerHTML = `<div class="dash-alert dash-alert--error">Failed to load domains. Please try again or contact support.</div>`
+    console.error('Load domains error:', error)
     return
   }
 
@@ -1346,21 +1350,38 @@ async function handleSubmitDomain() {
     auto_purge_interval: parseInt(defaults.defaultPurgeInterval) || 43200,
   }
 
+  // Collect CDN credentials separately — they'll be encrypted server-side
+  let cdnCredentials = null
   if (isSelfManaged) {
     const provider = document.getElementById('inputCdnProvider')?.value || 'cloudflare'
     insertData.cdn_provider = provider
 
     if (provider === 'cloudflare') {
       insertData.cloudflare_zone_id = document.getElementById('inputZoneId').value.trim()
-      insertData.cloudflare_api_token = document.getElementById('inputApiToken').value.trim()
+      cdnCredentials = { field: 'cloudflare_api_token', value: document.getElementById('inputApiToken').value.trim() }
     } else if (provider === 'cloudfront' || provider === 'fastly') {
       insertData.cdn_distribution_id = document.getElementById('inputDistributionId').value.trim()
-      insertData.cdn_api_key = document.getElementById('inputCdnApiKey').value.trim()
+      cdnCredentials = { field: 'cdn_api_key', value: document.getElementById('inputCdnApiKey').value.trim() }
     }
     // 'none' = monitoring only, no credentials needed
   }
 
-  const { error } = await _supabase.from('user_domains').insert(insertData)
+  const { data: inserted, error } = await _supabase.from('user_domains').insert(insertData).select('id').single()
+
+  // Encrypt CDN credentials server-side after insert
+  if (!error && inserted && cdnCredentials) {
+    const session = await getSession()
+    if (session) {
+      await fetch(`${SUPABASE_URL}/functions/v1/encrypt-credentials/encrypt`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ domain_id: inserted.id, ...cdnCredentials }),
+      }).catch(console.error)
+    }
+  }
 
   btn.disabled = false
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Submit Domain'
@@ -1864,13 +1885,14 @@ async function openDetail(domainId) {
 
   const { data: domain } = await _supabase
     .from('user_domains')
-    .select('domain, auto_purge_enabled, auto_purge_interval')
+    .select('domain, auto_purge_enabled, auto_purge_interval, cdn_provider, cloudflare_zone_id, cloudflare_api_token, cdn_distribution_id, cdn_api_key, uptime_check_enabled, uptime_check_interval, public_status_enabled, public_status_token')
     .eq('id', domainId)
     .single()
 
   if (domain) {
     document.getElementById('detailTitle').textContent = domain.domain
     renderAutoPurgeSettings(domainId, domain.auto_purge_enabled, domain.auto_purge_interval)
+    populateDomainSettings(domain)
   }
 
   await loadStats(domainId)
@@ -1879,6 +1901,159 @@ async function openDetail(domainId) {
 function closeDetail() {
   document.getElementById('detailPanel').hidden = true
   selectedDomainId = null
+}
+
+// ─── Domain Settings (detail panel) ──────────────────────────────────────────
+
+function populateDomainSettings(domain) {
+  const provider = domain.cdn_provider || 'cloudflare'
+  const providerEl = document.getElementById('detailCdnProvider')
+  providerEl.value = provider
+  toggleCdnProviderFields(provider)
+
+  // Cloudflare fields
+  document.getElementById('detailZoneId').value = domain.cloudflare_zone_id || ''
+  document.getElementById('detailApiToken').value = domain.cloudflare_api_token || ''
+
+  // Generic CDN fields
+  document.getElementById('detailDistId').value = domain.cdn_distribution_id || ''
+  document.getElementById('detailApiKey').value = domain.cdn_api_key || ''
+
+  // Uptime monitoring
+  document.getElementById('detailUptimeEnabled').checked = domain.uptime_check_enabled !== false
+  document.getElementById('detailUptimeInterval').value = domain.uptime_check_interval || '5min'
+
+  // Public status page
+  const statusEnabled = !!domain.public_status_enabled
+  document.getElementById('detailStatusEnabled').checked = statusEnabled
+  const statusUrlDiv = document.getElementById('detailStatusUrl')
+  statusUrlDiv.hidden = !statusEnabled
+  if (domain.public_status_token) {
+    document.getElementById('detailStatusLink').value =
+      `${window.location.origin}/status.html?token=${domain.public_status_token}`
+  }
+
+  // Reset save status
+  document.getElementById('detailSettingsStatus').hidden = true
+}
+
+function toggleCdnProviderFields(provider) {
+  const cfFields = document.getElementById('detailCfFields')
+  const genericFields = document.getElementById('detailGenericFields')
+  const distLabel = document.getElementById('detailDistLabel')
+  const apiLabel = document.getElementById('detailApiKeyLabel')
+
+  if (provider === 'cloudflare') {
+    cfFields.hidden = false
+    genericFields.hidden = true
+  } else if (provider === 'none') {
+    cfFields.hidden = true
+    genericFields.hidden = true
+  } else {
+    cfFields.hidden = true
+    genericFields.hidden = false
+    if (provider === 'cloudfront') {
+      distLabel.textContent = 'Distribution ID'
+      apiLabel.textContent = 'AWS Access Key'
+    } else if (provider === 'fastly') {
+      distLabel.textContent = 'Service ID'
+      apiLabel.textContent = 'API Token'
+    }
+  }
+}
+
+function initDomainSettingsHandlers() {
+  // CDN provider change
+  document.getElementById('detailCdnProvider')?.addEventListener('change', (e) => {
+    toggleCdnProviderFields(e.target.value)
+  })
+
+  // Status page toggle
+  document.getElementById('detailStatusEnabled')?.addEventListener('change', (e) => {
+    document.getElementById('detailStatusUrl').hidden = !e.target.checked
+  })
+
+  // Copy status URL
+  document.getElementById('detailCopyStatusBtn')?.addEventListener('click', () => {
+    const link = document.getElementById('detailStatusLink')
+    navigator.clipboard.writeText(link.value).then(() => {
+      const btn = document.getElementById('detailCopyStatusBtn')
+      btn.textContent = 'Copied!'
+      setTimeout(() => { btn.textContent = 'Copy' }, 2000)
+    })
+  })
+
+  // Save domain settings
+  document.getElementById('detailSettingsSaveBtn')?.addEventListener('click', saveDomainSettings)
+}
+
+async function saveDomainSettings() {
+  if (!selectedDomainId) return
+
+  const btn = document.getElementById('detailSettingsSaveBtn')
+  const statusEl = document.getElementById('detailSettingsStatus')
+  btn.disabled = true
+  btn.textContent = 'Saving…'
+  statusEl.hidden = true
+
+  const provider = document.getElementById('detailCdnProvider').value
+
+  const updates = {
+    cdn_provider: provider,
+    uptime_check_enabled: document.getElementById('detailUptimeEnabled').checked,
+    uptime_check_interval: document.getElementById('detailUptimeInterval').value,
+    public_status_enabled: document.getElementById('detailStatusEnabled').checked,
+  }
+
+  // CDN credential fields — credentials go through server-side encryption
+  let credentialToEncrypt = null
+  if (provider === 'cloudflare') {
+    updates.cloudflare_zone_id = document.getElementById('detailZoneId').value.trim() || null
+    const apiToken = document.getElementById('detailApiToken').value.trim()
+    if (apiToken) {
+      credentialToEncrypt = { field: 'cloudflare_api_token', value: apiToken }
+    }
+  } else if (provider !== 'none') {
+    updates.cdn_distribution_id = document.getElementById('detailDistId').value.trim() || null
+    const apiKey = document.getElementById('detailApiKey').value.trim()
+    if (apiKey) {
+      credentialToEncrypt = { field: 'cdn_api_key', value: apiKey }
+    }
+  }
+
+  const { error } = await _supabase
+    .from('user_domains')
+    .update(updates)
+    .eq('id', selectedDomainId)
+
+  // Encrypt credentials server-side
+  if (!error && credentialToEncrypt) {
+    const session = await getSession()
+    if (session) {
+      await fetch(`${SUPABASE_URL}/functions/v1/encrypt-credentials/encrypt`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ domain_id: selectedDomainId, ...credentialToEncrypt }),
+      }).catch(console.error)
+    }
+  }
+
+  btn.disabled = false
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Domain Settings'
+
+  if (error) {
+    statusEl.style.color = '#ef4444'
+    statusEl.textContent = 'Failed to save settings. Please try again.'
+    console.error('Save settings error:', error)
+  } else {
+    statusEl.style.color = '#22c55e'
+    statusEl.textContent = 'Settings saved!'
+  }
+  statusEl.hidden = false
+  setTimeout(() => { statusEl.hidden = true }, 4000)
 }
 
 async function loadStats(domainId) {
@@ -2283,7 +2458,12 @@ function updateAvatarPreview(url) {
   const preview = document.getElementById('settAvatarPreview')
   if (!preview) return
   if (url && url.trim()) {
-    preview.innerHTML = `<img src="${escHtml(url.trim())}" alt="Avatar" onerror="this.parentElement.innerHTML='<span class=\\'settings-avatar-preview__placeholder\\'>Invalid</span>'" />`
+    const img = document.createElement('img')
+    img.src = url.trim()
+    img.alt = 'Avatar'
+    img.onerror = () => { preview.innerHTML = '<span class="settings-avatar-preview__placeholder">Invalid</span>' }
+    preview.innerHTML = ''
+    preview.appendChild(img)
   } else {
     preview.innerHTML = '<span class="settings-avatar-preview__placeholder">No preview</span>'
   }
@@ -2622,28 +2802,46 @@ function initUserSettingsHandlers() {
     const name = prompt('Token name (e.g., "CI Pipeline"):')
     if (!name) return
 
+    const expiryChoice = prompt('Token expiry? Enter: 30d, 90d, 1y, or "never"', '90d')
+    if (!expiryChoice) return
+    let expiresAt = null
+    const expiryMap = { '30d': 30, '90d': 90, '1y': 365 }
+    if (expiryChoice !== 'never') {
+      const days = expiryMap[expiryChoice]
+      if (!days) { showToast('Invalid expiry. Use 30d, 90d, 1y, or never.', true); return }
+      expiresAt = new Date(Date.now() + days * 86400000).toISOString()
+    }
+
     const btn = el('settGenerateTokenBtn')
     btn.disabled = true
     btn.textContent = 'Generating...'
 
-    // Generate a random token
+    // Generate a random token client-side (user sees this once)
     const rawToken = 'lzg_' + crypto.randomUUID().replace(/-/g, '')
-    // Hash it for storage
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(rawToken))
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const tokenHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 
-    const { error } = await _supabase.from('api_tokens').insert({
-      user_id: currentUser.id,
-      name: name.trim(),
-      token_hash: tokenHash,
+    // Hash server-side with HMAC-SHA256 + pepper + per-token salt (3-layer protection)
+    const session = await getSession()
+    if (!session) { btn.disabled = false; btn.textContent = 'Generate New Token'; showToast('Session expired. Please refresh.', true); return }
+
+    const hashRes = await fetch(`${SUPABASE_URL}/functions/v1/encrypt-credentials/hash`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        raw_token: rawToken,
+        token_name: name.trim(),
+        expires_at: expiresAt,
+      }),
     })
+
+    const hashData = await hashRes.json()
 
     btn.disabled = false
     btn.textContent = 'Generate New Token'
 
-    if (error) { showToast('Failed to create token: ' + error.message, true); return }
+    if (!hashRes.ok || !hashData.success) { console.error('Token creation error:', hashData); showToast('Failed to create token. Please try again.', true); return }
 
     // Show the raw token (only chance to copy it)
     const tokenDisplay = document.createElement('div')
@@ -2670,7 +2868,7 @@ async function loadApiTokens() {
 
   const { data: tokens, error } = await _supabase
     .from('api_tokens')
-    .select('id, name, last_used, created_at')
+    .select('id, name, last_used, created_at, expires_at')
     .eq('user_id', currentUser.id)
     .order('created_at', { ascending: false })
 
@@ -2679,15 +2877,20 @@ async function loadApiTokens() {
     return
   }
 
-  listEl.innerHTML = tokens.map(t => `
-    <div class="api-token-item">
+  listEl.innerHTML = tokens.map(t => {
+    const isExpired = t.expires_at && new Date(t.expires_at) < new Date()
+    const expiryLabel = t.expires_at
+      ? (isExpired ? ' · <span style="color:#ef4444">Expired</span>' : ` · Expires ${formatDate(t.expires_at)}`)
+      : ' · No expiry'
+    return `
+    <div class="api-token-item${isExpired ? ' api-token-item--expired' : ''}">
       <div class="api-token-item__info">
         <strong class="api-token-item__name">${escHtml(t.name)}</strong>
-        <span class="api-token-item__meta">Created ${formatDate(t.created_at)}${t.last_used ? ' · Last used ' + formatDate(t.last_used) : ' · Never used'}</span>
+        <span class="api-token-item__meta">Created ${formatDate(t.created_at)}${t.last_used ? ' · Last used ' + formatDate(t.last_used) : ' · Never used'}${expiryLabel}</span>
       </div>
       <button class="btn btn--ghost btn--sm btn--danger-text api-revoke-btn" data-token-id="${t.id}" type="button" aria-label="Revoke token">Revoke</button>
     </div>
-  `).join('')
+  `}).join('')
 
   // Bind revoke buttons
   listEl.querySelectorAll('.api-revoke-btn').forEach(btn => {
@@ -2705,7 +2908,7 @@ async function loadApiTokens() {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;')
 }
 
 function formatDate(iso) {
