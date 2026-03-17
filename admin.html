@@ -457,6 +457,7 @@
                 <thead><tr><th>Domain</th><th>Provider</th><th>Requests</th><th>Cached</th><th>Bandwidth</th><th>Visitors</th><th>Threats</th><th>Cache Rate</th></tr></thead>
                 <tbody id="admAnlBody"></tbody>
               </table>
+              <div class="pagination" id="admAnlPagination"></div>
             </div>
 
             <!-- Breakdown tables 2x2 grid -->
@@ -510,6 +511,7 @@
                 <thead><tr><th>Domain</th><th>Host</th><th>Status</th><th>Issuer</th><th>Type</th><th>Expires</th></tr></thead>
                 <tbody id="admSslBody"></tbody>
               </table>
+              <div class="pagination" id="admSslPagination"></div>
             </div>
           </div>
           <div id="admSslError" class="dash-alert dash-alert--error" hidden></div>
@@ -532,6 +534,7 @@
                 <tbody id="admDnsBody"></tbody>
               </table>
             </div>
+            <div class="pagination" id="admDnsPagination"></div>
           </div>
           <div id="admDnsError" class="dash-alert dash-alert--error" hidden></div>
         </section>
@@ -552,6 +555,7 @@
                 <thead><tr><th>Domain</th><th>Provider</th><th>Security Level</th><th>Browser Check</th><th>Email Obfuscation</th><th>Hotlink Protection</th></tr></thead>
                 <tbody id="admWafBody"></tbody>
               </table>
+              <div class="pagination" id="admWafPagination"></div>
             </div>
           </div>
           <div id="admWafError" class="dash-alert dash-alert--error" hidden></div>
@@ -573,6 +577,7 @@
                 <thead><tr><th>Domain</th><th>Provider</th><th>Mirage</th><th>Polish</th><th>WebP</th><th>Rocket Loader</th></tr></thead>
                 <tbody id="admImgBody"></tbody>
               </table>
+              <div class="pagination" id="admImgPagination"></div>
             </div>
           </div>
           <div id="admImgError" class="dash-alert dash-alert--error" hidden></div>
@@ -594,6 +599,7 @@
                 <thead><tr><th>Domain</th><th>Provider</th><th>HTML</th><th>CSS</th><th>JavaScript</th></tr></thead>
                 <tbody id="admMinifyBody"></tbody>
               </table>
+              <div class="pagination" id="admMinifyPagination"></div>
             </div>
           </div>
           <div id="admMinifyError" class="dash-alert dash-alert--error" hidden></div>
@@ -618,6 +624,7 @@
                 <thead><tr><th>Domain</th><th>Owner</th><th>Provider</th><th>Status</th><th>HTTPS</th><th>HTTP</th><th>Latency</th></tr></thead>
                 <tbody id="admUptimeBody"></tbody>
               </table>
+              <div class="pagination" id="admUptimePagination"></div>
             </div>
           </div>
         </section>
@@ -638,6 +645,7 @@
                 <thead><tr><th>Domain</th><th>Provider</th><th>Threats (30d)</th><th>Requests (30d)</th><th>Bandwidth (30d)</th></tr></thead>
                 <tbody id="admDdosBody"></tbody>
               </table>
+              <div class="pagination" id="admDdosPagination"></div>
             </div>
           </div>
           <div id="admDdosError" class="dash-alert dash-alert--error" hidden></div>
@@ -1026,6 +1034,7 @@
                   <tr><td colspan="7" class="text-center" style="padding:2rem;color:rgba(255,255,255,0.4)">Loading users...</td></tr>
                 </tbody>
               </table>
+              <div class="pagination" id="admUsersPagination"></div>
             </div>
           </div>
         </section>

@@ -310,6 +310,82 @@ function formatBytes(bytes) {
   return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
 }
 
+// ─── Generic pagination for monitoring tables ──────────────────────────────
+const _pagPerPage = 15
+const _pagState = {} // { key: { rows: [], page: 1 } }
+
+function _pagInit(key, rows) {
+  _pagState[key] = { rows, page: (_pagState[key]?.page > 1 ? Math.min(_pagState[key].page, Math.ceil(rows.length / _pagPerPage) || 1) : 1) }
+}
+
+function _pagRender(key, tbodyId, pagId) {
+  const state = _pagState[key]
+  if (!state) return
+  const tbody = document.getElementById(tbodyId)
+  const pag = document.getElementById(pagId)
+  if (!tbody || !pag) return
+
+  const totalPages = Math.ceil(state.rows.length / _pagPerPage) || 1
+  if (state.page > totalPages) state.page = totalPages
+  const start = (state.page - 1) * _pagPerPage
+  tbody.innerHTML = state.rows.slice(start, start + _pagPerPage).join('')
+
+  if (totalPages <= 1) { pag.innerHTML = ''; return }
+
+  let btns = ''
+  btns += `<button class="pagination__btn pagination__btn--nav" ${state.page === 1 ? 'disabled' : ''} data-pag="${key}" data-pp="${state.page - 1}">&laquo; Prev</button>`
+  for (let i = 1; i <= totalPages; i++) {
+    if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - state.page) > 1) {
+      if (i === 3 || i === totalPages - 2) btns += '<span class="pagination__dots">&hellip;</span>'
+      continue
+    }
+    btns += `<button class="pagination__btn${i === state.page ? ' pagination__btn--active' : ''}" data-pag="${key}" data-pp="${i}">${i}</button>`
+  }
+  btns += `<button class="pagination__btn pagination__btn--nav" ${state.page === totalPages ? 'disabled' : ''} data-pag="${key}" data-pp="${state.page + 1}">Next &raquo;</button>`
+
+  pag.innerHTML = `<div class="pagination__info">${state.rows.length} records &middot; Page ${state.page} of ${totalPages}</div><div class="pagination__buttons">${btns}</div>`
+
+  pag.querySelectorAll(`[data-pag="${key}"]`).forEach(btn => {
+    btn.onclick = () => {
+      state.page = Number(btn.dataset.pp)
+      _pagRender(key, tbodyId, pagId)
+    }
+  })
+}
+
+// ─── Multi-domain select helper ──────────────────────────────────────────────
+
+function populateMultiDomainSelect(selectId) {
+  const select = document.getElementById(selectId)
+  if (!select) return null
+  const active = userDomains.filter(d => d.status === 'active')
+  if (!active.length) {
+    select.innerHTML = '<option value="">No active domains</option>'
+    return null
+  }
+  const prev = select.value
+  select.innerHTML = '<option value="__all__">All Domains</option>' + active.map(d => {
+    const prov = d.cdn_provider || 'cloudflare'
+    const label = prov === 'cloudflare' ? '' : ` [${prov}]`
+    return `<option value="${d.id}">${escHtml(d.domain)}${label}</option>`
+  }).join('')
+  if (prev && select.querySelector(`option[value="${prev}"]`)) select.value = prev
+  return '__all__'
+}
+
+function getSelectedDomains(selectId) {
+  const select = document.getElementById(selectId)
+  const val = select?.value || '__all__'
+  const active = userDomains.filter(d => d.status === 'active')
+  if (val === '__all__') return active
+  return active.filter(d => d.id === val)
+}
+
+function settingBadge(value) {
+  const isOn = value === 'on' || value === true
+  return `<span class="status-badge ${isOn ? 'status-badge--active' : 'status-badge--pending'}">${isOn ? 'On' : 'Off'}</span>`
+}
+
 // ─── Panel domain selectors ──────────────────────────────────────────────────
 
 function populateDomainSelect(selectId) {
@@ -409,6 +485,16 @@ function applyCfToggle(id, settingValue) {
 // ─── Analytics panel ─────────────────────────────────────────────────────────
 
 let _anlRange = '24h'
+let _anlChart = null
+
+function _anlPopulateDomainSelect() { return populateMultiDomainSelect('anlDomainSelect') }
+function _anlGetSelectedDomains() { return getSelectedDomains('anlDomainSelect') }
+
+function _anlStatusColor(code) {
+  if (code >= 200 && code < 300) return 'status-badge--active'
+  if (code >= 300 && code < 400) return 'status-badge--pending'
+  return 'status-badge--error'
+}
 
 async function populateAnalytics() {
   const loading = document.getElementById('anlLoading')
@@ -421,16 +507,16 @@ async function populateAnalytics() {
   noDomains.hidden = true
   error.hidden = true
 
-  const domainId = populateDomainSelect('anlDomainSelect')
-  if (!domainId) {
+  _anlPopulateDomainSelect()
+  const activeDomains = _anlGetSelectedDomains()
+  if (!activeDomains.length) {
     loading.hidden = true
     noDomains.hidden = false
     return
   }
 
   // Bind domain selector change
-  const select = document.getElementById('anlDomainSelect')
-  select.onchange = () => populateAnalytics()
+  document.getElementById('anlDomainSelect').onchange = () => populateAnalytics()
 
   // Bind range pills
   document.querySelectorAll('#panelAnalytics .purge-tab').forEach(btn => {
@@ -443,29 +529,165 @@ async function populateAnalytics() {
   })
 
   try {
-    const selectedId = select.value || domainId
-    const data = await cfProxy(selectedId, 'analytics', { since: _anlRange })
+    const results = await Promise.all(activeDomains.map(async (d) => {
+      try {
+        const data = await cfProxy(d.id, 'analytics', { since: _anlRange })
+        return { domain: d.domain, provider: d.cdn_provider || 'cloudflare', analytics: data.analytics, message: data.message }
+      } catch (err) {
+        return { domain: d.domain, provider: d.cdn_provider || 'cloudflare', analytics: null, message: err.message }
+      }
+    }))
+
     loading.hidden = true
 
-    if (!data.analytics) {
-      error.textContent = data.message || 'No analytics data available for this domain.'
-      error.hidden = false
-      return
+    // ── Aggregate totals ──
+    const agg = { requests: 0, cachedRequests: 0, bytes: 0, cachedBytes: 0, threats: 0, uniques: 0 }
+    const dailyMap = {}
+    const countryAgg = {}
+    const statusAgg = {}
+    const contentAgg = {}
+    const sslAgg = {}
+
+    for (const r of results) {
+      if (!r.analytics) continue
+      const a = r.analytics
+      agg.requests += a.requests_total || 0
+      agg.cachedRequests += a.requests_cached || 0
+      agg.bytes += a.bandwidth_total || 0
+      agg.cachedBytes += a.bandwidth_cached || 0
+      agg.threats += a.threats_total || 0
+      agg.uniques += a.unique_visitors || 0
+
+      for (const d of a.daily || []) {
+        if (!dailyMap[d.date]) dailyMap[d.date] = { requests: 0, bytes: 0, threats: 0 }
+        dailyMap[d.date].requests += d.requests || 0
+        dailyMap[d.date].bytes += d.bytes || 0
+        dailyMap[d.date].threats += d.threats || 0
+      }
+      for (const c of a.countryMap || []) {
+        if (!countryAgg[c.country]) countryAgg[c.country] = { requests: 0, bytes: 0, threats: 0 }
+        countryAgg[c.country].requests += c.requests || 0
+        countryAgg[c.country].bytes += c.bytes || 0
+        countryAgg[c.country].threats += c.threats || 0
+      }
+      for (const s of a.responseStatusMap || []) {
+        statusAgg[s.status] = (statusAgg[s.status] || 0) + (s.requests || 0)
+      }
+      for (const ct of a.contentTypeMap || []) {
+        if (!contentAgg[ct.type]) contentAgg[ct.type] = { requests: 0, bytes: 0 }
+        contentAgg[ct.type].requests += ct.requests || 0
+        contentAgg[ct.type].bytes += ct.bytes || 0
+      }
+      for (const sl of a.clientSSLMap || []) {
+        sslAgg[sl.protocol] = (sslAgg[sl.protocol] || 0) + (sl.requests || 0)
+      }
     }
 
-    const a = data.analytics
-    document.getElementById('anlRequests').textContent = fmtNum(a.requests_total)
-    document.getElementById('anlBandwidth').textContent = formatBytes(a.bandwidth_total)
-    document.getElementById('anlVisitors').textContent = a.unique_visitors != null ? fmtNum(a.unique_visitors) : 'N/A'
-    document.getElementById('anlCacheRate').textContent = a.cache_hit_rate != null ? a.cache_hit_rate + '%' : 'N/A'
+    const cacheRate = agg.bytes > 0 ? Math.round((agg.cachedBytes / agg.bytes) * 100) : 0
 
-    // Show provider badge
-    const provBadge = document.getElementById('anlProviderBadge')
-    if (provBadge) {
-      const prov = data.provider || 'cloudflare'
-      provBadge.textContent = prov
-      provBadge.hidden = prov === 'cloudflare'
+    // ── Summary stat cards ──
+    document.getElementById('anlStats').innerHTML = `
+      <div class="stat-box">
+        <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        <span class="stat-box__value">${fmtNum(agg.requests)}</span>
+        <span class="stat-box__label">Total Requests</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+        <span class="stat-box__value">${formatBytes(agg.bytes)}</span>
+        <span class="stat-box__label">Bandwidth</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
+        <span class="stat-box__value">${fmtNum(agg.uniques)}</span>
+        <span class="stat-box__label">Unique Visitors</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+        <span class="stat-box__value">${cacheRate}%</span>
+        <span class="stat-box__label">Cache Hit Rate</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-box__icon stat-box__icon--red"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <span class="stat-box__value">${fmtNum(agg.threats)}</span>
+        <span class="stat-box__label">Threats Blocked</span>
+      </div>
+    `
+
+    // ── Trend chart ──
+    const dates = Object.keys(dailyMap).sort()
+    const chartWrap = document.querySelector('#panelAnalytics .anl-chart-wrap')
+    if (dates.length > 1 && typeof Chart !== 'undefined') {
+      chartWrap.hidden = false
+      const reqData = dates.map(d => dailyMap[d].requests)
+      const bwData = dates.map(d => dailyMap[d].bytes)
+      const labels = dates.map(d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+
+      if (_anlChart) _anlChart.destroy()
+      const ctx = document.getElementById('anlChart').getContext('2d')
+      _anlChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Requests', data: reqData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)', fill: true, tension: 0.3, pointRadius: 3, yAxisID: 'y' },
+            { label: 'Bandwidth', data: bwData, borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.08)', fill: true, tension: 0.3, pointRadius: 3, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#94a3b8', font: { size: 12 } } } },
+          scales: {
+            x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            y: { position: 'left', ticks: { color: '#3b82f6', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Requests', color: '#3b82f6' } },
+            y1: { position: 'right', ticks: { color: '#06b6d4', font: { size: 11 }, callback: v => formatBytes(v) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Bandwidth', color: '#06b6d4' } }
+          }
+        }
+      })
+    } else {
+      chartWrap.hidden = true
     }
+
+    // ── Per-domain table ──
+    document.getElementById('anlBody').innerHTML = results.map(r => {
+      if (!r.analytics) {
+        return `<tr><td>${escHtml(r.domain)}</td><td colspan="6" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
+      }
+      const a = r.analytics
+      return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${fmtNum(a.requests_total)}</td><td>${fmtNum(a.requests_cached)}</td><td>${formatBytes(a.bandwidth_total)}</td><td>${a.unique_visitors != null ? fmtNum(a.unique_visitors) : 'N/A'}</td><td>${fmtNum(a.threats_total)}</td><td>${a.cache_hit_rate != null ? a.cache_hit_rate + '%' : 'N/A'}</td></tr>`
+    }).join('')
+
+    // ── Top Countries ──
+    const countries = Object.entries(countryAgg).map(([c, v]) => ({ country: c, ...v })).sort((a, b) => b.requests - a.requests).slice(0, 15)
+    document.getElementById('anlCountries').innerHTML = countries.length
+      ? countries.map(c => `<tr><td><strong>${escHtml(c.country)}</strong></td><td>${fmtNum(c.requests)}</td><td>${formatBytes(c.bytes)}</td><td>${fmtNum(c.threats)}</td></tr>`).join('')
+      : '<tr><td colspan="4" class="feature-empty">No data</td></tr>'
+
+    // ── HTTP Status Codes ──
+    const statuses = Object.entries(statusAgg).map(([s, r]) => ({ status: Number(s), requests: r })).sort((a, b) => b.requests - a.requests)
+    document.getElementById('anlStatus').innerHTML = statuses.length
+      ? statuses.map(s => {
+          const pct = agg.requests > 0 ? ((s.requests / agg.requests) * 100).toFixed(1) : '0'
+          return `<tr><td><span class="status-badge ${_anlStatusColor(s.status)}">${s.status}</span></td><td>${fmtNum(s.requests)}</td><td>${pct}%</td></tr>`
+        }).join('')
+      : '<tr><td colspan="3" class="feature-empty">No data</td></tr>'
+
+    // ── Content Types ──
+    const contentTypes = Object.entries(contentAgg).map(([t, v]) => ({ type: t, ...v })).sort((a, b) => b.requests - a.requests).slice(0, 15)
+    document.getElementById('anlContentType').innerHTML = contentTypes.length
+      ? contentTypes.map(c => `<tr><td>${escHtml(c.type)}</td><td>${fmtNum(c.requests)}</td><td>${formatBytes(c.bytes)}</td></tr>`).join('')
+      : '<tr><td colspan="3" class="feature-empty">No data</td></tr>'
+
+    // ── SSL/TLS Versions ──
+    const sslVersions = Object.entries(sslAgg).map(([p, r]) => ({ protocol: p, requests: r })).sort((a, b) => b.requests - a.requests)
+    document.getElementById('anlSslVersions').innerHTML = sslVersions.length
+      ? sslVersions.map(s => {
+          const pct = agg.requests > 0 ? ((s.requests / agg.requests) * 100).toFixed(1) : '0'
+          return `<tr><td><strong>${escHtml(s.protocol)}</strong></td><td>${fmtNum(s.requests)}</td><td>${pct}%</td></tr>`
+        }).join('')
+      : '<tr><td colspan="3" class="feature-empty">No data</td></tr>'
 
     content.hidden = false
   } catch (err) {
@@ -482,111 +704,72 @@ async function populateSslPanel() {
   const content = document.getElementById('sslContent')
   const noDomains = document.getElementById('sslNoDomains')
   const error = document.getElementById('sslError')
-  const settingsLoading = document.getElementById('sslSettingsLoading')
 
-  loading.hidden = false
-  content.hidden = true
-  noDomains.hidden = true
-  error.hidden = true
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
 
-  const domainId = populateDomainSelect('sslDomainSelect')
-  if (!domainId) {
-    loading.hidden = true
-    noDomains.hidden = false
-    return
-  }
+  populateMultiDomainSelect('sslDomainSelect')
+  const activeDomains = getSelectedDomains('sslDomainSelect')
+  if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  const select = document.getElementById('sslDomainSelect')
-  select.onchange = () => populateSslPanel()
+  document.getElementById('sslDomainSelect').onchange = () => { delete _pagState['ssl']; populateSslPanel() }
 
   try {
-    const selectedId = select.value || domainId
-    const provider = getDomainProvider(selectedId)
-    const isCf = provider === 'cloudflare'
-    const sslSettingsEl = document.getElementById('sslSettingsSection')
+    const results = await Promise.all(activeDomains.map(async (d) => {
+      try {
+        const certData = await cfProxy(d.id, 'ssl_certs')
+        return { domain: d.domain, provider: d.cdn_provider || 'cloudflare', data: certData }
+      } catch (err) {
+        return { domain: d.domain, provider: d.cdn_provider || 'cloudflare', data: null, error: err.message }
+      }
+    }))
 
-    // For non-CF, use ssl_check universal action; for CF, fetch certs + settings
-    settingsLoading.hidden = false
-
-    if (isCf) {
-      const [certData, settingsData] = await Promise.all([
-        cfProxy(selectedId, 'ssl_certs'),
-        cfProxy(selectedId, 'settings'),
-      ])
-      loading.hidden = true
-      settingsLoading.hidden = true
-
-      // Populate cert table
-      const tbody = document.getElementById('sslBody')
-      const certs = certData.certs || []
-      if (certs.length) {
-        tbody.innerHTML = certs.map(c => {
-          const hosts = (c.hosts || []).join(', ')
-          const statusClass = c.status === 'active' ? 'active' : 'pending'
-          return `<tr>
-            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(hosts)}</td>
-            <td><span class="status-badge status-badge--${statusClass}">${escHtml(c.status)}</span></td>
-            <td>${escHtml(c.issuer || 'Cloudflare')}</td>
-            <td>${escHtml(c.type || 'universal')}</td>
-            <td>${c.expires_on ? formatDate(c.expires_on) : 'Auto-renewed'}</td>
-          </tr>`
-        }).join('')
+    loading.hidden = true
+    const rows = []
+    for (const r of results) {
+      if (r.error || !r.data) {
+        rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="5" class="feature-empty">${escHtml(r.error || 'No data')}</td></tr>`)
+        continue
+      }
+      if (r.provider === 'cloudflare') {
+        const certs = r.data.certs || []
+        if (certs.length) {
+          for (const c of certs) {
+            const hosts = (c.hosts || []).join(', ')
+            const cls = c.status === 'active' ? 'active' : 'pending'
+            rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(hosts)}</td><td><span class="status-badge status-badge--${cls}">${escHtml(c.status)}</span></td><td>${escHtml(c.issuer || 'Cloudflare')}</td><td>${escHtml(c.type || 'universal')}</td><td>${c.expires_on ? formatDate(c.expires_on) : 'Auto-renewed'}</td></tr>`)
+          }
+        } else {
+          rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="5" class="feature-empty">No certificate packs found</td></tr>`)
+        }
       } else {
-        tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No certificate packs found — Universal SSL may still be active</td></tr>'
+        if (r.data.ssl_valid) {
+          const hdr = r.data.headers || {}
+          rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${escHtml(r.domain)}</td><td><span class="status-badge status-badge--active">Valid</span></td><td>${escHtml(hdr.server || r.provider)}</td><td>HTTPS check</td><td>${r.data.hsts ? 'HSTS enabled' : 'No HSTS'}</td></tr>`)
+        } else {
+          rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${escHtml(r.domain)}</td><td><span class="status-badge status-badge--error">Invalid</span></td><td colspan="3">SSL check failed</td></tr>`)
+        }
       }
-
-      // Show SSL settings section for CF
-      if (sslSettingsEl) sslSettingsEl.hidden = false
-
-      const s = settingsData.settings || {}
-      _cfSettings = s
-      _cfPanelDomainId = selectedId
-
-      const sslMode = s.ssl || 'off'
-      const badge = document.getElementById('sslModeBadge')
-      badge.textContent = sslMode
-      badge.className = 'status-badge ' + (sslMode === 'full' || sslMode === 'strict' ? 'status-badge--active' : 'status-badge--pending')
-
-      applyCfToggle('toggleAlwaysHttps', s.always_use_https)
-      const tls13 = s.min_tls_version === '1.3'
-      const tls13Label = document.getElementById('toggleTls13')
-      if (tls13Label) {
-        const inp = tls13Label.querySelector('input')
-        inp.checked = tls13
-        tls13Label.classList.toggle('toggle-switch--on', tls13)
-      }
-    } else {
-      // Non-CF: use ssl_check for basic info, use ssl_certs action (edge fn routes to sslCheck)
-      const certData = await cfProxy(selectedId, 'ssl_certs')
-      loading.hidden = true
-      settingsLoading.hidden = true
-
-      const tbody = document.getElementById('sslBody')
-      if (certData.ssl_valid) {
-        const hdr = certData.headers || {}
-        tbody.innerHTML = `<tr>
-          <td>${escHtml(userDomains.find(d => d.id === selectedId)?.domain || '')}</td>
-          <td><span class="status-badge status-badge--active">Valid</span></td>
-          <td>${escHtml(hdr.server || provider)}</td>
-          <td>HTTPS check</td>
-          <td>${certData.hsts ? 'HSTS enabled' : 'No HSTS'}</td>
-        </tr>`
-      } else {
-        tbody.innerHTML = `<tr>
-          <td>${escHtml(userDomains.find(d => d.id === selectedId)?.domain || '')}</td>
-          <td><span class="status-badge status-badge--error">Invalid</span></td>
-          <td colspan="3">SSL check failed — ${escHtml(certData.error || 'Connection error')}</td>
-        </tr>`
-      }
-
-      // Hide CF-specific settings for non-CF
-      if (sslSettingsEl) sslSettingsEl.hidden = true
+    }
+    // Add SSL expiry summary from database
+    const sslSummary = document.getElementById('sslExpirySummary')
+    if (sslSummary) {
+      const summaryCards = activeDomains.filter(d => d.ssl_expires_at).map(d => {
+        const daysLeft = Math.round((new Date(d.ssl_expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        const color = daysLeft <= 7 ? '#ef4444' : daysLeft <= 14 ? '#f59e0b' : daysLeft <= 30 ? '#3b82f6' : '#22c55e'
+        return `<div style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;margin:4px">
+          <strong>${escHtml(d.domain)}</strong>
+          <span style="color:${color};font-weight:700">${daysLeft}d</span>
+          <span style="color:#64748b;font-size:12px">${d.ssl_issuer || ''}</span>
+        </div>`
+      })
+      sslSummary.innerHTML = summaryCards.length ? summaryCards.join('') : ''
     }
 
+    _pagInit('ssl', rows)
+    _pagRender('ssl', 'sslBody', 'sslPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
-    settingsLoading.hidden = true
     error.textContent = err.message
     error.hidden = false
   }
@@ -600,65 +783,53 @@ async function populateDnsPanel() {
   const noDomains = document.getElementById('dnsNoDomains')
   const error = document.getElementById('dnsError')
 
-  loading.hidden = false
-  content.hidden = true
-  noDomains.hidden = true
-  error.hidden = true
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
 
-  const domainId = populateDomainSelect('dnsDomainSelect')
-  if (!domainId) {
-    loading.hidden = true
-    noDomains.hidden = false
-    return
-  }
+  populateMultiDomainSelect('dnsDomainSelect')
+  const activeDomains = getSelectedDomains('dnsDomainSelect')
+  if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  const select = document.getElementById('dnsDomainSelect')
-  select.onchange = () => populateDnsPanel()
+  document.getElementById('dnsDomainSelect').onchange = () => { delete _pagState['dns']; populateDnsPanel() }
 
   try {
-    const selectedId = select.value || domainId
-    const provider = getDomainProvider(selectedId)
-    const isCf = provider === 'cloudflare'
-    const data = await cfProxy(selectedId, 'dns_records')
+    const results = await Promise.all(activeDomains.map(async (d) => {
+      try {
+        const data = await cfProxy(d.id, 'dns_records')
+        return { domain: d.domain, provider: d.cdn_provider || 'cloudflare', data }
+      } catch (err) {
+        return { domain: d.domain, provider: d.cdn_provider || 'cloudflare', data: null, error: err.message }
+      }
+    }))
+
     loading.hidden = true
-
-    const tbody = document.getElementById('dnsBody')
-
-    if (isCf) {
-      // CF returns array of {type, name, content, ttl, proxied}
-      const records = data.records || []
-      if (!records.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="feature-empty">No DNS records found</td></tr>'
-      } else {
-        tbody.innerHTML = records.map(r => {
-          const ttl = r.ttl === 1 ? 'Auto' : `${r.ttl}s`
-          return `<tr>
-            <td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(r.type)}</span></td>
-            <td>${escHtml(r.name)}</td>
-            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(r.content)}">${escHtml(r.content)}</td>
-            <td>${ttl}</td>
-            <td>${r.proxied ? '<span class="status-badge status-badge--active">Proxied</span>' : '<span class="status-badge status-badge--pending">DNS only</span>'}</td>
-          </tr>`
-        }).join('')
+    const rows = []
+    for (const r of results) {
+      if (r.error || !r.data) {
+        rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="5" class="feature-empty">${escHtml(r.error || 'No data')}</td></tr>`)
+        continue
       }
-    } else {
-      // Non-CF: dns_lookup returns {records: {A: [{data, ttl}], CNAME: [...]}}
-      const recordMap = data.records || {}
-      const domainName = userDomains.find(d => d.id === selectedId)?.domain || ''
-      const rows = []
-      for (const [type, entries] of Object.entries(recordMap)) {
-        for (const entry of entries) {
-          rows.push(`<tr>
-            <td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(type)}</span></td>
-            <td>${escHtml(domainName)}</td>
-            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(entry.data)}">${escHtml(entry.data)}</td>
-            <td>${entry.ttl ? entry.ttl + 's' : 'N/A'}</td>
-            <td><span class="status-badge status-badge--pending">DNS lookup</span></td>
-          </tr>`)
+      if (r.provider === 'cloudflare') {
+        const records = r.data.records || []
+        if (!records.length) {
+          rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="5" class="feature-empty">No DNS records</td></tr>`)
+        } else {
+          for (const rec of records) {
+            const ttl = rec.ttl === 1 ? 'Auto' : `${rec.ttl}s`
+            rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(rec.type)}</span></td><td>${escHtml(rec.name)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(rec.content)}</td><td>${ttl}</td><td>${rec.proxied ? '<span class="status-badge status-badge--active">Proxied</span>' : '<span class="status-badge status-badge--pending">DNS only</span>'}</td></tr>`)
+          }
         }
+      } else {
+        const recordMap = r.data.records || {}
+        for (const [type, recs] of Object.entries(recordMap)) {
+          for (const entry of recs) {
+            rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(type)}</span></td><td>${escHtml(r.domain)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(entry.data)}</td><td>${entry.ttl ? entry.ttl + 's' : 'N/A'}</td><td><span class="status-badge status-badge--pending">DNS lookup</span></td></tr>`)
+          }
+        }
+        if (!Object.keys(recordMap).length) rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="5" class="feature-empty">No DNS records</td></tr>`)
       }
-      tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="5" class="feature-empty">No DNS records found via lookup</td></tr>'
     }
+    _pagInit('dns', rows)
+    _pagRender('dns', 'dnsBody', 'dnsPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -675,43 +846,34 @@ async function populateMinifyPanel() {
   const noDomains = document.getElementById('minifyNoDomains')
   const error = document.getElementById('minifyError')
 
-  loading.hidden = false
-  content.hidden = true
-  noDomains.hidden = true
-  error.hidden = true
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
 
-  const domainId = populateDomainSelect('minifyDomainSelect')
-  if (!domainId) {
-    loading.hidden = true
-    noDomains.hidden = false
-    return
-  }
+  populateMultiDomainSelect('minifyDomainSelect')
+  const activeDomains = getSelectedDomains('minifyDomainSelect')
+  if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  const select = document.getElementById('minifyDomainSelect')
-  select.onchange = () => populateMinifyPanel()
+  document.getElementById('minifyDomainSelect').onchange = () => { delete _pagState['minify']; populateMinifyPanel() }
 
   try {
-    const selectedId = select.value || domainId
-    const provider = getDomainProvider(selectedId)
+    const results = await Promise.all(activeDomains.map(async (d) => {
+      const provider = d.cdn_provider || 'cloudflare'
+      if (provider !== 'cloudflare') return { domain: d.domain, settings: null, message: 'Not available' }
+      try {
+        const data = await cfProxy(d.id, 'settings')
+        return { domain: d.domain, settings: data.settings || {} }
+      } catch (err) {
+        return { domain: d.domain, settings: null, message: err.message }
+      }
+    }))
 
-    if (provider !== 'cloudflare') {
-      loading.hidden = true
-      error.textContent = 'Minification settings are only available for Cloudflare domains.'
-      error.hidden = false
-      return
-    }
-
-    const data = await cfProxy(selectedId, 'settings')
     loading.hidden = true
-
-    const s = data.settings || {}
-    _cfSettings = s
-    _cfPanelDomainId = selectedId
-
-    const minify = s.minify || { css: 'off', html: 'off', js: 'off' }
-    applyCfToggle('toggleMinHtml', minify.html)
-    applyCfToggle('toggleMinCss', minify.css)
-    applyCfToggle('toggleMinJs', minify.js)
+    const rows = results.map(r => {
+      if (!r.settings) return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="3" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
+      const minify = r.settings.minify || { css: 'off', html: 'off', js: 'off' }
+      return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${settingBadge(minify.html)}</td><td>${settingBadge(minify.css)}</td><td>${settingBadge(minify.js)}</td></tr>`
+    })
+    _pagInit('minify', rows)
+    _pagRender('minify', 'minifyBody', 'minifyPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -728,48 +890,36 @@ async function populateImagesPanel() {
   const noDomains = document.getElementById('imgNoDomains')
   const error = document.getElementById('imgError')
 
-  loading.hidden = false
-  content.hidden = true
-  noDomains.hidden = true
-  error.hidden = true
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
 
-  const domainId = populateDomainSelect('imgDomainSelect')
-  if (!domainId) {
-    loading.hidden = true
-    noDomains.hidden = false
-    return
-  }
+  populateMultiDomainSelect('imgDomainSelect')
+  const activeDomains = getSelectedDomains('imgDomainSelect')
+  if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  const select = document.getElementById('imgDomainSelect')
-  select.onchange = () => populateImagesPanel()
+  document.getElementById('imgDomainSelect').onchange = () => { delete _pagState['img']; populateImagesPanel() }
 
   try {
-    const selectedId = select.value || domainId
-    const provider = getDomainProvider(selectedId)
+    const results = await Promise.all(activeDomains.map(async (d) => {
+      const provider = d.cdn_provider || 'cloudflare'
+      if (provider !== 'cloudflare') return { domain: d.domain, settings: null, message: 'Not available' }
+      try {
+        const data = await cfProxy(d.id, 'settings')
+        return { domain: d.domain, settings: data.settings || {} }
+      } catch (err) {
+        return { domain: d.domain, settings: null, message: err.message }
+      }
+    }))
 
-    if (provider !== 'cloudflare') {
-      loading.hidden = true
-      error.textContent = 'Image optimization settings are only available for Cloudflare domains.'
-      error.hidden = false
-      return
-    }
-
-    const data = await cfProxy(selectedId, 'settings')
     loading.hidden = true
-
-    const s = data.settings || {}
-    _cfSettings = s
-    _cfPanelDomainId = selectedId
-
-    applyCfToggle('toggleMirage', s.mirage)
-    applyCfToggle('toggleRocketLoader', s.rocket_loader)
-    applyCfToggle('toggleWebp', s.webp)
-
-    const polishBadge = document.getElementById('imgPolishBadge')
-    const polish = s.polish || 'off'
-    polishBadge.textContent = polish
-    polishBadge.className = 'status-badge ' + (polish !== 'off' ? 'status-badge--active' : 'status-badge--pending')
-
+    const rows = results.map(r => {
+      if (!r.settings) return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="4" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
+      const s = r.settings
+      const polish = s.polish || 'off'
+      const polishBadge = `<span class="status-badge ${polish !== 'off' ? 'status-badge--active' : 'status-badge--pending'}">${polish}</span>`
+      return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${settingBadge(s.mirage)}</td><td>${polishBadge}</td><td>${settingBadge(s.webp)}</td><td>${settingBadge(s.rocket_loader)}</td></tr>`
+    })
+    _pagInit('img', rows)
+    _pagRender('img', 'imgBody', 'imgPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -786,50 +936,36 @@ async function populateWafPanel() {
   const noDomains = document.getElementById('wafNoDomains')
   const error = document.getElementById('wafError')
 
-  loading.hidden = false
-  content.hidden = true
-  noDomains.hidden = true
-  error.hidden = true
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
 
-  const domainId = populateDomainSelect('wafDomainSelect')
-  if (!domainId) {
-    loading.hidden = true
-    noDomains.hidden = false
-    return
-  }
+  populateMultiDomainSelect('wafDomainSelect')
+  const activeDomains = getSelectedDomains('wafDomainSelect')
+  if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  const select = document.getElementById('wafDomainSelect')
-  select.onchange = () => populateWafPanel()
+  document.getElementById('wafDomainSelect').onchange = () => { delete _pagState['waf']; populateWafPanel() }
 
   try {
-    const selectedId = select.value || domainId
-    const provider = getDomainProvider(selectedId)
+    const results = await Promise.all(activeDomains.map(async (d) => {
+      const provider = d.cdn_provider || 'cloudflare'
+      if (provider !== 'cloudflare') return { domain: d.domain, settings: null, message: 'WAF not available' }
+      try {
+        const data = await cfProxy(d.id, 'settings')
+        return { domain: d.domain, settings: data.settings || {} }
+      } catch (err) {
+        return { domain: d.domain, settings: null, message: err.message }
+      }
+    }))
 
-    if (provider !== 'cloudflare') {
-      loading.hidden = true
-      error.textContent = 'WAF / Firewall settings are only available for Cloudflare domains.'
-      error.hidden = false
-      return
-    }
-
-    const data = await cfProxy(selectedId, 'settings')
     loading.hidden = true
-
-    const s = data.settings || {}
-    _cfSettings = s
-    _cfPanelDomainId = selectedId
-
-    const levelBadge = document.getElementById('wafSecurityLevel')
-    const level = s.security_level || 'medium'
-    levelBadge.textContent = level.charAt(0).toUpperCase() + level.slice(1)
-    const levelClass = level === 'high' || level === 'under_attack' ? 'status-badge--error' : 'status-badge--active'
-    levelBadge.className = `status-badge ${levelClass}`
-
-    applyCfToggle('toggleBrowserCheck', s.browser_check)
-    applyCfToggle('toggleEmailObfuscation', s.email_obfuscation)
-    applyCfToggle('toggleHotlink', s.hotlink_protection)
-    applyCfToggle('toggleSSE', s.server_side_exclude)
-
+    const rows = results.map(r => {
+      if (!r.settings) return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="4" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
+      const s = r.settings
+      const level = s.security_level || 'medium'
+      const levelCls = level === 'high' || level === 'under_attack' ? 'status-badge--error' : 'status-badge--active'
+      return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td><span class="status-badge ${levelCls}">${level.charAt(0).toUpperCase() + level.slice(1)}</span></td><td>${settingBadge(s.browser_check)}</td><td>${settingBadge(s.email_obfuscation)}</td><td>${settingBadge(s.hotlink_protection)}</td></tr>`
+    })
+    _pagInit('waf', rows)
+    _pagRender('waf', 'wafBody', 'wafPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -846,45 +982,34 @@ async function populateDdosPanel() {
   const noDomains = document.getElementById('ddosNoDomains')
   const error = document.getElementById('ddosError')
 
-  loading.hidden = false
-  content.hidden = true
-  noDomains.hidden = true
-  error.hidden = true
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; error.hidden = true
 
-  const domainId = populateDomainSelect('ddosDomainSelect')
-  if (!domainId) {
-    loading.hidden = true
-    noDomains.hidden = false
-    return
-  }
+  populateMultiDomainSelect('ddosDomainSelect')
+  const activeDomains = getSelectedDomains('ddosDomainSelect')
+  if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  const select = document.getElementById('ddosDomainSelect')
-  select.onchange = () => populateDdosPanel()
+  document.getElementById('ddosDomainSelect').onchange = () => { delete _pagState['ddos']; populateDdosPanel() }
 
   try {
-    const selectedId = select.value || domainId
-    const provider = getDomainProvider(selectedId)
+    const results = await Promise.all(activeDomains.map(async (d) => {
+      const provider = d.cdn_provider || 'cloudflare'
+      if (provider === 'none') return { domain: d.domain, analytics: null, message: 'Not available' }
+      try {
+        const data = await cfProxy(d.id, 'analytics', { since: '30d' })
+        return { domain: d.domain, analytics: data.analytics, message: data.message }
+      } catch (err) {
+        return { domain: d.domain, analytics: null, message: err.message }
+      }
+    }))
 
-    if (provider === 'none') {
-      loading.hidden = true
-      error.textContent = 'DDoS analytics are not available for monitoring-only domains.'
-      error.hidden = false
-      return
-    }
-
-    const data = await cfProxy(selectedId, 'analytics', { since: '30d' })
     loading.hidden = true
-
-    if (!data.analytics) {
-      error.textContent = data.message || 'No analytics data available for this domain.'
-      error.hidden = false
-      return
-    }
-
-    const a = data.analytics
-    document.getElementById('ddosThreats').textContent = fmtNum(a.threats_total)
-    document.getElementById('ddosRequests').textContent = fmtNum(a.requests_total)
-    document.getElementById('ddosBandwidth').textContent = formatBytes(a.bandwidth_total)
+    const rows = results.map(r => {
+      if (!r.analytics) return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="3" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
+      const a = r.analytics
+      return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${fmtNum(a.threats_total)}</td><td>${fmtNum(a.requests_total)}</td><td>${formatBytes(a.bandwidth_total)}</td></tr>`
+    })
+    _pagInit('ddos', rows)
+    _pagRender('ddos', 'ddosBody', 'ddosPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -897,61 +1022,90 @@ async function populateDdosPanel() {
 
 async function populateUptimePanel() {
   const loading = document.getElementById('uptimeLoading')
-  const list = document.getElementById('uptimeList')
+  const content = document.getElementById('uptimeContent')
   const noDomains = document.getElementById('uptimeNoDomains')
 
-  loading.hidden = false
-  list.hidden = true
-  noDomains.hidden = true
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true
 
   const activeDomains = userDomains.filter(d => d.status === 'active')
-  if (!activeDomains.length) {
-    loading.hidden = true
-    noDomains.hidden = false
-    return
-  }
+  if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  const session = await getSession()
-  if (!session) { loading.hidden = true; return }
+  // Determine period
+  const periodSelect = document.getElementById('uptimePeriodSelect')
+  const period = periodSelect ? periodSelect.value : '24h'
+  const periodMs = { '24h': 86400000, '7d': 604800000, '30d': 2592000000 }
+  const since = new Date(Date.now() - (periodMs[period] || 86400000)).toISOString()
 
-  // Run uptime checks in parallel for all active domains
+  // Fetch live checks + stored history in parallel
   const results = await Promise.all(activeDomains.map(async (d) => {
     try {
-      const data = await cfProxy(d.id, 'uptime_check')
-      return { domain: d.domain, checks: data.checks || [] }
+      // Live check
+      const liveData = await cfProxy(d.id, 'uptime_check')
+      // Historical data from Supabase
+      const { data: checks } = await _supabase
+        .from('uptime_checks')
+        .select('status, latency_ms, checked_at')
+        .eq('domain_id', d.id)
+        .gte('checked_at', since)
+        .order('checked_at', { ascending: false })
+      // Downtime incidents
+      const { data: incidents } = await _supabase
+        .from('downtime_incidents')
+        .select('started_at, ended_at, duration_seconds')
+        .eq('domain_id', d.id)
+        .gte('started_at', since)
+        .order('started_at', { ascending: false })
+        .limit(10)
+      return { domain: d.domain, domainId: d.id, live: liveData.checks || [], checks: checks || [], incidents: incidents || [] }
     } catch {
-      return { domain: d.domain, checks: [] }
+      return { domain: d.domain, domainId: d.id, live: [], checks: [], incidents: [] }
     }
   }))
 
   loading.hidden = true
-  list.hidden = false
+  content.hidden = false
 
-  list.innerHTML = results.map(r => {
-    const httpsCheck = r.checks.find(c => c.url?.startsWith('https'))
-    const httpCheck = r.checks.find(c => c.url?.startsWith('http://'))
+  // Bind period selector
+  if (periodSelect) periodSelect.onchange = () => { delete _pagState['uptime']; populateUptimePanel() }
+
+  const checkMark = (ok) => ok ? '<span style="color:#22c55e">&#10003;</span>' : '<span style="color:#ef4444">&#10007;</span>'
+  const rows = results.map(r => {
+    const httpsCheck = r.live.find(c => c.url?.startsWith('https'))
+    const httpCheck = r.live.find(c => c.url?.startsWith('http://'))
     const mainCheck = httpsCheck || httpCheck || {}
     const isUp = mainCheck.ok
-    const latency = mainCheck.latency
+    const statusBadge = isUp
+      ? '<span class="status-badge status-badge--active">UP</span>'
+      : '<span class="status-badge status-badge--error">DOWN</span>'
+    const latencyText = mainCheck.latency != null ? `${mainCheck.latency}ms` : '--'
 
-    const pctClass = isUp ? 'good' : 'bad'
-    const statusText = isUp ? 'UP' : 'DOWN'
-    const latencyText = latency != null ? `${latency}ms` : '--'
+    // Uptime percentage from historical data
+    const totalChecks = r.checks.length
+    const upChecks = r.checks.filter(c => c.status === 'up').length
+    const uptimePct = totalChecks > 0 ? ((upChecks / totalChecks) * 100).toFixed(2) : 'N/A'
+    const uptimeColor = uptimePct === 'N/A' ? '#94a3b8' : parseFloat(uptimePct) >= 99.9 ? '#22c55e' : parseFloat(uptimePct) >= 99 ? '#f59e0b' : '#ef4444'
 
-    return `<div class="uptime-card">
-      <div class="uptime-card__top">
-        <span class="uptime-card__domain">${escHtml(r.domain)}</span>
-        <span class="uptime-card__pct uptime-card__pct--${pctClass}">${statusText}</span>
-      </div>
-      <div style="display:flex;gap:1rem;font-size:0.85rem;color:rgba(255,255,255,0.6);margin-top:0.3rem">
-        <span>HTTPS: ${httpsCheck?.ok ? '<span style="color:#22c55e">&#10003; ' + (httpsCheck.status || '') + '</span>' : '<span style="color:#ef4444">&#10007; ' + (httpsCheck?.status || 'Timeout') + '</span>'}</span>
-        <span>HTTP: ${httpCheck?.ok ? '<span style="color:#22c55e">&#10003; ' + (httpCheck.status || '') + '</span>' : '<span style="color:#ef4444">&#10007; ' + (httpCheck?.status || 'Timeout') + '</span>'}</span>
-        <span>Latency: <strong>${latencyText}</strong></span>
-      </div>
-    </div>`
-  }).join('')
+    // Average latency from history
+    const latencies = r.checks.filter(c => c.latency_ms).map(c => c.latency_ms)
+    const avgLatency = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : null
 
-  // Bind refresh button
+    // Incidents count
+    const incidentCount = r.incidents.length
+
+    return `<tr>
+      <td><strong>${escHtml(r.domain)}</strong></td>
+      <td>${statusBadge}</td>
+      <td>${checkMark(httpsCheck?.ok)}</td>
+      <td>${checkMark(httpCheck?.ok)}</td>
+      <td><strong>${latencyText}</strong></td>
+      <td><strong style="color:${uptimeColor}">${uptimePct}%</strong></td>
+      <td>${avgLatency ? avgLatency + 'ms' : '--'}</td>
+      <td>${incidentCount > 0 ? `<span style="color:#ef4444;font-weight:600">${incidentCount}</span>` : '<span style="color:#22c55e">0</span>'}</td>
+    </tr>`
+  })
+  _pagInit('uptime', rows)
+  _pagRender('uptime', 'uptimeBody', 'uptimePagination')
+
   const refreshBtn = document.getElementById('uptimeRefreshBtn')
   if (refreshBtn) refreshBtn.onclick = () => populateUptimePanel()
 }
@@ -2190,9 +2344,29 @@ function update2faUI(enabled) {
   if (btn) btn.textContent = enabled ? 'Disable 2FA' : 'Enable 2FA'
 }
 
-function populateNotifSettings() {
-  const s = loadUserSettings()
+async function populateNotifSettings() {
   const el = (id) => document.getElementById(id)
+  // Try loading from database first, fallback to localStorage
+  try {
+    const { data } = await _supabase
+      .from('notification_preferences')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .single()
+    if (data) {
+      el('settNotifDowntime').checked = data.notify_downtime
+      el('settNotifSsl').checked = data.notify_ssl_expiry
+      if (el('settNotifWeekly')) el('settNotifWeekly').checked = data.notify_weekly_report
+      if (data.alert_email) el('settNotifEmail').value = data.alert_email
+      // Keep other toggles from localStorage
+      const s = loadUserSettings()
+      if (s.notifDdos != null) el('settNotifDdos').checked = s.notifDdos
+      if (s.notifPurge != null) el('settNotifPurge').checked = s.notifPurge
+      if (s.notifStatus != null) el('settNotifStatus').checked = s.notifStatus
+      return
+    }
+  } catch { /* fallback to localStorage */ }
+  const s = loadUserSettings()
   if (s.notifDowntime != null) el('settNotifDowntime').checked = s.notifDowntime
   if (s.notifSsl != null) el('settNotifSsl').checked = s.notifSsl
   if (s.notifDdos != null) el('settNotifDdos').checked = s.notifDdos
@@ -2276,16 +2450,29 @@ function initUserSettingsHandlers() {
     showToast('Domain defaults saved')
   })
 
-  // Notifications save
-  el('settNotifSaveBtn')?.addEventListener('click', () => {
-    saveUserSettings({
+  // Notifications save — persist to DB + localStorage
+  el('settNotifSaveBtn')?.addEventListener('click', async () => {
+    const prefs = {
       notifDowntime: el('settNotifDowntime').checked,
       notifSsl: el('settNotifSsl').checked,
       notifDdos: el('settNotifDdos').checked,
       notifPurge: el('settNotifPurge').checked,
       notifStatus: el('settNotifStatus').checked,
       notifEmail: el('settNotifEmail').value.trim(),
-    })
+    }
+    saveUserSettings(prefs)
+    // Save to database for server-side functions (uptime alerts, weekly reports)
+    try {
+      const dbPrefs = {
+        user_id: currentUser.id,
+        notify_downtime: prefs.notifDowntime,
+        notify_recovery: prefs.notifDowntime, // same toggle controls both
+        notify_ssl_expiry: prefs.notifSsl,
+        notify_weekly_report: el('settNotifWeekly') ? el('settNotifWeekly').checked : true,
+        alert_email: prefs.notifEmail || null,
+      }
+      await _supabase.from('notification_preferences').upsert(dbPrefs, { onConflict: 'user_id' })
+    } catch { /* localStorage fallback still works */ }
     showToast('Notification settings saved')
   })
 

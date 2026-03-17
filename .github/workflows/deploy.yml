@@ -91,6 +91,7 @@ jobs:
           cp login.html dist/
           cp dashboard.html dist/
           [ -f privacy.html ] && cp privacy.html dist/ || true
+          [ -f status.html ] && cp status.html dist/ || true
           [ -f robots.txt ] && cp robots.txt dist/ || true
           [ -f sitemap.xml ] && cp sitemap.xml dist/ || true
           [ -d img ] && cp -r img dist/ || true

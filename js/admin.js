@@ -1627,6 +1627,49 @@ function formatDate(iso) {
 const _admCfCache = {}
 const ADM_CACHE_TTL = 60_000
 
+// ─── Generic Table Pagination ─────────────────────────────────────────────────
+const ADM_PER_PAGE = 15
+const _admPageState = {} // { key: { rows: [], page: 1 } }
+
+function _admInitPage(key, rows) {
+  _admPageState[key] = { rows, page: (_admPageState[key]?.page > 1 ? Math.min(_admPageState[key].page, Math.ceil(rows.length / ADM_PER_PAGE) || 1) : 1) }
+}
+
+function _admRenderPage(key, tbodyId, pagId) {
+  const state = _admPageState[key]
+  if (!state) return
+  const tbody = document.getElementById(tbodyId)
+  const pag = document.getElementById(pagId)
+  if (!tbody || !pag) return
+
+  const totalPages = Math.ceil(state.rows.length / ADM_PER_PAGE) || 1
+  if (state.page > totalPages) state.page = totalPages
+  const start = (state.page - 1) * ADM_PER_PAGE
+  tbody.innerHTML = state.rows.slice(start, start + ADM_PER_PAGE).join('')
+
+  if (totalPages <= 1) { pag.innerHTML = ''; return }
+
+  let btns = ''
+  btns += `<button class="pagination__btn pagination__btn--nav" ${state.page === 1 ? 'disabled' : ''} data-pag="${key}" data-pp="${state.page - 1}">&laquo; Prev</button>`
+  for (let i = 1; i <= totalPages; i++) {
+    if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - state.page) > 1) {
+      if (i === 3 || i === totalPages - 2) btns += '<span class="pagination__dots">&hellip;</span>'
+      continue
+    }
+    btns += `<button class="pagination__btn${i === state.page ? ' pagination__btn--active' : ''}" data-pag="${key}" data-pp="${i}">${i}</button>`
+  }
+  btns += `<button class="pagination__btn pagination__btn--nav" ${state.page === totalPages ? 'disabled' : ''} data-pag="${key}" data-pp="${state.page + 1}">Next &raquo;</button>`
+
+  pag.innerHTML = `<div class="pagination__info">${state.rows.length} records &middot; Page ${state.page} of ${totalPages}</div><div class="pagination__buttons">${btns}</div>`
+
+  pag.querySelectorAll(`[data-pag="${key}"]`).forEach(btn => {
+    btn.onclick = () => {
+      state.page = Number(btn.dataset.pp)
+      _admRenderPage(key, tbodyId, pagId)
+    }
+  })
+}
+
 async function admCfProxy(domainId, action, extra = {}) {
   const cacheKey = `${domainId}:${action}:${JSON.stringify(extra)}`
   const cached = _admCfCache[cacheKey]
@@ -1725,7 +1768,7 @@ async function admPopulateAnalytics() {
   const activeDomains = admGetSelectedDomains('admAnlDomainSelect')
   if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  document.getElementById('admAnlDomainSelect').onchange = () => admPopulateAnalytics()
+  document.getElementById('admAnlDomainSelect').onchange = () => { delete _admPageState['anl']; admPopulateAnalytics() }
 
   document.querySelectorAll('#panelMonAnalytics .purge-tab').forEach(btn => {
     btn.onclick = () => {
@@ -1859,14 +1902,15 @@ async function admPopulateAnalytics() {
     }
 
     // ── Per-domain table ──
-    const tbody = document.getElementById('admAnlBody')
-    tbody.innerHTML = results.map(r => {
+    const anlRows = results.map(r => {
       if (!r.analytics) {
         return `<tr><td>${escHtml(r.domain)}</td><td>${providerBadge(r.provider)}</td><td colspan="6" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
       }
       const a = r.analytics
       return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td>${fmtNum(a.requests_total)}</td><td>${fmtNum(a.requests_cached)}</td><td>${formatBytes(a.bandwidth_total)}</td><td>${a.unique_visitors != null ? fmtNum(a.unique_visitors) : 'N/A'}</td><td>${fmtNum(a.threats_total)}</td><td>${a.cache_hit_rate != null ? a.cache_hit_rate + '%' : 'N/A'}</td></tr>`
-    }).join('')
+    })
+    _admInitPage('anl', anlRows)
+    _admRenderPage('anl', 'admAnlBody', 'admAnlPagination')
 
     // ── Top Countries ──
     const countries = Object.entries(countryAgg).map(([c, v]) => ({ country: c, ...v })).sort((a, b) => b.requests - a.requests).slice(0, 15)
@@ -1920,7 +1964,7 @@ async function admPopulateSsl() {
   const activeDomains = admGetSelectedDomains('admSslDomainSelect')
   if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  document.getElementById('admSslDomainSelect').onchange = () => admPopulateSsl()
+  document.getElementById('admSslDomainSelect').onchange = () => { delete _admPageState['ssl']; admPopulateSsl() }
 
   try {
     const results = await Promise.all(activeDomains.map(async (d) => {
@@ -1961,7 +2005,8 @@ async function admPopulateSsl() {
         }
       }
     }
-    tbody.innerHTML = rows.join('')
+    _admInitPage('ssl', rows)
+    _admRenderPage('ssl', 'admSslBody', 'admSslPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -1984,7 +2029,7 @@ async function admPopulateDns() {
   const activeDomains = admGetSelectedDomains('admDnsDomainSelect')
   if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  document.getElementById('admDnsDomainSelect').onchange = () => admPopulateDns()
+  document.getElementById('admDnsDomainSelect').onchange = () => { delete _admPageState['dns']; admPopulateDns() }
 
   try {
     const results = await Promise.all(activeDomains.map(async (d) => {
@@ -1997,7 +2042,6 @@ async function admPopulateDns() {
     }))
 
     loading.hidden = true
-    const tbody = document.getElementById('admDnsBody')
     const rows = []
 
     for (const r of results) {
@@ -2017,17 +2061,16 @@ async function admPopulateDns() {
         }
       } else {
         const recordMap = r.data.records || {}
-        const entries = []
         for (const [type, recs] of Object.entries(recordMap)) {
           for (const entry of recs) {
-            entries.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(type)}</span></td><td>${escHtml(r.domain)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(entry.data)}</td><td>${entry.ttl ? entry.ttl + 's' : 'N/A'}</td><td><span class="status-badge status-badge--pending">DNS lookup</span></td></tr>`)
+            rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td><span class="status-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">${escHtml(type)}</span></td><td>${escHtml(r.domain)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(entry.data)}</td><td>${entry.ttl ? entry.ttl + 's' : 'N/A'}</td><td><span class="status-badge status-badge--pending">DNS lookup</span></td></tr>`)
           }
         }
-        if (entries.length) rows.push(...entries)
-        else rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="5" class="feature-empty">No DNS records</td></tr>`)
+        if (!Object.keys(r.data.records || {}).length) rows.push(`<tr><td><strong>${escHtml(r.domain)}</strong></td><td colspan="5" class="feature-empty">No DNS records</td></tr>`)
       }
     }
-    tbody.innerHTML = rows.join('')
+    _admInitPage('dns', rows)
+    _admRenderPage('dns', 'admDnsBody', 'admDnsPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -2050,7 +2093,7 @@ async function admPopulateWaf() {
   const activeDomains = admGetSelectedDomains('admWafDomainSelect')
   if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  document.getElementById('admWafDomainSelect').onchange = () => admPopulateWaf()
+  document.getElementById('admWafDomainSelect').onchange = () => { delete _admPageState['waf']; admPopulateWaf() }
 
   try {
     const results = await Promise.all(activeDomains.map(async (d) => {
@@ -2065,8 +2108,7 @@ async function admPopulateWaf() {
     }))
 
     loading.hidden = true
-    const tbody = document.getElementById('admWafBody')
-    tbody.innerHTML = results.map(r => {
+    const rows = results.map(r => {
       if (!r.settings) {
         return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td colspan="4" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
       }
@@ -2074,7 +2116,9 @@ async function admPopulateWaf() {
       const level = s.security_level || 'medium'
       const levelCls = level === 'high' || level === 'under_attack' ? 'status-badge--error' : 'status-badge--active'
       return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td><span class="status-badge ${levelCls}">${level.charAt(0).toUpperCase() + level.slice(1)}</span></td><td>${admSettingBadge(s.browser_check)}</td><td>${admSettingBadge(s.email_obfuscation)}</td><td>${admSettingBadge(s.hotlink_protection)}</td></tr>`
-    }).join('')
+    })
+    _admInitPage('waf', rows)
+    _admRenderPage('waf', 'admWafBody', 'admWafPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -2097,7 +2141,7 @@ async function admPopulateImages() {
   const activeDomains = admGetSelectedDomains('admImgDomainSelect')
   if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  document.getElementById('admImgDomainSelect').onchange = () => admPopulateImages()
+  document.getElementById('admImgDomainSelect').onchange = () => { delete _admPageState['img']; admPopulateImages() }
 
   try {
     const results = await Promise.all(activeDomains.map(async (d) => {
@@ -2112,8 +2156,7 @@ async function admPopulateImages() {
     }))
 
     loading.hidden = true
-    const tbody = document.getElementById('admImgBody')
-    tbody.innerHTML = results.map(r => {
+    const rows = results.map(r => {
       if (!r.settings) {
         return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td colspan="4" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
       }
@@ -2121,7 +2164,9 @@ async function admPopulateImages() {
       const polish = s.polish || 'off'
       const polishBadge = `<span class="status-badge ${polish !== 'off' ? 'status-badge--active' : 'status-badge--pending'}">${polish}</span>`
       return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td>${admSettingBadge(s.mirage)}</td><td>${polishBadge}</td><td>${admSettingBadge(s.webp)}</td><td>${admSettingBadge(s.rocket_loader)}</td></tr>`
-    }).join('')
+    })
+    _admInitPage('img', rows)
+    _admRenderPage('img', 'admImgBody', 'admImgPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -2144,7 +2189,7 @@ async function admPopulateMinify() {
   const activeDomains = admGetSelectedDomains('admMinifyDomainSelect')
   if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  document.getElementById('admMinifyDomainSelect').onchange = () => admPopulateMinify()
+  document.getElementById('admMinifyDomainSelect').onchange = () => { delete _admPageState['minify']; admPopulateMinify() }
 
   try {
     const results = await Promise.all(activeDomains.map(async (d) => {
@@ -2159,14 +2204,15 @@ async function admPopulateMinify() {
     }))
 
     loading.hidden = true
-    const tbody = document.getElementById('admMinifyBody')
-    tbody.innerHTML = results.map(r => {
+    const rows = results.map(r => {
       if (!r.settings) {
         return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td colspan="3" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
       }
       const minify = r.settings.minify || { css: 'off', html: 'off', js: 'off' }
       return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td>${admSettingBadge(minify.html)}</td><td>${admSettingBadge(minify.css)}</td><td>${admSettingBadge(minify.js)}</td></tr>`
-    }).join('')
+    })
+    _admInitPage('minify', rows)
+    _admRenderPage('minify', 'admMinifyBody', 'admMinifyPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -2199,8 +2245,7 @@ async function admPopulateUptime() {
   loading.hidden = true
   content.hidden = false
 
-  const tbody = document.getElementById('admUptimeBody')
-  tbody.innerHTML = results.map(r => {
+  const rows = results.map(r => {
     const httpsCheck = r.checks.find(c => c.url?.startsWith('https'))
     const httpCheck = r.checks.find(c => c.url?.startsWith('http://'))
     const mainCheck = httpsCheck || httpCheck || {}
@@ -2212,7 +2257,9 @@ async function admPopulateUptime() {
     const latencyText = mainCheck.latency != null ? `${mainCheck.latency}ms` : '--'
 
     return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${escHtml(r.owner || '')}</td><td>${providerBadge(r.provider)}</td><td>${statusBadge}</td><td>${checkMark(httpsCheck?.ok)}</td><td>${checkMark(httpCheck?.ok)}</td><td><strong>${latencyText}</strong></td></tr>`
-  }).join('')
+  })
+  _admInitPage('uptime', rows)
+  _admRenderPage('uptime', 'admUptimeBody', 'admUptimePagination')
 
   const refreshBtn = document.getElementById('admUptimeRefreshBtn')
   if (refreshBtn) refreshBtn.onclick = () => {
@@ -2237,7 +2284,7 @@ async function admPopulateDdos() {
   const activeDomains = admGetSelectedDomains('admDdosDomainSelect')
   if (!activeDomains.length) { loading.hidden = true; noDomains.hidden = false; return }
 
-  document.getElementById('admDdosDomainSelect').onchange = () => admPopulateDdos()
+  document.getElementById('admDdosDomainSelect').onchange = () => { delete _admPageState['ddos']; admPopulateDdos() }
 
   try {
     const results = await Promise.all(activeDomains.map(async (d) => {
@@ -2252,14 +2299,15 @@ async function admPopulateDdos() {
     }))
 
     loading.hidden = true
-    const tbody = document.getElementById('admDdosBody')
-    tbody.innerHTML = results.map(r => {
+    const rows = results.map(r => {
       if (!r.analytics) {
         return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td colspan="3" class="feature-empty">${escHtml(r.message || 'No data')}</td></tr>`
       }
       const a = r.analytics
       return `<tr><td><strong>${escHtml(r.domain)}</strong></td><td>${providerBadge(r.provider)}</td><td>${fmtNum(a.threats_total)}</td><td>${fmtNum(a.requests_total)}</td><td>${formatBytes(a.bandwidth_total)}</td></tr>`
-    }).join('')
+    })
+    _admInitPage('ddos', rows)
+    _admRenderPage('ddos', 'admDdosBody', 'admDdosPagination')
     content.hidden = false
   } catch (err) {
     loading.hidden = true
@@ -2566,7 +2614,7 @@ function admPopulateUsersTable() {
 
   const planLabels = { none: 'Free', solo: 'Solo', starter: 'Starter', pro: 'Pro', business: 'Business', enterprise: 'Enterprise' }
 
-  tbody.innerHTML = allProfiles.map(p => {
+  const userRows = allProfiles.map(p => {
     const plan = p.plan || 'none'
     const role = p.role || 'user'
     const domainCount = allDomains.filter(d => d.user_id === p.id).length
@@ -2603,7 +2651,9 @@ function admPopulateUsersTable() {
         </div>
       </td>
     </tr>`
-  }).join('')
+  })
+  _admInitPage('users', userRows)
+  _admRenderPage('users', 'admUsersTableBody', 'admUsersPagination')
 
   // Wire action buttons
   tbody.querySelectorAll('.adm-user-role-btn').forEach(btn => {

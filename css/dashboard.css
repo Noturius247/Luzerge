@@ -114,6 +114,14 @@
   color: var(--color-text, #e2e8f0);
 }
 
+html:has(.dash-page) {
+  overflow-x: initial;
+}
+
+html:has(.dash-page) body {
+  overflow-x: initial;
+}
+
 .dash-nav {
   position: sticky;
   top: 0;
@@ -3114,6 +3122,18 @@
 .pagination__btn--nav {
   font-weight: 600;
   padding: 0 10px;
+}
+
+.pagination__dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  user-select: none;
 }
 
 /* ═══════════════════ SETTINGS ═══════════════════ */

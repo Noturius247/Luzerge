@@ -11,6 +11,7 @@
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="stylesheet" href="/css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
 </head>
 <body class="dash-page">
   <canvas id="dashStarfield" class="page-starfield" aria-hidden="true"></canvas>
@@ -554,64 +555,19 @@
             <h2 class="dash-panel__title">SSL / TLS Certificates</h2>
             <select class="form-input form-input--sm panel-domain-select" id="sslDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">Monitor SSL certificate status for all your domains. Certificates are automatically provisioned and renewed.</p>
           <div id="sslLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading SSL data...</div>
-          <div id="sslNoDomains" class="dash-empty dash-empty--sm" hidden>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            No active domains yet. Submit a domain to view SSL certificates.
-          </div>
+          <div id="sslNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="sslContent" hidden>
+            <div id="sslExpirySummary" style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:4px"></div>
             <div class="feature-table-wrap">
-              <table class="history-table" id="sslTable">
-                <thead>
-                  <tr>
-                    <th>Host</th>
-                    <th>Status</th>
-                    <th>Issuer</th>
-                    <th>Type</th>
-                    <th>Expires</th>
-                  </tr>
-                </thead>
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Host</th><th>Status</th><th>Issuer</th><th>Type</th><th>Expires</th></tr></thead>
                 <tbody id="sslBody"></tbody>
               </table>
+              <div class="pagination" id="sslPagination"></div>
             </div>
           </div>
           <div id="sslError" class="dash-alert dash-alert--error" hidden></div>
-        </section>
-        <section class="dash-panel">
-          <div id="sslSettingsSection">
-          <h3 class="dash-panel__title">SSL Settings</h3>
-          <div id="sslSettingsLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Loading settings...</div>
-          <div class="feature-grid" id="sslSettingsGrid">
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">SSL Mode</span>
-                  <span class="feature-card__desc" id="sslModeDesc">End-to-end encryption mode</span>
-                </div>
-                <span class="status-badge" id="sslModeBadge">--</span>
-              </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">Always Use HTTPS</span>
-                  <span class="feature-card__desc">Redirect all HTTP requests to HTTPS</span>
-                </div>
-                <label class="toggle-switch" id="toggleAlwaysHttps"><input type="checkbox" data-cf-setting="always_use_https"><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-            <div class="feature-card">
-              <div class="feature-card__top">
-                <div class="feature-card__info">
-                  <span class="feature-card__name">TLS 1.3</span>
-                  <span class="feature-card__desc">Enable the latest TLS protocol version</span>
-                </div>
-                <label class="toggle-switch" id="toggleTls13"><input type="checkbox" data-cf-setting="min_tls_version" data-on-value="1.3" data-off-value="1.2"><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-          </div>
-          </div>
         </section>
       </div>
 
@@ -619,29 +575,18 @@
       <div id="panelDns" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">DNS Management</h2>
+            <h2 class="dash-panel__title">DNS Records</h2>
             <select class="form-input form-input--sm panel-domain-select" id="dnsDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">View DNS records for your domains. Records are managed via Cloudflare.</p>
           <div id="dnsLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading DNS records...</div>
-          <div id="dnsNoDomains" class="dash-empty dash-empty--sm" hidden>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            No active domains yet. Submit a domain to view DNS records.
-          </div>
+          <div id="dnsNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="dnsContent" hidden>
             <div class="feature-table-wrap">
-              <table class="history-table" id="dnsTable">
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Name</th>
-                    <th>Value</th>
-                    <th>TTL</th>
-                    <th>Proxied</th>
-                  </tr>
-                </thead>
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Type</th><th>Name</th><th>Value</th><th>TTL</th><th>Proxied</th></tr></thead>
                 <tbody id="dnsBody"></tbody>
               </table>
+              <div class="pagination" id="dnsPagination"></div>
             </div>
           </div>
           <div id="dnsError" class="dash-alert dash-alert--error" hidden></div>
@@ -665,30 +610,55 @@
           <div id="anlLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading analytics...</div>
           <div id="anlNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains. Submit and get a domain approved to see analytics.</div>
           <div id="anlContent" hidden>
-            <div class="stats-row">
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-                <span class="stat-box__value" id="anlRequests">--</span>
-                <span class="stat-box__label">Total Requests</span>
+            <!-- Summary stat cards -->
+            <div class="stats-row" id="anlStats" style="margin-bottom:1.5rem"></div>
+
+            <!-- Trend chart -->
+            <div class="anl-chart-wrap" style="margin-bottom:1.5rem">
+              <canvas id="anlChart" height="280"></canvas>
+            </div>
+
+            <!-- Per-domain table -->
+            <h3 class="anl-section-title">Per-Domain Breakdown</h3>
+            <div class="feature-table-wrap" style="margin-bottom:1.5rem">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Requests</th><th>Cached</th><th>Bandwidth</th><th>Visitors</th><th>Threats</th><th>Cache Rate</th></tr></thead>
+                <tbody id="anlBody"></tbody>
+              </table>
+            </div>
+
+            <!-- Breakdown tables 2x2 grid -->
+            <div class="anl-breakdown-grid">
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">Top Countries</h3>
+                <table class="history-table">
+                  <thead><tr><th>Country</th><th>Requests</th><th>Bandwidth</th><th>Threats</th></tr></thead>
+                  <tbody id="anlCountries"></tbody>
+                </table>
               </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
-                <span class="stat-box__value" id="anlBandwidth">--</span>
-                <span class="stat-box__label">Bandwidth</span>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">HTTP Status Codes</h3>
+                <table class="history-table">
+                  <thead><tr><th>Status</th><th>Requests</th><th>% of Total</th></tr></thead>
+                  <tbody id="anlStatus"></tbody>
+                </table>
               </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-                <span class="stat-box__value" id="anlVisitors">--</span>
-                <span class="stat-box__label">Unique Visitors</span>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">Content Types</h3>
+                <table class="history-table">
+                  <thead><tr><th>Type</th><th>Requests</th><th>Bandwidth</th></tr></thead>
+                  <tbody id="anlContentType"></tbody>
+                </table>
               </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-                <span class="stat-box__value" id="anlCacheRate">--</span>
-                <span class="stat-box__label">Cache Hit Rate</span>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">SSL / TLS Versions</h3>
+                <table class="history-table">
+                  <thead><tr><th>Protocol</th><th>Requests</th><th>% of Total</th></tr></thead>
+                  <tbody id="anlSslVersions"></tbody>
+                </table>
               </div>
             </div>
           </div>
-          <span class="status-badge" id="anlProviderBadge" hidden style="font-size:0.7rem;margin-top:0.5rem"></span>
           <div id="anlError" class="dash-alert dash-alert--error" hidden></div>
         </section>
       </div>
@@ -697,62 +667,18 @@
       <div id="panelWaf" data-feature-panel hidden>
         <section class="dash-panel">
           <div class="dash-panel__header">
-            <h2 class="dash-panel__title">WAF / Firewall Rules</h2>
+            <h2 class="dash-panel__title">WAF / Firewall</h2>
             <select class="form-input form-input--sm panel-domain-select" id="wafDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">Manage Web Application Firewall rules to protect your websites from common attacks.</p>
           <div id="wafLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading security settings...</div>
-          <div id="wafNoDomains" class="dash-empty dash-empty--sm" hidden>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            No active domains yet. Submit a domain to view firewall settings.
-          </div>
+          <div id="wafNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="wafContent" hidden>
-            <div class="feature-grid">
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">Security Level</span>
-                    <span class="feature-card__desc">Current Cloudflare security level</span>
-                  </div>
-                  <span class="status-badge" id="wafSecurityLevel">--</span>
-                </div>
-              </div>
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">Browser Integrity Check</span>
-                    <span class="feature-card__desc">Block known malicious bots and crawlers</span>
-                  </div>
-                  <label class="toggle-switch" id="toggleBrowserCheck"><input type="checkbox" data-cf-setting="browser_check"><span class="toggle-slider"></span></label>
-                </div>
-              </div>
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">Email Obfuscation</span>
-                    <span class="feature-card__desc">Hide email addresses from scrapers</span>
-                  </div>
-                  <label class="toggle-switch" id="toggleEmailObfuscation"><input type="checkbox" data-cf-setting="email_obfuscation"><span class="toggle-slider"></span></label>
-                </div>
-              </div>
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">Hotlink Protection</span>
-                    <span class="feature-card__desc">Prevent other sites from embedding your assets</span>
-                  </div>
-                  <label class="toggle-switch" id="toggleHotlink"><input type="checkbox" data-cf-setting="hotlink_protection"><span class="toggle-slider"></span></label>
-                </div>
-              </div>
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">Server-Side Excludes</span>
-                    <span class="feature-card__desc">Hide sensitive content from suspicious visitors</span>
-                  </div>
-                  <label class="toggle-switch" id="toggleSSE"><input type="checkbox" data-cf-setting="server_side_exclude"><span class="toggle-slider"></span></label>
-                </div>
-              </div>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Security Level</th><th>Browser Check</th><th>Email Obfuscation</th><th>Hotlink Protection</th></tr></thead>
+                <tbody id="wafBody"></tbody>
+              </table>
+              <div class="pagination" id="wafPagination"></div>
             </div>
           </div>
           <div id="wafError" class="dash-alert dash-alert--error" hidden></div>
@@ -766,50 +692,15 @@
             <h2 class="dash-panel__title">Image Optimization</h2>
             <select class="form-input form-input--sm panel-domain-select" id="imgDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">Cloudflare image optimization settings for your domain. Some features require a Pro plan on Cloudflare.</p>
           <div id="imgLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading image settings...</div>
-          <div id="imgNoDomains" class="dash-empty dash-empty--sm" hidden>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            No active domains yet. Submit a domain to view image optimization.
-          </div>
+          <div id="imgNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="imgContent" hidden>
-            <div class="feature-grid">
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">Mirage</span>
-                    <span class="feature-card__desc">Lazy-load images and optimize for mobile (Pro+)</span>
-                  </div>
-                  <label class="toggle-switch" id="toggleMirage"><input type="checkbox" data-cf-setting="mirage"><span class="toggle-slider"></span></label>
-                </div>
-              </div>
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">Polish</span>
-                    <span class="feature-card__desc">Lossless/lossy image compression (Pro+)</span>
-                  </div>
-                  <span class="status-badge" id="imgPolishBadge">--</span>
-                </div>
-              </div>
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">WebP</span>
-                    <span class="feature-card__desc">Serve WebP to supported browsers (Pro+)</span>
-                  </div>
-                  <label class="toggle-switch" id="toggleWebp"><input type="checkbox" data-cf-setting="webp"><span class="toggle-slider"></span></label>
-                </div>
-              </div>
-              <div class="feature-card">
-                <div class="feature-card__top">
-                  <div class="feature-card__info">
-                    <span class="feature-card__name">Rocket Loader</span>
-                    <span class="feature-card__desc">Improve paint times by deferring JS</span>
-                  </div>
-                  <label class="toggle-switch" id="toggleRocketLoader"><input type="checkbox" data-cf-setting="rocket_loader"><span class="toggle-slider"></span></label>
-                </div>
-              </div>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Mirage</th><th>Polish</th><th>WebP</th><th>Rocket Loader</th></tr></thead>
+                <tbody id="imgBody"></tbody>
+              </table>
+              <div class="pagination" id="imgPagination"></div>
             </div>
           </div>
           <div id="imgError" class="dash-alert dash-alert--error" hidden></div>
@@ -823,38 +714,15 @@
             <h2 class="dash-panel__title">Minification</h2>
             <select class="form-input form-input--sm panel-domain-select" id="minifyDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">Remove unnecessary characters from HTML, CSS, and JavaScript files to reduce file sizes and improve load times.</p>
           <div id="minifyLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading minification settings...</div>
-          <div id="minifyNoDomains" class="dash-empty dash-empty--sm" hidden>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            No active domains yet. Submit a domain to view minification settings.
-          </div>
+          <div id="minifyNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="minifyContent" hidden>
-            <div class="feature-grid feature-grid--three">
-              <div class="feature-card feature-card--center">
-                <div class="feature-card__icon feature-card__icon--orange">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                </div>
-                <span class="feature-card__name">HTML</span>
-                <span class="feature-card__desc">Minify HTML output</span>
-                <label class="toggle-switch" id="toggleMinHtml"><input type="checkbox" data-cf-setting="minify" data-cf-key="html"><span class="toggle-slider"></span></label>
-              </div>
-              <div class="feature-card feature-card--center">
-                <div class="feature-card__icon feature-card__icon--blue">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 8h3v8H8z"/></svg>
-                </div>
-                <span class="feature-card__name">CSS</span>
-                <span class="feature-card__desc">Minify CSS files</span>
-                <label class="toggle-switch" id="toggleMinCss"><input type="checkbox" data-cf-setting="minify" data-cf-key="css"><span class="toggle-slider"></span></label>
-              </div>
-              <div class="feature-card feature-card--center">
-                <div class="feature-card__icon feature-card__icon--yellow">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4H4v16h16V4z"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                </div>
-                <span class="feature-card__name">JavaScript</span>
-                <span class="feature-card__desc">Minify JS files</span>
-                <label class="toggle-switch" id="toggleMinJs"><input type="checkbox" data-cf-setting="minify" data-cf-key="js"><span class="toggle-slider"></span></label>
-              </div>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>HTML</th><th>CSS</th><th>JavaScript</th></tr></thead>
+                <tbody id="minifyBody"></tbody>
+              </table>
+              <div class="pagination" id="minifyPagination"></div>
             </div>
           </div>
           <div id="minifyError" class="dash-alert dash-alert--error" hidden></div>
@@ -866,19 +734,29 @@
         <section class="dash-panel">
           <div class="dash-panel__header">
             <h2 class="dash-panel__title">Uptime Monitoring</h2>
-            <button class="btn btn--outline btn--sm" id="uptimeRefreshBtn" type="button">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              Check Now
-            </button>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="uptimePeriodSelect" class="form-input" style="width:auto;padding:6px 12px;font-size:13px">
+                <option value="24h">Last 24 hours</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+              </select>
+              <button class="btn btn--outline btn--sm" id="uptimeRefreshBtn" type="button">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Check Now
+              </button>
+            </div>
           </div>
-          <p class="dash-panel__desc">Live HTTP health checks for your active domains. Click "Check Now" to run a fresh check.</p>
           <div id="uptimeLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Checking uptime...</div>
-          <div id="uptimeNoDomains" class="dash-empty dash-empty--sm" hidden>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dash-empty__icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <p>No active domains to monitor</p>
-            <span>Domains will appear here once approved</span>
+          <div id="uptimeNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains to monitor</div>
+          <div id="uptimeContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Status</th><th>HTTPS</th><th>HTTP</th><th>Latency</th><th>Uptime</th><th>Avg Latency</th><th>Incidents</th></tr></thead>
+                <tbody id="uptimeBody"></tbody>
+              </table>
+              <div class="pagination" id="uptimePagination"></div>
+            </div>
           </div>
-          <div id="uptimeList" class="uptime-list" hidden></div>
         </section>
       </div>
 
@@ -889,29 +767,15 @@
             <h2 class="dash-panel__title">DDoS Protection</h2>
             <select class="form-input form-input--sm panel-domain-select" id="ddosDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">Always-on DDoS mitigation powered by Cloudflare's global network. Threat data from the last 30 days.</p>
           <div id="ddosLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading threat data...</div>
-          <div id="ddosNoDomains" class="dash-empty dash-empty--sm" hidden>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="dash-empty__icon"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            No active domains yet. Submit a domain to view DDoS protection data.
-          </div>
+          <div id="ddosNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="ddosContent" hidden>
-            <div class="stats-row stats-row--mb">
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-                <span class="stat-box__value" id="ddosThreats">--</span>
-                <span class="stat-box__label">Threats Detected (30d)</span>
-              </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-                <span class="stat-box__value" id="ddosRequests">--</span>
-                <span class="stat-box__label">Total Requests (30d)</span>
-              </div>
-              <div class="stat-box">
-                <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-                <span class="stat-box__value" id="ddosBandwidth">--</span>
-                <span class="stat-box__label">Bandwidth (30d)</span>
-              </div>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Threats (30d)</th><th>Requests (30d)</th><th>Bandwidth (30d)</th></tr></thead>
+                <tbody id="ddosBody"></tbody>
+              </table>
+              <div class="pagination" id="ddosPagination"></div>
             </div>
           </div>
           <div id="ddosError" class="dash-alert dash-alert--error" hidden></div>
@@ -1112,6 +976,20 @@
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" id="settNotifStatus" checked aria-label="Domain status change alerts" />
+                <span class="toggle-switch__slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Weekly Report</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Weekly Performance Report</span>
+                <span class="settings-row__desc">Receive a weekly email summary with uptime, latency, incidents, and SSL status for all your domains</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settNotifWeekly" checked aria-label="Weekly report emails" />
                 <span class="toggle-switch__slider"></span>
               </label>
             </div>
