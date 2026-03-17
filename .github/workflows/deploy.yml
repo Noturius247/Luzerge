@@ -79,6 +79,9 @@ jobs:
           supabase functions deploy cf-proxy \
             --project-ref $SUPABASE_PROJECT_ID \
             --no-verify-jwt
+          supabase functions deploy lumi-chat \
+            --project-ref $SUPABASE_PROJECT_ID \
+            --no-verify-jwt
 
       - name: Set Function Secrets
         env:
