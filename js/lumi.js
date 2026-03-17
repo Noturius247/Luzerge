@@ -25,11 +25,12 @@
     fab.innerHTML = `
       <svg class="lumi-face" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle class="lumi-face__glow" cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="2"/>
-        <circle class="lumi-face__eye lumi-face__eye--l" cx="22" cy="28" r="3.5" fill="#fff"/>
-        <circle class="lumi-face__eye lumi-face__eye--r" cx="42" cy="28" r="3.5" fill="#fff"/>
-        <circle class="lumi-face__pupil lumi-face__pupil--l" cx="22" cy="28" r="1.8" fill="#0a0e1a"/>
-        <circle class="lumi-face__pupil lumi-face__pupil--r" cx="42" cy="28" r="1.8" fill="#0a0e1a"/>
-        <path class="lumi-face__mouth" d="M22 40 Q32 48 42 40" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.2)" stroke-width="0.5"/>
+        <circle class="lumi-face__eye lumi-face__eye--l" cx="20" cy="28" r="5" fill="#fff"/>
+        <circle class="lumi-face__eye lumi-face__eye--r" cx="44" cy="28" r="5" fill="#fff"/>
+        <circle class="lumi-face__pupil lumi-face__pupil--l" cx="20" cy="28" r="2.5" fill="#0a0e1a"/>
+        <circle class="lumi-face__pupil lumi-face__pupil--r" cx="44" cy="28" r="2.5" fill="#0a0e1a"/>
+        <path class="lumi-face__mouth" d="M18 42 Q32 54 46 42" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
         <circle class="lumi-face__spark lumi-face__spark--1" cx="12" cy="16" r="1.2" fill="#06b6d4"/>
         <circle class="lumi-face__spark lumi-face__spark--2" cx="52" cy="14" r="1" fill="#3b82f6"/>
         <circle class="lumi-face__spark lumi-face__spark--3" cx="50" cy="50" r="0.8" fill="#a855f7"/>
@@ -47,11 +48,12 @@
         <div class="lumi-avatar">
           <svg class="lumi-face lumi-face--header" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle class="lumi-face__glow" cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.25)" stroke-width="1.5"/>
-            <circle class="lumi-face__eye lumi-face__eye--l" cx="22" cy="28" r="3.5" fill="#fff"/>
-            <circle class="lumi-face__eye lumi-face__eye--r" cx="42" cy="28" r="3.5" fill="#fff"/>
-            <circle class="lumi-face__pupil lumi-face__pupil--l" cx="22" cy="28" r="1.8" fill="#0a0e1a"/>
-            <circle class="lumi-face__pupil lumi-face__pupil--r" cx="42" cy="28" r="1.8" fill="#0a0e1a"/>
-            <path class="lumi-face__mouth" d="M22 40 Q32 48 42 40" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(59,130,246,0.1)" stroke="rgba(59,130,246,0.15)" stroke-width="0.5"/>
+            <circle class="lumi-face__eye lumi-face__eye--l" cx="20" cy="28" r="5" fill="#fff"/>
+            <circle class="lumi-face__eye lumi-face__eye--r" cx="44" cy="28" r="5" fill="#fff"/>
+            <circle class="lumi-face__pupil lumi-face__pupil--l" cx="20" cy="28" r="2.5" fill="#0a0e1a"/>
+            <circle class="lumi-face__pupil lumi-face__pupil--r" cx="44" cy="28" r="2.5" fill="#0a0e1a"/>
+            <path class="lumi-face__mouth" d="M18 42 Q32 54 46 42" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
             <circle class="lumi-face__spark lumi-face__spark--1" cx="10" cy="14" r="1" fill="#06b6d4"/>
             <circle class="lumi-face__spark lumi-face__spark--2" cx="54" cy="12" r="0.8" fill="#3b82f6"/>
           </svg>
@@ -91,11 +93,12 @@
   }
 
   const MINI_FACE = `<svg class="lumi-face lumi-face--mini" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle class="lumi-face__eye lumi-face__eye--l" cx="22" cy="28" r="4" fill="#06b6d4"/>
-    <circle class="lumi-face__eye lumi-face__eye--r" cx="42" cy="28" r="4" fill="#06b6d4"/>
-    <circle class="lumi-face__pupil lumi-face__pupil--l" cx="22" cy="28" r="2" fill="#0a0e1a"/>
-    <circle class="lumi-face__pupil lumi-face__pupil--r" cx="42" cy="28" r="2" fill="#0a0e1a"/>
-    <path class="lumi-face__mouth" d="M22 40 Q32 48 42 40" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(6,182,212,0.15)"/>
+    <circle class="lumi-face__eye lumi-face__eye--l" cx="20" cy="28" r="5.5" fill="#06b6d4"/>
+    <circle class="lumi-face__eye lumi-face__eye--r" cx="44" cy="28" r="5.5" fill="#06b6d4"/>
+    <circle class="lumi-face__pupil lumi-face__pupil--l" cx="20" cy="28" r="2.8" fill="#0a0e1a"/>
+    <circle class="lumi-face__pupil lumi-face__pupil--r" cx="44" cy="28" r="2.8" fill="#0a0e1a"/>
+    <path class="lumi-face__mouth" d="M18 42 Q32 54 46 42" stroke="#06b6d4" stroke-width="3" stroke-linecap="round" fill="none"/>
   </svg>`
 
   function addMessage(container, text, type) {

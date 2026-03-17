@@ -263,6 +263,14 @@
 
 /* ─── Lumi Face Animations ───────────────────────────────────── */
 
+.lumi-face__bolt {
+  animation: lumi-bolt-pulse 3s ease-in-out infinite;
+}
+@keyframes lumi-bolt-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
 .lumi-face__pupil {
   transition: cx 0.12s ease-out, cy 0.12s ease-out;
 }
