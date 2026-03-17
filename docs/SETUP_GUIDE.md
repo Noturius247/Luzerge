@@ -190,7 +190,7 @@ supabase functions deploy api
 
 # Set environment variables for functions
 supabase secrets set RESEND_API_KEY=re_xxxxx
-supabase secrets set NOTIFICATION_EMAIL=hello@luzerge.com
+supabase secrets set NOTIFICATION_EMAIL=luzergeservices@gmail.com
 
 # Test function locally
 supabase functions serve api --env-file .env.local
@@ -338,7 +338,7 @@ bash scripts/test-cdn.sh
 Cloudflare → Email → Email Routing → Enable
 
 Add address:
-  Custom address: hello@luzerge.com
+  Custom address: luzergeservices@gmail.com
   Action: Forward to → your-personal@gmail.com
 
 This is FREE — no email server needed, forwards to Gmail.
@@ -356,7 +356,7 @@ Cloudflare auto-adds required MX and SPF records.
    Type  Name  Content                    Priority
    MX    @     mx.zoho.com                10
    MX    @     mx2.zoho.com               20
-5. Create hello@luzerge.com
+5. Create luzergeservices@gmail.com
 ```
 
 ### Option C: Google Workspace (₱300/mo per user, best UX)
@@ -433,7 +433,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...   # server-side only!
 CLOUDFLARE_ZONE_ID=abc123
 CLOUDFLARE_API_TOKEN=xxx
 RESEND_API_KEY=re_xxx
-NOTIFICATION_EMAIL=hello@luzerge.com
+NOTIFICATION_EMAIL=luzergeservices@gmail.com
 ```
 
 Add `.env.local` to `.gitignore` — never commit secrets.

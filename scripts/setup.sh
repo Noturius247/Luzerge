@@ -65,7 +65,7 @@ CLOUDFLARE_API_TOKEN=YOUR_API_TOKEN
 
 # Email (Resend)
 RESEND_API_KEY=re_YOUR_KEY
-NOTIFICATION_EMAIL=hello@luzerge.com
+NOTIFICATION_EMAIL=luzergeservices@gmail.com
 ENVEOF
   warn ".env.local created — fill in your credentials before proceeding"
 else

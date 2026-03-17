@@ -1507,7 +1507,7 @@ function renderAccountSummary() {
   if (upgradeBtn && (plan === 'none' || plan === 'starter')) {
     upgradeBtn.hidden = false
     upgradeBtn.addEventListener('click', () => {
-      showToast('Contact us at hello@luzerge.com to upgrade your plan')
+      showToast('Contact us at luzergeservices@gmail.com to upgrade your plan')
     })
   }
 }

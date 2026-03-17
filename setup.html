@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup Guide — Luzerge</title>
+  <meta name="description" content="Complete step-by-step guide to connect your domain to Luzerge — Cloudflare setup, nameservers, required settings, API credentials, and all monitoring tools." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link rel="stylesheet" href="/css/lumi.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e1a;
+      --bg-alt: #111827;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-card-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.14);
+      --blue: #3b82f6;
+      --cyan: #06b6d4;
+      --purple: #a855f7;
+      --amber: #f59e0b;
+      --green: #10b981;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .setup-header {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 10px;
+      background: rgba(10,14,26,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setup-header__logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+    .setup-header__logo svg { color: var(--blue); }
+
+    .setup-header__sep {
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .setup-header__title {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .setup-header__right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hdr-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 150ms, border-color 150ms, background 150ms;
+    }
+    .hdr-btn:hover { color: var(--text); border-color: var(--blue); background: rgba(59,130,246,0.1); }
+
+    /* ── Layout ── */
+    .setup-wrap {
+      display: flex;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* ── TOC Sidebar ── */
+    .setup-toc {
+      width: 256px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      padding: 32px 12px 40px 24px;
+      border-right: 1px solid var(--border);
+    }
+    .setup-toc::-webkit-scrollbar { width: 3px; }
+    .setup-toc::-webkit-scrollbar-track { background: transparent; }
+    .setup-toc::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+    .toc-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 0 10px;
+      margin-bottom: 6px;
+    }
+
+    .toc-nav { list-style: none; display: flex; flex-direction: column; gap: 1px; }
+    .toc-nav a {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 10px;
+      border-radius: 7px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      text-decoration: none;
+      transition: color 150ms, background 150ms;
+      line-height: 1.4;
+    }
+    .toc-nav a:hover { color: var(--text); background: var(--bg-card); }
+    .toc-nav a.is-active { color: var(--blue); background: rgba(59,130,246,0.1); }
+
+    .toc-pip {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .toc-nav a.is-active .toc-pip { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+    .toc-hr { height: 1px; background: var(--border); margin: 12px 10px; }
+
+    /* ── Main content ── */
+    .setup-main {
+      flex: 1;
+      min-width: 0;
+      padding: 52px 64px 100px 56px;
+      max-width: 900px;
+    }
+
+    /* ── Hero ── */
+    .guide-hero { margin-bottom: 52px; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.28);
+      color: var(--blue);
+      font-size: 0.76rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    .guide-hero h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #e2e8f0 0%, #64748b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .guide-hero p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+      max-width: 580px;
+    }
+
+    /* ── Quick Start Grid ── */
+    .qs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 52px;
+    }
+
+    .qs-card {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 18px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 150ms;
+    }
+    .qs-card:hover { border-color: var(--border-strong); }
+
+    .qs-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .qs-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+    .qs-card p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Section wrapper ── */
+    .guide-section {
+      margin-bottom: 64px;
+      scroll-margin-top: 80px;
+    }
+
+    .section-hd {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .section-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+    .si--blue   { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: var(--blue); }
+    .si--purple { background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3); color: var(--purple); }
+    .si--green  { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: var(--green); }
+    .si--amber  { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
+    .si--red    { background: rgba(239,68,68,0.15);  border: 1px solid rgba(239,68,68,0.3);  color: var(--red); }
+
+    .section-hd h2 { font-size: 1.45rem; font-weight: 700; }
+    .section-hd .sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Step list ── */
+    .steps { display: flex; flex-direction: column; gap: 10px; }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      padding: 18px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .sd--blue   { border: 2px solid var(--blue);   background: rgba(59,130,246,0.12); color: var(--blue); }
+    .sd--green  { border: 2px solid var(--green);  background: rgba(16,185,129,0.12); color: var(--green); }
+    .sd--purple { border: 2px solid var(--purple); background: rgba(168,85,247,0.12); color: var(--purple); }
+    .sd--amber  { border: 2px solid var(--amber);  background: rgba(245,158,11,0.12); color: var(--amber); }
+    .sd--cyan   { border: 2px solid var(--cyan);   background: rgba(6,182,212,0.12);  color: var(--cyan); }
+    .sd--red    { border: 2px solid var(--red);    background: rgba(239,68,68,0.12);  color: var(--red); }
+
+    .step-body h4 { font-size: 0.92rem; font-weight: 600; margin-bottom: 6px; }
+    .step-body p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.65; }
+    .step-body p + p { margin-top: 8px; }
+
+    /* ── Code block ── */
+    .code {
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 12px;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 0.8rem;
+      color: #7dd3fc;
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.7;
+    }
+
+    /* ── Inline code ── */
+    ic {
+      background: rgba(255,255,255,0.08);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 0.82em;
+      color: var(--cyan);
+    }
+
+    /* ── Callout boxes ── */
+    .callout {
+      display: flex;
+      gap: 12px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin: 14px 0;
+      font-size: 0.85rem;
+      line-height: 1.65;
+    }
+    .callout .ci { flex-shrink: 0; font-size: 0.95rem; margin-top: 1px; }
+    .callout strong { display: block; font-weight: 600; margin-bottom: 3px; }
+
+    .callout--tip  { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.22); color: #86efac; }
+    .callout--warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.22); color: #fcd34d; }
+    .callout--info { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.22); color: #93c5fd; }
+
+    /* ── Settings grid ── */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .sgcard {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    .sgcard__path { font-size: 0.7rem; color: var(--text-dim); font-family: monospace; margin-bottom: 5px; }
+    .sgcard__name { font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; }
+    .sgcard__val {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 9px;
+      border-radius: 5px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .sv--on   { background: rgba(16,185,129,0.15); color: var(--green);  border: 1px solid rgba(16,185,129,0.3); }
+    .sv--set  { background: rgba(59,130,246,0.15);  color: var(--blue);   border: 1px solid rgba(59,130,246,0.3); }
+    .sv--skip { background: rgba(100,116,139,0.15); color: #94a3b8;       border: 1px solid rgba(100,116,139,0.3); }
+
+    .sgcard__desc { font-size: 0.79rem; color: var(--text-muted); line-height: 1.55; }
+
+    /* ── Registrar grid ── */
+    .reg-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .reg-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .reg-item strong { display: block; font-size: 0.87rem; margin-bottom: 3px; }
+    .reg-item span { font-size: 0.77rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* ── Plan badge ── */
+    .pbadge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+    .pb--free    { background: rgba(100,116,139,0.18); color: #94a3b8;    border: 1px solid rgba(100,116,139,0.3); }
+    .pb--managed { background: rgba(59,130,246,0.15);  color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+    .pb--all     { background: rgba(16,185,129,0.15);  color: var(--green);border: 1px solid rgba(16,185,129,0.3); }
+
+    /* ── Feature sub-section ── */
+    .feat-section {
+      margin-bottom: 44px;
+      scroll-margin-top: 80px;
+    }
+
+    .feat-hd {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .feat-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .feat-hd h3 { font-size: 1.05rem; font-weight: 700; }
+
+    .feat-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.72;
+      margin-bottom: 16px;
+    }
+
+    /* ── Trouble list ── */
+    .trouble-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .titem {
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .titem__q {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--amber);
+      margin-bottom: 8px;
+    }
+    .titem__q svg { flex-shrink: 0; margin-top: 2px; }
+
+    .titem__a { font-size: 0.845rem; color: var(--text-muted); line-height: 1.65; }
+
+    /* ── Divider ── */
+    .guide-hr { height: 1px; background: linear-gradient(90deg, var(--border), transparent); margin: 0 0 64px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+      .setup-toc { display: none; }
+      .setup-main { padding: 36px 24px 80px; }
+      .qs-grid { grid-template-columns: 1fr; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .reg-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .guide-hero h1 { font-size: 2rem; }
+      .reg-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Header ──────────────────────────────────────────────────────────────── -->
+<header class="setup-header">
+  <a href="/" class="setup-header__logo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>
+    </svg>
+    Luzerge
+  </a>
+  <span class="setup-header__sep">/</span>
+  <span class="setup-header__title">Setup Guide</span>
+  <div class="setup-header__right">
+    <a href="/dashboard.html" class="hdr-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a href="/" class="hdr-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+  </div>
+</header>
+
+<!-- ─── Layout ──────────────────────────────────────────────────────────────── -->
+<div class="setup-wrap">
+
+  <!-- TOC -->
+  <aside class="setup-toc" id="setupToc">
+    <p class="toc-label">Setup Steps</p>
+    <ul class="toc-nav">
+      <li><a href="#overview"><span class="toc-pip">⚡</span> Quick Overview</a></li>
+      <li><a href="#step1"><span class="toc-pip">1</span> Create Cloudflare Account</a></li>
+      <li><a href="#step2"><span class="toc-pip">2</span> Add Domain to Cloudflare</a></li>
+      <li><a href="#step3"><span class="toc-pip">3</span> Update Nameservers</a></li>
+      <li><a href="#step4"><span class="toc-pip">4</span> Required CF Settings</a></li>
+      <li><a href="#step5"><span class="toc-pip">5</span> API Credentials</a></li>
+      <li><a href="#step6"><span class="toc-pip">6</span> Submit to Luzerge</a></li>
+    </ul>
+    <div class="toc-hr"></div>
+    <p class="toc-label">Dashboard Features</p>
+    <ul class="toc-nav">
+      <li><a href="#features">All Features Overview</a></li>
+      <li><a href="#feat-uptime">Uptime Monitoring</a></li>
+      <li><a href="#feat-ssl">SSL / TLS</a></li>
+      <li><a href="#feat-cdn">CDN & Cache Purge</a></li>
+      <li><a href="#feat-dns">DNS Management</a></li>
+      <li><a href="#feat-waf">WAF / Firewall</a></li>
+      <li><a href="#feat-ddos">DDoS Protection</a></li>
+      <li><a href="#feat-analytics">Analytics</a></li>
+      <li><a href="#feat-perf">Images & Minification</a></li>
+      <li><a href="#feat-notifs">Notifications & Alerts</a></li>
+    </ul>
+    <div class="toc-hr"></div>
+    <ul class="toc-nav">
+      <li><a href="#troubleshoot">Troubleshooting</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main -->
+  <main class="setup-main">
+
+    <!-- Hero -->
+    <div class="guide-hero">
+      <div class="hero-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Complete Setup Guide
+      </div>
+      <h1>Connect Your Domain<br>to Luzerge</h1>
+      <p>Step-by-step instructions for setting up Cloudflare, configuring all required settings, getting your API credentials, and enabling every monitoring tool in your dashboard.</p>
+    </div>
+
+    <!-- ═══ OVERVIEW ═══════════════════════════════════════════════════════════ -->
+    <section id="overview" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div>
+          <h2>Quick Overview</h2>
+          <p class="sub">What you'll accomplish in 6 steps</p>
+        </div>
+      </div>
+
+      <div class="qs-grid">
+        <div class="qs-card">
+          <div class="qs-num">1</div>
+          <div>
+            <h3>Create Cloudflare Account</h3>
+            <p>Sign up at cloudflare.com. A free account is enough — Luzerge adds the advanced features on top.</p>
+          </div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-num">2</div>
+          <div>
+            <h3>Add Domain to Cloudflare</h3>
+            <p>Cloudflare imports your existing DNS records. Enable the proxy (orange cloud) on your web records.</p>
+          </div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-num">3</div>
+          <div>
+            <h3>Update Nameservers</h3>
+            <p>Replace your domain registrar's nameservers with the 2 Cloudflare nameservers. Takes 5 min–48 hrs.</p>
+          </div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-num">4</div>
+          <div>
+            <h3>Configure Cloudflare Settings</h3>
+            <p>Enable SSL "Full" mode, Always Use HTTPS, and verify your proxy records are orange.</p>
+          </div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-num">5</div>
+          <div>
+            <h3>Get API Credentials</h3>
+            <p>Free plan: create an API token and copy your Zone ID from Cloudflare. Managed plans skip this.</p>
+          </div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-num">6</div>
+          <div>
+            <h3>Submit Domain + Enable Monitoring</h3>
+            <p>Add your domain in the Luzerge dashboard, then turn on uptime checks, alerts, and all monitoring tools.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout--info">
+        <span class="ci">ℹ</span>
+        <div>
+          <strong>On a Managed Plan (Solo, Starter, Pro, Business, or Enterprise)?</strong>
+          Steps 2–5 are handled by the Luzerge team after you submit your domain. You only need to update your nameservers (Step 3). Setup takes up to 24 hours.
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 1 ══════════════════════════════════════════════════════════════ -->
+    <section id="step1" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--blue">1</div>
+        <div>
+          <h2>Create a Cloudflare Account</h2>
+          <p class="sub">Free account · 2 minutes</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot sd--blue">1</div>
+          <div class="step-body">
+            <h4>Go to cloudflare.com and sign up</h4>
+            <p>Click <strong>Sign Up</strong>, enter your email address and a password. Cloudflare's free plan is all you need.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--blue">2</div>
+          <div class="step-body">
+            <h4>Verify your email</h4>
+            <p>Check your inbox for a verification email from Cloudflare and click the confirmation link to activate your account.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--blue">3</div>
+          <div class="step-body">
+            <h4>Select the Free plan</h4>
+            <p>When prompted, choose <strong>Free</strong>. Luzerge provides all advanced caching, DDoS protection, WAF, and monitoring on top of Cloudflare's free infrastructure — you don't need a paid Cloudflare plan.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout--tip">
+        <span class="ci">✓</span>
+        <div>One Cloudflare account handles all your domains. You don't need a separate account per domain.</div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 2 ══════════════════════════════════════════════════════════════ -->
+    <section id="step2" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--blue">2</div>
+        <div>
+          <h2>Add Your Domain to Cloudflare</h2>
+          <p class="sub">Cloudflare auto-imports your existing DNS records</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot sd--blue">1</div>
+          <div class="step-body">
+            <h4>Click "Add a site"</h4>
+            <p>In the Cloudflare dashboard, click <strong>+ Add a site</strong>. Enter your root domain without www or https — e.g. <ic>example.com</ic>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--blue">2</div>
+          <div class="step-body">
+            <h4>Select the Free plan</h4>
+            <p>Scroll to the bottom of the plan selection page and choose <strong>Free</strong>, then click <strong>Continue</strong>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--blue">3</div>
+          <div class="step-body">
+            <h4>Review imported DNS records</h4>
+            <p>Cloudflare automatically scans and imports your existing DNS records. Review them carefully — confirm all <strong>A records</strong> (your server IP), <strong>CNAME records</strong>, and <strong>MX records</strong> (for email) are present.</p>
+            <div class="callout callout--warn" style="margin-top:12px">
+              <span class="ci">!</span>
+              <div>Do not delete any records Cloudflare imported. Missing records can break your website or email.</div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--blue">4</div>
+          <div class="step-body">
+            <h4>Enable proxy (orange cloud) on web records</h4>
+            <p>For every A or CNAME record that points to your <em>website</em>, click the cloud icon to make it <strong>orange (Proxied)</strong>. This enables the CDN, DDoS protection, and all Luzerge monitoring features. Keep email (MX) records as grey (DNS only).</p>
+            <div class="code">A record:      @     → YOUR.SERVER.IP.HERE  → Proxied ☁ (orange)
+A record:      www   → YOUR.SERVER.IP.HERE  → Proxied ☁ (orange)
+MX record:     @     → mail.example.com     → DNS only  (grey — required for email)
+TXT record:    @     → v=spf1 ...           → DNS only  (grey)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 3 ══════════════════════════════════════════════════════════════ -->
+    <section id="step3" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--blue">3</div>
+        <div>
+          <h2>Update Your Nameservers</h2>
+          <p class="sub">Routes your domain through Cloudflare · Takes 5 min – 48 hours</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot sd--blue">1</div>
+          <div class="step-body">
+            <h4>Copy Cloudflare's 2 nameservers</h4>
+            <p>After adding your site, Cloudflare shows you 2 nameservers assigned to your account. Copy both — they look like this (yours will be different):</p>
+            <div class="code">ada.ns.cloudflare.com
+bob.ns.cloudflare.com</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--blue">2</div>
+          <div class="step-body">
+            <h4>Log in to your domain registrar</h4>
+            <p>Go to where you bought your domain and find the <strong>Nameservers</strong> or <strong>DNS Settings</strong> section:</p>
+            <div class="reg-grid">
+              <div class="reg-item"><strong>GoDaddy</strong><span>My Domains → Manage DNS → Nameservers → Change</span></div>
+              <div class="reg-item"><strong>Namecheap</strong><span>Domain List → Manage → Nameservers → Custom DNS</span></div>
+              <div class="reg-item"><strong>Google Domains</strong><span>DNS → Custom nameservers</span></div>
+              <div class="reg-item"><strong>Hostinger</strong><span>Domains → Manage → DNS / Nameservers</span></div>
+              <div class="reg-item"><strong>Bluehost</strong><span>Domains → My Domains → Manage → Nameservers</span></div>
+              <div class="reg-item"><strong>Other Registrars</strong><span>Search for "Nameservers" or "DNS" in your registrar's control panel</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--blue">3</div>
+          <div class="step-body">
+            <h4>Replace existing nameservers</h4>
+            <p>Delete <em>all</em> existing nameservers and paste in the 2 Cloudflare ones. Save the changes. Most registrars take 10–30 minutes; the maximum is 48 hours.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--blue">4</div>
+          <div class="step-body">
+            <h4>Verify in Cloudflare</h4>
+            <p>Back in the Cloudflare dashboard, click <strong>Done, check nameservers</strong>. Cloudflare sends you an email when your domain is active. The domain status will change from <strong>Pending</strong> to <strong>Active</strong>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout--tip">
+        <span class="ci">✓</span>
+        <div>Check propagation at <strong>dnschecker.org</strong> — search your domain's NS records to see if Cloudflare nameservers are showing globally yet.</div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 4 ══════════════════════════════════════════════════════════════ -->
+    <section id="step4" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--purple">4</div>
+        <div>
+          <h2>Required Cloudflare Settings</h2>
+          <p class="sub">Configure these after nameservers are active</p>
+        </div>
+      </div>
+
+      <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px">Once your domain is active in Cloudflare, configure these 6 settings so Luzerge can monitor and manage your domain correctly. These are the most important settings — skipping any of them can cause issues.</p>
+
+      <div class="settings-grid">
+        <div class="sgcard">
+          <div class="sgcard__path">SSL/TLS → Overview</div>
+          <div class="sgcard__name">Encryption Mode</div>
+          <div class="sgcard__val sv--set">Set to: Full</div>
+          <div class="sgcard__desc">Use <strong>Full</strong> if you have a self-signed cert on your server, or <strong>Full (Strict)</strong> if you have a valid CA-issued cert. <strong>Never use Flexible</strong> — it causes infinite redirect loops on most servers.</div>
+        </div>
+        <div class="sgcard">
+          <div class="sgcard__path">SSL/TLS → Edge Certificates</div>
+          <div class="sgcard__name">Always Use HTTPS</div>
+          <div class="sgcard__val sv--on">Turn ON</div>
+          <div class="sgcard__desc">Redirects all HTTP traffic to HTTPS automatically. Required for Luzerge's SSL monitoring to work correctly and for modern browser compatibility.</div>
+        </div>
+        <div class="sgcard">
+          <div class="sgcard__path">SSL/TLS → Edge Certificates</div>
+          <div class="sgcard__name">Minimum TLS Version</div>
+          <div class="sgcard__val sv--set">Set to: TLS 1.2</div>
+          <div class="sgcard__desc">Blocks old insecure TLS versions (1.0, 1.1). TLS 1.2 is compatible with all modern browsers and is the security standard.</div>
+        </div>
+        <div class="sgcard">
+          <div class="sgcard__path">DNS → Records</div>
+          <div class="sgcard__name">Proxy Status on A/CNAME</div>
+          <div class="sgcard__val sv--on">Orange Cloud (Proxied)</div>
+          <div class="sgcard__desc">Your web records must be proxied — this routes traffic through Cloudflare enabling CDN, DDoS protection, WAF, and analytics. Grey (DNS only) records bypass everything.</div>
+        </div>
+        <div class="sgcard">
+          <div class="sgcard__path">Speed → Optimization → Content Optimization</div>
+          <div class="sgcard__name">Auto Minify</div>
+          <div class="sgcard__val sv--on">Enable (optional)</div>
+          <div class="sgcard__desc">Minifies HTML, CSS, and JavaScript automatically. You can also control this from the Luzerge dashboard's Minification panel, which syncs with Cloudflare.</div>
+        </div>
+        <div class="sgcard">
+          <div class="sgcard__path">Caching → Configuration</div>
+          <div class="sgcard__name">Caching Level</div>
+          <div class="sgcard__val sv--skip">Keep: Standard</div>
+          <div class="sgcard__desc">Leave at Standard. Luzerge controls cache purging from the dashboard — you don't need to change this manually. Changing it can conflict with purge operations.</div>
+        </div>
+      </div>
+
+      <div class="callout callout--warn" style="margin-top:20px">
+        <span class="ci">!</span>
+        <div>
+          <strong>Critical: Never use "Flexible" SSL mode</strong>
+          Flexible mode encrypts only the connection between the visitor and Cloudflare, not between Cloudflare and your server. This causes infinite redirect loops on most web servers and is a security risk.
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 5 ══════════════════════════════════════════════════════════════ -->
+    <section id="step5" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--purple">5</div>
+        <div>
+          <h2>Get API Credentials</h2>
+          <p class="sub"><span class="pbadge pb--free">Free Plan only</span> &nbsp; Managed plans (Solo+) skip this step entirely</p>
+        </div>
+      </div>
+
+      <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px">Free plan users manage their own Cloudflare account and provide credentials so Luzerge can perform cache purges, read analytics, and manage DNS. Your token is stored encrypted — it's never visible in plain text after submission.</p>
+
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--text)">Part A — Create an API Token</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot sd--purple">1</div>
+          <div class="step-body">
+            <h4>Open API Tokens in your Cloudflare Profile</h4>
+            <p>Click your account icon (top-right corner of Cloudflare) → <strong>Profile</strong> → <strong>API Tokens</strong> tab.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--purple">2</div>
+          <div class="step-body">
+            <h4>Create a Custom Token</h4>
+            <p>Click <strong>Create Token</strong>, scroll past the templates, and click <strong>Get started</strong> under <em>Create Custom Token</em>. Give it a name like <ic>Luzerge</ic>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--purple">3</div>
+          <div class="step-body">
+            <h4>Add required permissions</h4>
+            <p>Click <strong>Add permission</strong> and add each of these:</p>
+            <div class="code">Zone → Zone                → Read
+Zone → Zone Settings       → Edit
+Zone → DNS                 → Edit
+Zone → Cache Purge         → Purge
+Zone → Firewall Services   → Edit
+Zone → Page Rules          → Edit</div>
+            <p style="margin-top:10px">Under <strong>Zone Resources</strong>, select <strong>Specific zone</strong> and choose your domain from the dropdown.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--purple">4</div>
+          <div class="step-body">
+            <h4>Copy the token immediately</h4>
+            <p>Click <strong>Create Token</strong>. Copy the long string that appears — <strong>it's shown only once</strong>. If you close the page without copying, delete the token and create a new one.</p>
+            <div class="callout callout--warn" style="margin-top:10px">
+              <span class="ci">!</span>
+              <div>Store this token securely. Anyone with this token can manage your Cloudflare zone.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:1rem;font-weight:700;margin:28px 0 14px;color:var(--text)">Part B — Find Your Zone ID</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot sd--purple">1</div>
+          <div class="step-body">
+            <h4>Open your domain's overview in Cloudflare</h4>
+            <p>Click on your domain name in the Cloudflare dashboard to open its main overview page.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--purple">2</div>
+          <div class="step-body">
+            <h4>Copy the Zone ID from the right sidebar</h4>
+            <p>Scroll down the right column. You'll see <strong>Zone ID</strong> — a 32-character hexadecimal string. Click <strong>Copy</strong>.</p>
+            <div class="code">Zone ID example:  a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 6 ══════════════════════════════════════════════════════════════ -->
+    <section id="step6" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--green">6</div>
+        <div>
+          <h2>Submit Your Domain to Luzerge</h2>
+          <p class="sub">You're almost done</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot sd--green">1</div>
+          <div class="step-body">
+            <h4>Sign in to Luzerge</h4>
+            <p>Go to <strong>luzerge.com</strong> and click <strong>Dashboard</strong>. Sign in with your Google account.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--green">2</div>
+          <div class="step-body">
+            <h4>Click "Add Domain" on the Overview panel</h4>
+            <p>On the Overview panel, click the <strong>Add Domain</strong> button. Enter your domain name without www — e.g. <ic>example.com</ic>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--green">3</div>
+          <div class="step-body">
+            <h4>Provide credentials (Free plan only)</h4>
+            <p>If you're on the <strong>Free plan</strong>, paste your Cloudflare API Token and Zone ID from Step 5 when prompted. Managed plans (Solo and above) just submit the domain name — no credentials needed.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--green">4</div>
+          <div class="step-body">
+            <h4>Wait for activation</h4>
+            <p>Domain status shows <strong>Pending</strong> initially. For managed plans, the Luzerge team configures everything within <strong>24 hours</strong> — you'll receive an email when it's active. For free plans, activation is automatic once credentials validate.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot sd--green">5</div>
+          <div class="step-body">
+            <h4>Enable monitoring features</h4>
+            <p>Once the domain is <strong>Active</strong>, go to <strong>Settings → Notifications</strong> to set up alerts, and <strong>Security → Uptime Monitoring</strong> to enable uptime checks. See the feature guide below for full details.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout--tip">
+        <span class="ci">✓</span>
+        <div>Once active, all dashboard panels become available — Analytics, SSL, DNS, WAF, DDoS, Uptime, Image Optimization, and Minification are all ready to use.</div>
+      </div>
+    </section>
+
+    <div class="guide-hr"></div>
+
+    <!-- ═══ FEATURES OVERVIEW ════════════════════════════════════════════════════ -->
+    <section id="features" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--amber">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <div>
+          <h2>Dashboard Features Guide</h2>
+          <p class="sub">How to use every monitoring and management tool</p>
+        </div>
+      </div>
+
+      <!-- ── Uptime Monitoring ── -->
+      <div id="feat-uptime" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>Uptime Monitoring</h3>
+          <span class="pbadge pb--all">All Plans</span>
+        </div>
+        <p class="feat-desc">Luzerge checks your website every 1–5 minutes from multiple locations. If your site goes down, you receive an instant email alert. When it recovers, you get another alert with the total downtime duration.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-dot sd--green">→</div>
+            <div class="step-body">
+              <h4>Enable uptime checks</h4>
+              <p>Go to <strong>Security → Uptime Monitoring</strong> in the sidebar. Toggle <strong>Enable uptime checks</strong> for your domain. Choose your check interval: <strong>1 minute</strong> (most sensitive), <strong>2 minutes</strong>, or <strong>5 minutes</strong>.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--green">→</div>
+            <div class="step-body">
+              <h4>Set up downtime alerts</h4>
+              <p>Go to <strong>Settings → Notifications</strong>. Enable <strong>Downtime alerts</strong> and <strong>Recovery alerts</strong>. Confirm your alert email — you can use a different email than your login (e.g. a team inbox).</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--green">→</div>
+            <div class="step-body">
+              <h4>Read your uptime history</h4>
+              <p>The Uptime panel shows your overall uptime percentage, average response latency, a timeline of recent checks, and a list of past downtime incidents with duration and cause.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SSL/TLS ── -->
+      <div id="feat-ssl" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>SSL / TLS Monitoring</h3>
+          <span class="pbadge pb--all">All Plans</span>
+        </div>
+        <p class="feat-desc">Luzerge tracks your SSL certificate expiry and sends email warnings 30 days before it expires. The dashboard shows your certificate issuer, expiry date, TLS version, and encryption mode.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-dot sd--blue">→</div>
+            <div class="step-body">
+              <h4>View SSL certificate details</h4>
+              <p>Go to <strong>Network → SSL/TLS</strong> in the sidebar. See your certificate issuer (e.g. Let's Encrypt, DigiCert), exact expiry date, and current TLS version.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--blue">→</div>
+            <div class="step-body">
+              <h4>Enable SSL expiry alerts</h4>
+              <p>Go to <strong>Settings → Notifications</strong> and turn on <strong>SSL expiry alerts</strong>. You'll get an email 30 days before expiry — enough time to renew before any outage.</p>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--tip">
+          <span class="ci">✓</span>
+          <div>Cloudflare provides free auto-renewing SSL certificates. As long as your domain is proxied through Cloudflare (orange cloud), your SSL certificate renews automatically — you never need to manually renew.</div>
+        </div>
+      </div>
+
+      <!-- ── CDN & Cache ── -->
+      <div id="feat-cdn" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>CDN &amp; Cache Purge</h3>
+          <span class="pbadge pb--all">All Plans</span>
+        </div>
+        <p class="feat-desc">Luzerge uses Cloudflare's global CDN (300+ edge locations) to cache your website close to your visitors, dramatically reducing load times. You control cache purges directly from the dashboard — no need to log into Cloudflare.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-dot sd--cyan">→</div>
+            <div class="step-body">
+              <h4>Manual cache purge</h4>
+              <p>In the <strong>Overview</strong> panel, click the <strong>Purge Cache</strong> button next to your domain. This instantly clears all cached files at every Cloudflare edge location worldwide, forcing fresh content to be fetched from your server. Use this after deploying updates.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--cyan">→</div>
+            <div class="step-body">
+              <h4>Auto-purge schedule</h4>
+              <p>Go to <strong>Settings → Domain Defaults</strong>. Enable <strong>Auto-purge</strong> and choose an interval: <strong>1 hour</strong>, <strong>6 hours</strong>, <strong>12 hours</strong>, or <strong>24 hours</strong>. Useful for sites that update frequently (blogs, e-commerce, news).</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--cyan">→</div>
+            <div class="step-body">
+              <h4>Purge history</h4>
+              <p>All cache purge events are logged. View the history in <strong>Performance → Analytics</strong> — each entry shows the timestamp, purge type (manual or auto), and success/failure status.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DNS Management ── -->
+      <div id="feat-dns" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <h3>DNS Management</h3>
+          <span class="pbadge pb--all">All Plans</span>
+        </div>
+        <p class="feat-desc">View, add, and edit your domain's DNS records directly from the Luzerge dashboard without needing to log into Cloudflare separately. Changes are applied in real-time via the Cloudflare API.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-dot sd--purple">→</div>
+            <div class="step-body">
+              <h4>View all DNS records</h4>
+              <p>Go to <strong>Network → DNS Management</strong>. See all A, AAAA, CNAME, MX, TXT, NS, SRV, and CAA records with their current values, TTL, and proxy status.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--purple">→</div>
+            <div class="step-body">
+              <h4>Add or modify records</h4>
+              <p>Click <strong>Add Record</strong> to create new DNS entries. Click any existing record to edit its value, TTL, or proxy status. Common use cases: adding a CNAME for a subdomain, adding TXT records for domain verification, or updating your server IP.</p>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--info">
+          <span class="ci">ℹ</span>
+          <div>DNS changes through Luzerge take effect within seconds globally. You don't need to wait for propagation — Cloudflare's API updates records instantly.</div>
+        </div>
+      </div>
+
+      <!-- ── WAF ── -->
+      <div id="feat-waf" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>WAF / Firewall</h3>
+          <span class="pbadge pb--managed">Managed Plans</span>
+        </div>
+        <p class="feat-desc">The Web Application Firewall (WAF) analyzes and filters HTTP traffic to block malicious requests before they reach your server — SQL injection, cross-site scripting (XSS), path traversal attacks, bad bots, and more. Cloudflare's managed WAF rules are automatically updated as new threats emerge.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-dot sd--red">→</div>
+            <div class="step-body">
+              <h4>View WAF statistics</h4>
+              <p>Go to <strong>Security → WAF/Firewall</strong>. See the total blocked requests count, top threat types (SQLi, XSS, bots), top attacking IPs, and a timeline of blocked events over the last 24h/7d.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--red">→</div>
+            <div class="step-body">
+              <h4>Create custom firewall rules</h4>
+              <p>Click <strong>Add Rule</strong> to create custom rules that allow or block traffic based on: IP address, IP range, country, ASN, user-agent string, URL path, or request headers.</p>
+              <p>Example rules: Block all traffic from a specific country · Whitelist only your admin IP · Block requests containing specific strings in the URL.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--red">→</div>
+            <div class="step-body">
+              <h4>Bot protection</h4>
+              <p>Luzerge configures Cloudflare's Bot Fight Mode which automatically challenges known bad bots (scrapers, credential stuffers, vulnerability scanners). View blocked bot traffic in the WAF panel.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DDoS ── -->
+      <div id="feat-ddos" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3>DDoS Protection</h3>
+          <span class="pbadge pb--all">All Plans</span>
+        </div>
+        <p class="feat-desc">DDoS protection is always-on and automatic through Cloudflare's global network. Luzerge monitors attack events and provides L3/L4 (network layer) and L7 (application layer) protection. Your server IP stays hidden behind Cloudflare at all times.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-dot sd--amber">→</div>
+            <div class="step-body">
+              <h4>View attack statistics</h4>
+              <p>Go to <strong>Security → DDoS Protection</strong>. See protection status for L3/L4 and L7, attack event history, peak traffic during attacks, and how much traffic was blocked vs allowed.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--amber">→</div>
+            <div class="step-body">
+              <h4>Under Attack Mode</h4>
+              <p>If you're experiencing an active attack and seeing slowness, click <strong>Enable Under Attack Mode</strong> from the DDoS panel. This adds an interstitial JavaScript challenge for all new visitors, dramatically reducing bot traffic while real users pass through in ~5 seconds.</p>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--info">
+          <span class="ci">ℹ</span>
+          <div>Never expose your real server IP address in DNS — always keep your A records proxied (orange cloud) through Cloudflare. If your origin IP leaks, attackers can bypass Cloudflare and attack your server directly.</div>
+        </div>
+      </div>
+
+      <!-- ── Analytics ── -->
+      <div id="feat-analytics" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Analytics</h3>
+          <span class="pbadge pb--all">All Plans</span>
+        </div>
+        <p class="feat-desc">Real-time traffic analytics powered by Cloudflare — captured at the network edge, not with JavaScript tracking scripts. This means it's faster, more accurate, doesn't affect page performance, and captures traffic that would normally be blocked by ad blockers.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-dot sd--blue">→</div>
+            <div class="step-body">
+              <h4>Traffic overview</h4>
+              <p>Go to <strong>Performance → Analytics</strong>. The overview shows: total requests, bandwidth used, unique visitors, cache hit rate, and response status codes (2xx success / 4xx client errors / 5xx server errors). Toggle between <strong>24h</strong>, <strong>7 days</strong>, and <strong>30 days</strong> views.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--blue">→</div>
+            <div class="step-body">
+              <h4>Cache performance</h4>
+              <p>The <strong>cache hit rate</strong> tells you what percentage of requests are served from Cloudflare's cache vs. hitting your origin server. A higher cache hit rate means faster load times and less server load. Aim for 70%+ for content-heavy sites.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--blue">→</div>
+            <div class="step-body">
+              <h4>Geographic traffic breakdown</h4>
+              <p>See which countries your visitors are coming from and how much bandwidth each country uses. Useful for identifying your primary audience and optimizing for their region.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Images & Minification ── -->
+      <div id="feat-perf" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <h3>Image Optimization &amp; Minification</h3>
+          <span class="pbadge pb--all">All Plans</span>
+        </div>
+        <p class="feat-desc">Speed up your website automatically at the network level — no code changes needed.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-dot sd--purple">→</div>
+            <div class="step-body">
+              <h4>Image Optimization (Polish + WebP)</h4>
+              <p>Go to <strong>Performance → Image Optimization</strong>. Enable <strong>Cloudflare Polish</strong> to automatically compress JPEG and PNG images on-the-fly with no visible quality loss (lossless by default). Enable <strong>WebP conversion</strong> to serve WebP format to browsers that support it — WebP is 25–34% smaller than JPEG at the same quality.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot sd--purple">→</div>
+            <div class="step-body">
+              <h4>Minification (HTML/CSS/JS)</h4>
+              <p>Go to <strong>Performance → Minification</strong>. Enable auto-minification for <strong>HTML</strong>, <strong>CSS</strong>, and <strong>JavaScript</strong> files. This strips whitespace, comments, and unnecessary characters from your code files before serving them to visitors — typically reduces file sizes by 10–30%.</p>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--tip">
+          <span class="ci">✓</span>
+          <div>After enabling optimization features, purge your cache so visitors immediately receive the optimized versions of your files.</div>
+        </div>
+      </div>
+
+      <!-- ── Notifications ── -->
+      <div id="feat-notifs" class="feat-section">
+        <div class="feat-hd">
+          <div class="feat-icon" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <h3>Notifications &amp; Alerts</h3>
+          <span class="pbadge pb--all">All Plans</span>
+        </div>
+        <p class="feat-desc">Configure email alerts so you're always informed about your website's health. Go to <strong>Settings → Notifications</strong> to manage all alert types.</p>
+        <div class="settings-grid" style="margin-top:4px">
+          <div class="sgcard">
+            <div class="sgcard__name">Downtime Alerts</div>
+            <div class="sgcard__val sv--on">Strongly Recommended</div>
+            <div class="sgcard__desc">Instant email the moment your site goes down. Includes which domain went down and the exact time. Never miss an outage.</div>
+          </div>
+          <div class="sgcard">
+            <div class="sgcard__name">Recovery Alerts</div>
+            <div class="sgcard__val sv--on">Strongly Recommended</div>
+            <div class="sgcard__desc">Email when your site comes back online. Includes total downtime duration so you can track the impact of incidents.</div>
+          </div>
+          <div class="sgcard">
+            <div class="sgcard__name">SSL Expiry Alerts</div>
+            <div class="sgcard__val sv--on">Recommended</div>
+            <div class="sgcard__desc">Warning email 30 days before SSL certificate expires. Gives you plenty of time to renew before any browser warnings appear for your visitors.</div>
+          </div>
+          <div class="sgcard">
+            <div class="sgcard__name">Weekly Reports</div>
+            <div class="sgcard__val sv--set">Optional</div>
+            <div class="sgcard__desc">Weekly digest email every Monday with uptime percentage, total downtime, traffic stats, and cache purge history for all your domains.</div>
+          </div>
+        </div>
+        <div class="callout callout--info" style="margin-top:16px">
+          <span class="ci">ℹ</span>
+          <div>You can set a <strong>custom alert email address</strong> different from your login email — useful for sending alerts directly to a team Slack email or operations inbox.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="guide-hr"></div>
+
+    <!-- ═══ TROUBLESHOOTING ══════════════════════════════════════════════════════ -->
+    <section id="troubleshoot" class="guide-section">
+      <div class="section-hd">
+        <div class="section-icon si--amber">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <h2>Troubleshooting</h2>
+          <p class="sub">Common issues and how to fix them</p>
+        </div>
+      </div>
+
+      <div class="trouble-list">
+        <div class="titem">
+          <div class="titem__q">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Domain still showing "Pending" after 24 hours
+          </div>
+          <div class="titem__a">First verify your Cloudflare nameservers have fully propagated at <strong>dnschecker.org</strong>. If they show correctly globally, email <strong>luzergeservices@gmail.com</strong> with your domain name and we'll check the status manually.</div>
+        </div>
+
+        <div class="titem">
+          <div class="titem__q">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Website shows ERR_TOO_MANY_REDIRECTS or SSL error
+          </div>
+          <div class="titem__a">This almost always means Cloudflare SSL mode is set to <strong>Flexible</strong>. Go to Cloudflare → SSL/TLS → Overview and change to <strong>Full</strong> or <strong>Full (Strict)</strong>. Also make sure "Always Use HTTPS" is enabled. Clear your browser cache after changing.</div>
+        </div>
+
+        <div class="titem">
+          <div class="titem__q">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Nameservers updated but domain is still "Pending" in Cloudflare
+          </div>
+          <div class="titem__a">Propagation can take up to 48 hours. Check progress at <strong>dnschecker.org</strong> — search for your domain's NS records. Once Cloudflare nameservers are showing globally, return to Cloudflare and click <strong>Re-check nameservers</strong> or wait — Cloudflare checks automatically every few hours.</div>
+        </div>
+
+        <div class="titem">
+          <div class="titem__q">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            "Invalid credentials" error when submitting domain (Free plan)
+          </div>
+          <div class="titem__a">Your API token may be missing required permissions, expired, or was accidentally revoked. Go to Cloudflare → API Tokens, delete the existing Luzerge token, and create a new one following Step 5 exactly. Make sure to include all 6 permission entries and set Zone Resources to your specific domain.</div>
+        </div>
+
+        <div class="titem">
+          <div class="titem__q">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Cache purge not working or old content still showing
+          </div>
+          <div class="titem__a">First make sure your DNS records are proxied (orange cloud) — DNS-only records bypass the CDN entirely. Click <strong>Purge All</strong> in the Overview panel. If content is still stale, also clear your browser's local cache (Ctrl+Shift+R or Cmd+Shift+R). For API errors, verify your API token still has Cache Purge permission.</div>
+        </div>
+
+        <div class="titem">
+          <div class="titem__q">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Not receiving downtime alert emails
+          </div>
+          <div class="titem__a">Check <strong>Settings → Notifications</strong> and confirm downtime alerts are enabled with the correct email address. Check your spam/junk folder — add <strong>luzergeservices@gmail.com</strong> to your contacts to prevent filtering. Also confirm that uptime monitoring is enabled in <strong>Security → Uptime Monitoring</strong>.</div>
+        </div>
+
+        <div class="titem">
+          <div class="titem__q">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Analytics showing no data or zero traffic
+          </div>
+          <div class="titem__a">Analytics require your domain to be <strong>Active</strong> and DNS records to be <strong>proxied (orange cloud)</strong>. Data starts appearing within a few hours of first proxied traffic. If it's been over 24 hours with active traffic and no data, contact support with your domain name.</div>
+        </div>
+
+        <div class="titem">
+          <div class="titem__q">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Email stopped working after switching nameservers to Cloudflare
+          </div>
+          <div class="titem__a">Cloudflare may not have imported your MX records, or they may have been accidentally proxied (they must be DNS-only / grey cloud). Go to Cloudflare → DNS → Records, verify all MX records are present and set to DNS-only (grey cloud). Also check SPF and DKIM TXT records.</div>
+        </div>
+      </div>
+
+      <div class="callout callout--info" style="margin-top:24px">
+        <span class="ci">ℹ</span>
+        <div>
+          <strong>Need more help?</strong>
+          Email <strong>luzergeservices@gmail.com</strong> with your domain name, your plan type, and a description of the issue. Include any error messages you're seeing. We respond within 24 hours. You can also ask Lumi (the chat icon in the bottom-right corner) for quick guidance.
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Lumi chat widget -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/lumi.js" defer></script>
+
+<!-- Active TOC highlight -->
+<script>
+  (function () {
+    const toc = document.getElementById('setupToc');
+    if (!toc) return;
+    const links = Array.from(toc.querySelectorAll('a[href^="#"]'));
+    const anchors = links.map(l => {
+      const id = l.getAttribute('href').slice(1);
+      return { el: document.getElementById(id), link: l };
+    }).filter(a => a.el);
+
+    function update() {
+      const y = window.scrollY + 90;
+      let active = anchors[0];
+      for (const a of anchors) {
+        if (a.el.getBoundingClientRect().top + window.scrollY <= y) active = a;
+        else break;
+      }
+      links.forEach(l => l.classList.remove('is-active'));
+      if (active) active.link.classList.add('is-active');
+    }
+
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  })();
+</script>
+
+</body>
+</html>

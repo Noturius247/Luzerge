@@ -91,7 +91,7 @@ setInterval(() => {
 
 async function sendNotificationEmail(lead: ContactPayload): Promise<void> {
   const resendKey = Deno.env.get('RESEND_API_KEY')
-  const notifyEmail = Deno.env.get('NOTIFICATION_EMAIL') ?? 'hello@luzerge.com'
+  const notifyEmail = Deno.env.get('NOTIFICATION_EMAIL') ?? 'luzergeservices@gmail.com'
 
   if (!resendKey) return  // Skip if not configured
 

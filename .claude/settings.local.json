@@ -3,7 +3,8 @@
     "allow": [
       "Bash(powershell -Command \"Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression\")",
       "Bash(\"C:/Users/Benz Gerald/scoop/shims/scoop.cmd\" bucket add supabase https://github.com/supabase/scoop-bucket.git)",
-      "Bash(\"C:/Users/Benz Gerald/scoop/shims/scoop.cmd\" install supabase)"
+      "Bash(\"C:/Users/Benz Gerald/scoop/shims/scoop.cmd\" install supabase)",
+      "Bash(ls:*)"
     ]
   }
 }

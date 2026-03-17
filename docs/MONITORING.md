@@ -176,7 +176,7 @@ curl -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
    Monitor Type: HTTPS
    URL: https://luzerge.com
    Monitoring Interval: 5 minutes
-   Alert Contacts: hello@luzerge.com
+   Alert Contacts: luzergeservices@gmail.com
 
 3. Add endpoint monitors:
    https://luzerge.com/          → Main site
