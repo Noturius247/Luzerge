@@ -6,7 +6,7 @@
   'use strict'
 
   const SUPABASE_URL = window.__LUZERGE_CONFIG?.SUPABASE_URL || 'https://byzuraeyhrxxpztredri.supabase.co'
-  const SUPABASE_ANON_KEY = window.__LUZERGE_CONFIG?.SUPABASE_ANON_KEY || ''
+  const SUPABASE_ANON_KEY = window.__LUZERGE_CONFIG?.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5enVyYWV5aHJ4eHB6dHJlZHJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjgxMTYsImV4cCI6MjA4OTAwNDExNn0.b_Plo15IWR8g5XPlN8XUs7Cpo2WZwt0UkrawfssIgZU'
   const ENDPOINT = SUPABASE_URL + '/functions/v1/lumi-chat'
   const WELCOME = "Hi! I'm Lumi, your Luzerge assistant. Ask me anything about our plans, features, or how to get started."
 
