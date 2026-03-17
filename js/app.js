@@ -776,6 +776,135 @@ function initRocketSmoke() {
   requestAnimationFrame(animate)
 }
 
+// ─── Domain Scanner ──────────────────────────────────────────────────────────
+
+function initScanner() {
+  const form = document.getElementById('scannerForm')
+  if (!form) return
+
+  const input = document.getElementById('scannerInput')
+  const btn = document.getElementById('scannerBtn')
+  const resultsWrap = document.getElementById('scannerResults')
+  const grid = document.getElementById('scannerGrid')
+  const cta = document.getElementById('scannerCta')
+  const loading = document.getElementById('scannerLoading')
+  const errorEl = document.getElementById('scannerError')
+
+  const LOOKUP_URL = 'https://byzuraeyhrxxpztredri.supabase.co/functions/v1/domain-lookup'
+
+  function cleanDomain(raw) {
+    return raw.trim().toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/.*$/, '')
+      .replace(/[^a-z0-9.\-]/g, '')
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+  }
+
+  function resultCard(label, value, icon) {
+    return `<div class="scanner__result-item">
+      <span class="scanner__result-icon">${icon}</span>
+      <span class="scanner__result-label">${escHtml(label)}</span>
+      <span class="scanner__result-value">${escHtml(value)}</span>
+    </div>`
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const domain = cleanDomain(input.value)
+    if (!domain || !domain.includes('.')) {
+      errorEl.textContent = 'Please enter a valid domain (e.g., example.com)'
+      errorEl.hidden = false
+      return
+    }
+
+    // Reset UI
+    resultsWrap.hidden = true
+    cta.hidden = true
+    errorEl.hidden = true
+    grid.innerHTML = ''
+    loading.hidden = false
+    btn.disabled = true
+    btn.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span> Scanning...'
+
+    trackEvent('scanner_submit', { domain })
+
+    try {
+      const res = await fetch(`${LOOKUP_URL}?domain=${encodeURIComponent(domain)}`)
+      const data = await res.json()
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Lookup failed')
+      }
+
+      if (!data.registered) {
+        errorEl.textContent = `"${escHtml(domain)}" does not appear to be registered.`
+        errorEl.hidden = false
+        trackEvent('scanner_not_found', { domain })
+        return
+      }
+
+      // Build results
+      let html = ''
+
+      html += resultCard('Status', 'Registered & Active', '\u2705')
+
+      html += resultCard('Platform', data.platform || 'Unknown',
+        data.is_on_cloudflare ? '\u2601\uFE0F' : '\uD83C\uDF10')
+
+      html += resultCard('Cloudflare',
+        data.is_on_cloudflare ? 'Yes \u2014 Protected' : 'Not Detected',
+        data.is_on_cloudflare ? '\uD83D\uDEE1\uFE0F' : '\u26A0\uFE0F')
+
+      if (data.hosting) {
+        html += resultCard('Hosting', data.hosting.provider || 'Unknown', '\uD83D\uDDA5\uFE0F')
+        if (data.hosting.country) {
+          html += resultCard('Server Location', data.hosting.country, '\uD83D\uDCCD')
+        }
+        if (data.hosting.ip) {
+          html += resultCard('IP Address', data.hosting.ip, '\uD83C\uDF10')
+        }
+      }
+
+      if (data.nameservers && data.nameservers.length > 0) {
+        const nsList = data.nameservers.slice(0, 4).map(ns =>
+          `<span class="scanner__ns-tag">${escHtml(ns)}</span>`
+        ).join(' ')
+        html += `<div class="scanner__result-item scanner__result-item--full">
+          <span class="scanner__result-icon">\uD83D\uDCC4</span>
+          <span class="scanner__result-label">Nameservers</span>
+          <div class="scanner__result-ns">${nsList}</div>
+        </div>`
+      }
+
+      grid.innerHTML = html
+      resultsWrap.hidden = false
+      cta.hidden = false
+      resultsWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+
+      trackEvent('scanner_success', { domain, platform: data.platform, cloudflare: data.is_on_cloudflare })
+
+    } catch (err) {
+      console.error('Scanner error:', err)
+      errorEl.textContent = 'Something went wrong. Please check the domain and try again.'
+      errorEl.hidden = false
+      trackEvent('scanner_error', { domain, error: err.message })
+    } finally {
+      loading.hidden = true
+      btn.disabled = false
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Scan Domain'
+    }
+  })
+}
+
 // ─── Page view tracking ───────────────────────────────────────────────────────
 
 function initPageTracking() {
@@ -794,6 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initRocketSmoke()
   initDragCards()
   setFooterYear()
+  initScanner()
   initPageTracking()
   initPricingToggle()
   initCurrencyConverter()

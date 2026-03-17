@@ -6,21 +6,21 @@
 
   <!-- SEO -->
   <title>Luzerge — Website Monitoring & Performance Platform</title>
-  <meta name="description" content="Monitor uptime, boost speed, and protect your website with Luzerge. Free for self-managed or fully managed from ₱99/mo. Real-time alerts and analytics." />
-  <meta name="keywords" content="website monitoring Philippines, uptime monitoring, performance monitoring, website analytics, CDN management, DDoS protection Philippines" />
+  <meta name="description" content="Free website scanner — check Cloudflare, DNS, hosting & nameservers instantly. Plus uptime monitoring & CDN management. Free or fully managed from ₱99/mo." />
+  <meta name="keywords" content="website monitoring Philippines, uptime monitoring, performance monitoring, website analytics, CDN management, DDoS protection Philippines, free website scanner, Cloudflare checker, DNS lookup tool, hosting provider checker, nameserver lookup" />
   <link rel="canonical" href="https://luzerge.com/" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://luzerge.com/" />
   <meta property="og:title" content="Luzerge — Website Monitoring & Performance Platform" />
-  <meta property="og:description" content="Monitor uptime, boost website speed, and manage your CDN — all in one dashboard. Free for self-managed or fully managed starting at ₱99/mo. Real-time alerts and faster load times." />
+  <meta property="og:description" content="Free website scanner — check Cloudflare, DNS, hosting & nameservers instantly. Plus uptime monitoring, CDN management & real-time analytics. Free or managed from ₱99/mo." />
   <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Luzerge — Website Monitoring & Performance Platform" />
-  <meta name="twitter:description" content="Monitor uptime, boost website speed, and manage your CDN. Free for self-managed or fully managed starting at ₱99/mo." />
+  <meta name="twitter:description" content="Free website scanner — check Cloudflare, DNS, hosting & nameservers instantly. Plus uptime monitoring & CDN management. Free or managed from ₱99/mo." />
   <meta name="twitter:image" content="https://luzerge.com/img/og-image.png" />
 
   <!-- Geographic targeting -->
@@ -60,12 +60,39 @@
   }
   </script>
 
+  <!-- WebApplication Schema for Domain Scanner (SEO) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Free Website Scanner by Luzerge",
+    "url": "https://luzerge.com/#scanner",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Web",
+    "description": "Free online tool to check if your website uses Cloudflare, detect your hosting provider, nameservers, and DNS platform. No signup required.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "PHP"
+    },
+    "featureList": "Cloudflare detection, Nameserver lookup, Hosting provider detection, DNS platform identification, A/AAAA/MX record check"
+  }
+  </script>
+
   <!-- FAQ Rich Results -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How does the free website scanner work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Our scanner performs a real-time DNS lookup on your domain using Google's public DNS API. It detects your nameservers, hosting provider, whether you're on Cloudflare, and shows your DNS records — all without requiring signup or login. It's completely free and unlimited."
+        }
+      },
       {
         "@type": "Question",
         "name": "What is a CDN and why do I need one?",
@@ -154,6 +181,7 @@
         Luzerge
       </a>
       <ul class="nav__links" role="list">
+        <li><a href="#scanner">Free Scanner</a></li>
         <li><a href="#problems">Why Us</a></li>
         <li><a href="#services">Services</a></li>
         <li><a href="#pricing">Pricing</a></li>
@@ -207,6 +235,53 @@
           <span class="stat__label">DDoS Protection</span>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ─── Free Domain Scanner (SEO lead magnet) ─────────────────────────── -->
+  <section class="scanner" id="scanner" aria-labelledby="scanner-heading" data-scroll-section>
+    <div class="container">
+      <h2 class="section__heading" id="scanner-heading" data-scroll-reveal>Free Website Scanner</h2>
+      <p class="section__subheading" data-scroll-reveal>Check if your domain is on Cloudflare, see your nameservers, hosting, and platform — instantly. No signup needed.</p>
+
+      <div class="scanner__box" data-scroll-reveal>
+        <form class="scanner__form" id="scannerForm" aria-label="Domain scanner">
+          <div class="scanner__input-wrap">
+            <svg class="scanner__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="text" id="scannerInput" class="scanner__input" placeholder="Enter your domain (e.g., example.com)" autocomplete="off" required />
+          </div>
+          <button type="submit" class="btn btn--primary scanner__btn" id="scannerBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Scan Domain
+          </button>
+        </form>
+
+        <div class="scanner__results" id="scannerResults" hidden>
+          <div class="scanner__results-grid" id="scannerGrid"></div>
+          <div class="scanner__cta" id="scannerCta" hidden>
+            <p>Want full monitoring, CDN management, and real-time analytics for this domain?</p>
+            <a href="/login.html" class="btn btn--primary">Start Free — No Credit Card</a>
+          </div>
+        </div>
+
+        <div class="scanner__loading" id="scannerLoading" hidden>
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+          <p>Scanning DNS records...</p>
+        </div>
+
+        <div class="scanner__error" id="scannerError" hidden></div>
+
+        <noscript>
+          <p style="padding:1rem;color:#94a3b8;text-align:center;">
+            Our free website scanner checks if your domain uses Cloudflare, detects your hosting provider, nameservers, DNS platform, and IP address — all in seconds. Enable JavaScript to use the scanner, or <a href="/login.html" style="color:#06b6d4;">sign up free</a> to access the full dashboard.
+          </p>
+        </noscript>
+      </div>
+
+      <p class="scanner__trust" data-scroll-reveal>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"/></svg>
+        100% free · No signup required · Results in seconds
+      </p>
     </div>
   </section>
 
@@ -584,6 +659,10 @@
       <h2 class="section__heading" id="faq-heading" data-scroll-reveal>Common Questions</h2>
       <p class="section__subheading" data-scroll-reveal>Everything you need to know about Luzerge.</p>
       <div class="faq__list">
+        <details class="faq__item" data-scroll-reveal>
+          <summary class="faq__question">How does the free website scanner work?</summary>
+          <p class="faq__answer">Our scanner performs a real-time DNS lookup on your domain using Google's public DNS API. It detects your nameservers, hosting provider, whether you're on Cloudflare, and shows your DNS records — all without requiring signup or login. It's completely free and unlimited.</p>
+        </details>
         <details class="faq__item" data-scroll-reveal>
           <summary class="faq__question">What is a CDN and why do I need one?</summary>
           <p class="faq__answer">A CDN (Content Delivery Network) stores copies of your website at servers around the world. When someone visits your site, they load it from the nearest server instead of your origin — making it significantly faster. It also protects against DDoS attacks and reduces your server load.</p>
