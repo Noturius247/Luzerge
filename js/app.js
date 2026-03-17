@@ -809,11 +809,26 @@ function initScanner() {
       .replace(/'/g, '&#x27;')
   }
 
-  function resultCard(label, value, icon) {
+  // SVG line icons (24x24 viewBox, stroke-based, matching landing page style)
+  const ICONS = {
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    shieldOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.69 14a6.9 6.9 0 0 0 .31-2V5l-8-3-3.16 1.18"/><path d="M4.73 4.73L4 5v7c0 6 8 10 8 10a20.29 20.29 0 0 0 5.62-4.38"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+    server: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
+    mapPin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    hash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
+    dns: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+  }
+
+  function resultCard(label, value, iconKey, valueClass) {
+    const cls = valueClass ? `scanner__result-value ${valueClass}` : 'scanner__result-value'
     return `<div class="scanner__result-item">
-      <span class="scanner__result-icon">${icon}</span>
-      <span class="scanner__result-label">${escHtml(label)}</span>
-      <span class="scanner__result-value">${escHtml(value)}</span>
+      <span class="scanner__result-icon">${ICONS[iconKey] || ICONS.globe}</span>
+      <div class="scanner__result-body">
+        <span class="scanner__result-label">${escHtml(label)}</span>
+        <span class="${cls}">${escHtml(value)}</span>
+      </div>
     </div>`
   }
 
@@ -855,33 +870,35 @@ function initScanner() {
       // Build results
       let html = ''
 
-      html += resultCard('Status', 'Registered & Active', '\u2705')
+      html += resultCard('Status', 'Registered & Active', 'check', 'scanner__result-value--green')
 
-      html += resultCard('Platform', data.platform || 'Unknown',
-        data.is_on_cloudflare ? '\u2601\uFE0F' : '\uD83C\uDF10')
+      html += resultCard('Platform', data.platform || 'Unknown', 'globe')
 
-      html += resultCard('Cloudflare',
-        data.is_on_cloudflare ? 'Yes \u2014 Protected' : 'Not Detected',
-        data.is_on_cloudflare ? '\uD83D\uDEE1\uFE0F' : '\u26A0\uFE0F')
+      html += resultCard('Cloudflare Protection',
+        data.is_on_cloudflare ? 'Active' : 'Not Detected',
+        data.is_on_cloudflare ? 'shield' : 'shieldOff',
+        data.is_on_cloudflare ? 'scanner__result-value--green' : 'scanner__result-value--amber')
 
       if (data.hosting) {
-        html += resultCard('Hosting', data.hosting.provider || 'Unknown', '\uD83D\uDDA5\uFE0F')
+        html += resultCard('Hosting Provider', data.hosting.provider || 'Unknown', 'server')
         if (data.hosting.country) {
-          html += resultCard('Server Location', data.hosting.country, '\uD83D\uDCCD')
+          html += resultCard('Server Location', data.hosting.country, 'mapPin')
         }
         if (data.hosting.ip) {
-          html += resultCard('IP Address', data.hosting.ip, '\uD83C\uDF10')
+          html += resultCard('IP Address', data.hosting.ip, 'hash')
         }
       }
 
       if (data.nameservers && data.nameservers.length > 0) {
         const nsList = data.nameservers.slice(0, 4).map(ns =>
           `<span class="scanner__ns-tag">${escHtml(ns)}</span>`
-        ).join(' ')
+        ).join('')
         html += `<div class="scanner__result-item scanner__result-item--full">
-          <span class="scanner__result-icon">\uD83D\uDCC4</span>
-          <span class="scanner__result-label">Nameservers</span>
-          <div class="scanner__result-ns">${nsList}</div>
+          <span class="scanner__result-icon">${ICONS.dns}</span>
+          <div class="scanner__result-body">
+            <span class="scanner__result-label">Nameservers</span>
+            <div class="scanner__result-ns">${nsList}</div>
+          </div>
         </div>`
       }
 
