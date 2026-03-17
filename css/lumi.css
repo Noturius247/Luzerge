@@ -13,10 +13,12 @@
   color: #fff;
   cursor: pointer;
   box-shadow: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  transition: transform 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
 }
 .lumi-fab:hover {
   transform: scale(1.1);

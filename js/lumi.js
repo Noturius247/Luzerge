@@ -26,13 +26,13 @@
       <svg class="lumi-face" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="lf-sphere" cx="38%" cy="35%" r="55%">
-            <stop offset="0%" stop-color="#1e90ff"/>
-            <stop offset="50%" stop-color="#0a5eaa"/>
-            <stop offset="100%" stop-color="#042a4a"/>
+            <stop offset="0%" stop-color="#0e2a47"/>
+            <stop offset="50%" stop-color="#0a1628"/>
+            <stop offset="100%" stop-color="#050a14"/>
           </radialGradient>
           <radialGradient id="lf-shine" cx="35%" cy="25%" r="40%">
-            <stop offset="0%" stop-color="rgba(255,255,255,0.45)"/>
-            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            <stop offset="0%" stop-color="rgba(6,182,212,0.35)"/>
+            <stop offset="100%" stop-color="rgba(6,182,212,0)"/>
           </radialGradient>
           <radialGradient id="lf-eye" cx="40%" cy="35%" r="50%">
             <stop offset="0%" stop-color="#fff"/>
@@ -45,7 +45,7 @@
         </defs>
         <circle cx="32" cy="32" r="28" fill="url(#lf-sphere)"/>
         <circle cx="32" cy="32" r="28" fill="url(#lf-shine)"/>
-        <circle class="lumi-face__glow" cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.4)" stroke-width="1.5"/>
+        <circle class="lumi-face__glow" cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.5)" stroke-width="1.5"/>
         <path class="lumi-face__bolt" d="M38 2L18 34h16l-3 26 20-34H33l5-24z" fill="rgba(255,255,255,0.5)" stroke="#fff" stroke-width="1.2"/>
         <circle class="lumi-face__eye lumi-face__eye--l" cx="20" cy="28" r="5.5" fill="url(#lf-eye)"/>
         <circle class="lumi-face__eye lumi-face__eye--r" cx="44" cy="28" r="5.5" fill="url(#lf-eye)"/>
@@ -135,13 +135,13 @@
   const MINI_FACE = `<svg class="lumi-face lumi-face--mini" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <radialGradient id="lm-sphere" cx="38%" cy="35%" r="55%">
-        <stop offset="0%" stop-color="#1e90ff"/>
-        <stop offset="50%" stop-color="#0a5eaa"/>
-        <stop offset="100%" stop-color="#042a4a"/>
+        <stop offset="0%" stop-color="#0e2a47"/>
+        <stop offset="50%" stop-color="#0a1628"/>
+        <stop offset="100%" stop-color="#050a14"/>
       </radialGradient>
       <radialGradient id="lm-shine" cx="35%" cy="25%" r="40%">
-        <stop offset="0%" stop-color="rgba(255,255,255,0.4)"/>
-        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        <stop offset="0%" stop-color="rgba(6,182,212,0.3)"/>
+        <stop offset="100%" stop-color="rgba(6,182,212,0)"/>
       </radialGradient>
     </defs>
     <circle cx="32" cy="32" r="28" fill="url(#lm-sphere)"/>
