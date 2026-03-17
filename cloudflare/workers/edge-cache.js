@@ -53,7 +53,7 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net",
-    "style-src 'self' https://fonts.googleapis.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https://lh3.googleusercontent.com https://www.googletagmanager.com",
     "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://cdn.jsdelivr.net",
