@@ -97,6 +97,12 @@
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+  clip-path: circle(50%);
+}
+.lumi-avatar .lumi-face__bolt {
+  filter: none;
+  animation: none;
+  opacity: 0.9;
 }
 .lumi-avatar svg { width: 18px; height: 18px; }
 .lumi-header__info { flex: 1; min-width: 0; }
@@ -161,6 +167,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  clip-path: circle(50%);
+}
+.lumi-msg-avatar .lumi-face__bolt {
+  filter: none;
+  animation: none;
+  opacity: 0.9;
 }
 .lumi-face--mini {
   width: 26px;
