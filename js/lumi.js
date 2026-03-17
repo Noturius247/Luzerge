@@ -5,7 +5,9 @@
 ;(function () {
   'use strict'
 
-  const ENDPOINT = (window.__LUZERGE_CONFIG?.SUPABASE_URL || 'https://byzuraeyhrxxpztredri.supabase.co') + '/functions/v1/lumi-chat'
+  const SUPABASE_URL = window.__LUZERGE_CONFIG?.SUPABASE_URL || 'https://byzuraeyhrxxpztredri.supabase.co'
+  const SUPABASE_ANON_KEY = window.__LUZERGE_CONFIG?.SUPABASE_ANON_KEY || ''
+  const ENDPOINT = SUPABASE_URL + '/functions/v1/lumi-chat'
   const WELCOME = "Hi! I'm Lumi, your Luzerge assistant. Ask me anything about our plans, features, or how to get started."
 
   let isOpen = false
@@ -123,7 +125,11 @@
     try {
       const res = await fetch(ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'apikey': SUPABASE_ANON_KEY,
+        },
         body: JSON.stringify({ message: text, history: history.slice(-10) }),
       })
 
