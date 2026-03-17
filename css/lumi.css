@@ -96,6 +96,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 .lumi-avatar svg { width: 18px; height: 18px; }
 .lumi-header__info { flex: 1; min-width: 0; }
@@ -159,6 +160,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 .lumi-face--mini {
   width: 26px;
