@@ -136,14 +136,41 @@
 .lumi-messages::-webkit-scrollbar { width: 4px; }
 .lumi-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
 
+/* Message rows */
+.lumi-msg-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  animation: lumi-fadein 0.2s ease;
+}
+.lumi-msg-row--user {
+  justify-content: flex-end;
+}
+.lumi-msg-row--bot {
+  justify-content: flex-start;
+}
+.lumi-msg-avatar {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(6, 182, 212, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lumi-face--mini {
+  width: 20px;
+  height: 20px;
+}
+
 .lumi-msg {
-  max-width: 85%;
+  max-width: 80%;
   padding: 10px 14px;
   border-radius: 14px;
   font-size: .8125rem;
   line-height: 1.5;
   word-wrap: break-word;
-  animation: lumi-fadein 0.2s ease;
 }
 @keyframes lumi-fadein {
   from { opacity: 0; transform: translateY(6px); }
@@ -283,7 +310,7 @@
   50% { transform: scaleY(0.85); }
 }
 
-.lumi-face--sm { width: 28px; height: 28px; }
+.lumi-face--header { width: 34px; height: 34px; }
 
 /* ─── Mobile ─────────────────────────────────────────────────── */
 @media (max-width: 480px) {

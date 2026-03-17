@@ -45,12 +45,15 @@
     win.innerHTML = `
       <div class="lumi-header">
         <div class="lumi-avatar">
-          <svg class="lumi-face lumi-face--sm" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="lumi-face lumi-face--header" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle class="lumi-face__glow" cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.25)" stroke-width="1.5"/>
             <circle class="lumi-face__eye lumi-face__eye--l" cx="22" cy="28" r="3.5" fill="#fff"/>
             <circle class="lumi-face__eye lumi-face__eye--r" cx="42" cy="28" r="3.5" fill="#fff"/>
             <circle class="lumi-face__pupil lumi-face__pupil--l" cx="22" cy="28" r="1.8" fill="#0a0e1a"/>
             <circle class="lumi-face__pupil lumi-face__pupil--r" cx="42" cy="28" r="1.8" fill="#0a0e1a"/>
             <path class="lumi-face__mouth" d="M22 40 Q32 48 42 40" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <circle class="lumi-face__spark lumi-face__spark--1" cx="10" cy="14" r="1" fill="#06b6d4"/>
+            <circle class="lumi-face__spark lumi-face__spark--2" cx="54" cy="12" r="0.8" fill="#3b82f6"/>
           </svg>
         </div>
         <div class="lumi-header__info">
@@ -87,7 +90,25 @@
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   }
 
+  const MINI_FACE = `<svg class="lumi-face lumi-face--mini" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle class="lumi-face__eye lumi-face__eye--l" cx="22" cy="28" r="4" fill="#06b6d4"/>
+    <circle class="lumi-face__eye lumi-face__eye--r" cx="42" cy="28" r="4" fill="#06b6d4"/>
+    <circle class="lumi-face__pupil lumi-face__pupil--l" cx="22" cy="28" r="2" fill="#0a0e1a"/>
+    <circle class="lumi-face__pupil lumi-face__pupil--r" cx="42" cy="28" r="2" fill="#0a0e1a"/>
+    <path class="lumi-face__mouth" d="M22 40 Q32 48 42 40" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  </svg>`
+
   function addMessage(container, text, type) {
+    const wrapper = document.createElement('div')
+    wrapper.className = 'lumi-msg-row lumi-msg-row--' + type
+
+    if (type === 'bot') {
+      const avatar = document.createElement('div')
+      avatar.className = 'lumi-msg-avatar'
+      avatar.innerHTML = MINI_FACE
+      wrapper.appendChild(avatar)
+    }
+
     const div = document.createElement('div')
     div.className = 'lumi-msg lumi-msg--' + type
     // Basic markdown: **bold**, `code`, newlines
@@ -96,16 +117,26 @@
       .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;font-size:.75rem">$1</code>')
       .replace(/\n/g, '<br>')
     div.innerHTML = html
-    container.appendChild(div)
+    wrapper.appendChild(div)
+    container.appendChild(wrapper)
     container.scrollTop = container.scrollHeight
   }
 
   function showTyping(container) {
+    const wrapper = document.createElement('div')
+    wrapper.className = 'lumi-msg-row lumi-msg-row--bot'
+    wrapper.id = 'lumiTyping'
+
+    const avatar = document.createElement('div')
+    avatar.className = 'lumi-msg-avatar'
+    avatar.innerHTML = MINI_FACE
+    wrapper.appendChild(avatar)
+
     const div = document.createElement('div')
     div.className = 'lumi-msg lumi-msg--typing'
-    div.id = 'lumiTyping'
     div.innerHTML = '<div class="lumi-dots"><span></span><span></span><span></span></div>'
-    container.appendChild(div)
+    wrapper.appendChild(div)
+    container.appendChild(wrapper)
     container.scrollTop = container.scrollHeight
   }
 
