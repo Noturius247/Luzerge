@@ -1214,6 +1214,22 @@
               </div>
               <button class="btn btn--primary btn--sm" id="settUpgradeBtn" type="button">Upgrade Plan</button>
             </div>
+
+            <!-- Subscription Status (shown when user has active/trial sub) -->
+            <div id="settSubscriptionInfo" class="plan-card__subscription" style="display:none; margin-top:1rem; padding:1rem; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+              <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+                <span style="font-size:.8rem; font-weight:600; color:var(--color-text);">Subscription</span>
+                <span class="settings-badge" id="settSubStatus">—</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:.78rem; color:var(--color-text-muted);">
+                <div>Next billing: <strong id="settNextBilling" style="color:var(--color-text);">—</strong></div>
+                <div>Trial ends: <strong id="settTrialEnds" style="color:var(--color-text);">—</strong></div>
+              </div>
+              <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+                <button class="btn btn--outline btn--sm" id="settRenewBtn" type="button" style="display:none;">Pay Now</button>
+                <button class="btn btn--outline btn--sm" id="settCancelSubBtn" type="button" style="display:none; color:#ef4444; border-color:#ef4444;">Cancel Subscription</button>
+              </div>
+            </div>
           </div>
 
           <div class="settings-group">
@@ -1251,14 +1267,26 @@
               </div>
             </div>
             <p class="settings-hint" style="margin-top:.75rem;font-size:.8rem;color:var(--color-text-muted)">
-              We accept GCash, Maya, bank transfer (BDO/BPI/UnionBank), and PayPal. Your plan will be activated after payment is confirmed.
+              Pay securely via GCash, Maya, credit/debit card, or GrabPay. First month is FREE on all paid plans!
             </p>
           </div>
 
           <div class="settings-group">
-            <h3 class="settings-group__title">Billing History</h3>
-            <div id="settBillingHistory" class="billing-history">
-              <p class="settings-empty">No billing history yet.</p>
+            <h3 class="settings-group__title">Payment History</h3>
+            <div id="settPaymentHistory" class="billing-history">
+              <p class="settings-empty" id="settPaymentEmpty">No payments yet.</p>
+              <table class="billing-table" id="settPaymentTable" style="display:none; width:100%; font-size:.78rem; border-collapse:collapse;">
+                <thead>
+                  <tr style="color:var(--color-text-muted); text-align:left; border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <th style="padding:0.5rem 0.5rem;">Date</th>
+                    <th style="padding:0.5rem 0.5rem;">Plan</th>
+                    <th style="padding:0.5rem 0.5rem;">Amount</th>
+                    <th style="padding:0.5rem 0.5rem;">Method</th>
+                    <th style="padding:0.5rem 0.5rem;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="settPaymentRows"></tbody>
+              </table>
             </div>
           </div>
         </section>

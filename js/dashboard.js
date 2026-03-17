@@ -69,6 +69,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Logout
   document.getElementById('logoutBtn')?.addEventListener('click', signOut)
 
+  // Handle payment return from PayMongo
+  const urlParams = new URLSearchParams(window.location.search)
+  if (urlParams.get('payment') === 'success') {
+    showToast('Payment successful! Your plan has been activated.')
+    // Re-fetch profile to get updated plan
+    currentProfile = await getProfile()
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname)
+  } else if (urlParams.get('payment') === 'cancelled') {
+    showToast('Payment cancelled. You can try again anytime.')
+    window.history.replaceState({}, '', window.location.pathname)
+  }
+
   // Load domains then overview sections
   await loadDomains()
   loadOverviewSections()
@@ -2469,14 +2482,17 @@ function updateAvatarPreview(url) {
   }
 }
 
-function populatePlanSettings() {
+async function populatePlanSettings() {
   const plan = currentProfile?.plan || 'none'
   const paymentStatus = currentProfile?.payment_status || 'unpaid'
   const planName = plan === 'none' ? 'Free' : plan.charAt(0).toUpperCase() + plan.slice(1)
   const el = (id) => document.getElementById(id)
 
-  const isPending = paymentStatus === 'pending' && plan !== 'none'
-  el('settPlanName').textContent = planName + (isPending ? ' (Pending Payment)' : '')
+  const statusLabels = {
+    unpaid: '', paid: '', pending: ' (Pending Payment)',
+    overdue: ' (Overdue)', trial: ' (Free Trial)', cancelled: ' (Cancelled)',
+  }
+  el('settPlanName').textContent = planName + (statusLabels[paymentStatus] || '')
   el('settPlanPrice').textContent = PLAN_PRICES[plan] || '₱0/mo'
 
   const domainCount = userDomains.length
@@ -2484,12 +2500,89 @@ function populatePlanSettings() {
   el('settDomainsUsed').textContent = `${domainCount} / ${limit === Infinity ? '∞' : limit}`
 
   el('settMemberSince').textContent = formatDate(currentUser?.created_at)
-  el('settBillingCycle').textContent = plan === 'none' ? 'N/A' : isPending ? 'Awaiting payment' : 'Monthly'
+  el('settBillingCycle').textContent = plan === 'none' ? 'N/A' : paymentStatus === 'pending' ? 'Awaiting payment' : 'Monthly'
 
   // Highlight current plan
   document.querySelectorAll('.plan-option').forEach(opt => {
     opt.classList.toggle('plan-option--current', opt.dataset.plan === plan)
   })
+
+  // Fetch subscription status and payment history
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const res = await fetch(`${EDGE_BASE}/paymongo-checkout/status`, {
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+    })
+    if (!res.ok) return
+
+    const { subscription, payments } = await res.json()
+
+    // Show subscription info
+    const subInfo = el('settSubscriptionInfo')
+    const subStatus = el('settSubStatus')
+    const renewBtn = el('settRenewBtn')
+    const cancelBtn = el('settCancelSubBtn')
+
+    if (subscription) {
+      subInfo.style.display = 'block'
+      const statusColors = { trial: 'on', active: 'on', past_due: 'off', cancelled: 'off' }
+      const statusTexts = { trial: 'Trial', active: 'Active', past_due: 'Past Due', cancelled: 'Cancelled' }
+      subStatus.textContent = statusTexts[subscription.status] || subscription.status
+      subStatus.className = `settings-badge settings-badge--${statusColors[subscription.status] || 'off'}`
+
+      el('settNextBilling').textContent = subscription.current_period_end
+        ? new Date(subscription.current_period_end).toLocaleDateString() : '—'
+
+      const trialEl = el('settTrialEnds')
+      if (subscription.trial_ends_at) {
+        trialEl.textContent = new Date(subscription.trial_ends_at).toLocaleDateString()
+        trialEl.parentElement.style.display = ''
+      } else {
+        trialEl.parentElement.style.display = 'none'
+      }
+
+      // Show renew button for past_due or overdue
+      renewBtn.style.display = subscription.status === 'past_due' ? '' : 'none'
+      // Show cancel button for trial or active
+      cancelBtn.style.display = (subscription.status === 'trial' || subscription.status === 'active') ? '' : 'none'
+
+      el('settBillingCycle').textContent = subscription.status === 'trial' ? 'Free trial' :
+        subscription.status === 'active' ? 'Monthly' : subscription.status === 'past_due' ? 'Payment required' : 'Cancelled'
+    } else {
+      subInfo.style.display = 'none'
+    }
+
+    // Populate payment history
+    const paymentTable = el('settPaymentTable')
+    const paymentRows = el('settPaymentRows')
+    const paymentEmpty = el('settPaymentEmpty')
+
+    if (payments && payments.length > 0) {
+      paymentTable.style.display = 'table'
+      paymentEmpty.style.display = 'none'
+      paymentRows.innerHTML = payments.map(p => {
+        const amt = (p.amount_cents / 100).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' })
+        const date = new Date(p.created_at).toLocaleDateString()
+        const pName = p.plan.charAt(0).toUpperCase() + p.plan.slice(1)
+        const method = (p.payment_method || '—').replace('paymaya', 'Maya').replace('gcash', 'GCash').replace('grab_pay', 'GrabPay').replace('card', 'Card')
+        const statusColor = p.status === 'paid' ? '#10b981' : p.status === 'failed' ? '#ef4444' : '#f59e0b'
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+          <td style="padding:0.5rem;">${date}</td>
+          <td style="padding:0.5rem;">${pName}</td>
+          <td style="padding:0.5rem;">${amt}</td>
+          <td style="padding:0.5rem;">${method}</td>
+          <td style="padding:0.5rem;"><span style="color:${statusColor};">${p.status}</span></td>
+        </tr>`
+      }).join('')
+    } else {
+      paymentTable.style.display = 'none'
+      paymentEmpty.style.display = ''
+    }
+  } catch (e) {
+    console.warn('Failed to load subscription info:', e)
+  }
 }
 
 async function populateSecuritySettings() {
@@ -2676,7 +2769,7 @@ function initUserSettingsHandlers() {
     document.getElementById('settPlansGrid')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   })
 
-  // Plan option click — change plan
+  // Plan option click — change plan via PayMongo
   document.querySelectorAll('.plan-option').forEach(opt => {
     opt.addEventListener('click', async () => {
       const newPlan = opt.dataset.plan
@@ -2685,11 +2778,20 @@ function initUserSettingsHandlers() {
 
       const planName = newPlan === 'none' ? 'Free' : newPlan.charAt(0).toUpperCase() + newPlan.slice(1)
       const price = PLAN_PRICES[newPlan] || 'Free'
-      const isDowngrade = Object.keys(PLAN_LIMITS).indexOf(newPlan) < Object.keys(PLAN_LIMITS).indexOf(currentPlan)
 
-      // Downgrade to Free — instant
+      // Downgrade to Free — instant + cancel subscription
       if (newPlan === 'none') {
         if (!confirm('Downgrade to Free? You will lose managed features and extra domain slots.')) return
+        const session = await getSession()
+        // Cancel active subscription if exists
+        if (session) {
+          try {
+            await fetch(`${EDGE_BASE}/paymongo-checkout/cancel`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            })
+          } catch { /* ignore if no sub */ }
+        }
         const { error } = await _supabase.from('profiles').update({
           plan: 'none',
           payment_status: 'unpaid',
@@ -2703,51 +2805,103 @@ function initUserSettingsHandlers() {
         return
       }
 
-      // Paid plan — request upgrade with payment instructions
-      const action = isDowngrade ? 'Switch' : 'Upgrade'
-      const paymentMethods = 'GCash, Maya, bank transfer (BDO/BPI/UnionBank), or PayPal'
+      // Paid plan — PayMongo checkout
+      const domainLimit = PLAN_LIMITS[newPlan] === Infinity ? 'Unlimited' : PLAN_LIMITS[newPlan]
       if (!confirm(
-        `${action} to ${planName} (${price})?\n\n` +
-        `Domain limit: ${PLAN_LIMITS[newPlan] === Infinity ? 'Unlimited' : PLAN_LIMITS[newPlan]}\n\n` +
-        `After confirming, your plan will be set to pending. ` +
-        `Send payment via ${paymentMethods} and we'll activate your plan within 24 hours.\n\n` +
-        `Payment reference: hello@luzerge.com`
+        `Upgrade to ${planName} (${price})?\n\n` +
+        `Domain limit: ${domainLimit}\n` +
+        `First month is FREE for new subscribers!\n\n` +
+        `You'll be redirected to a secure payment page (GCash, Maya, Card, or GrabPay).`
       )) return
 
-      // Set plan as pending (admin activates after payment confirmed)
-      const { error } = await _supabase.from('profiles').update({
-        plan: newPlan,
-        payment_status: 'pending',
-      }).eq('id', currentUser.id)
+      const session = await getSession()
+      if (!session) { showToast('Please sign in again', true); return }
 
-      if (error) { showToast('Failed to request upgrade: ' + error.message, true); return }
+      showToast('Setting up payment...')
 
-      currentProfile.plan = newPlan
-      currentProfile.payment_status = 'pending'
-      populatePlanSettings()
-      renderAccountSummary()
-      showToast(`${planName} plan requested! Send payment to activate.`)
-
-      // Notify admin via edge function
       try {
-        const session = await getSession()
-        if (session) {
-          await fetch(`${SUPABASE_URL}/functions/v1/api/contact`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: currentProfile?.full_name || currentUser.email,
-              email: currentUser.email,
-              subject: `Plan upgrade request: ${planName} (${price})`,
-              message: `User ${currentUser.email} requested ${action.toLowerCase()} to ${planName} plan (${price}). Current plan: ${currentPlan}. Please verify payment and activate.`,
-            }),
-          })
+        const res = await fetch(`${EDGE_BASE}/paymongo-checkout/create`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ plan: newPlan }),
+        })
+
+        const data = await res.json()
+
+        if (!res.ok) {
+          showToast(data.error || 'Failed to create checkout', true)
+          return
         }
-      } catch { /* non-critical */ }
+
+        if (data.type === 'trial') {
+          // Free trial started — no payment needed
+          currentProfile.plan = newPlan
+          currentProfile.payment_status = 'trial'
+          populatePlanSettings()
+          renderAccountSummary()
+          showToast(data.message || `Your free trial for ${planName} has started!`)
+          return
+        }
+
+        if (data.type === 'checkout' && data.checkout_url) {
+          // Redirect to PayMongo checkout
+          window.location.href = data.checkout_url
+          return
+        }
+
+        showToast('Unexpected response. Please try again.', true)
+      } catch (err) {
+        console.error('Payment error:', err)
+        showToast('Payment setup failed. Please try again.', true)
+      }
     })
+  })
+
+  // Renew button (for past_due subscriptions)
+  el('settRenewBtn')?.addEventListener('click', async () => {
+    const plan = currentProfile?.plan || 'none'
+    if (plan === 'none') return
+
+    const session = await getSession()
+    if (!session) { showToast('Please sign in again', true); return }
+
+    showToast('Setting up payment...')
+    try {
+      const res = await fetch(`${EDGE_BASE}/paymongo-checkout/create`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan }),
+      })
+      const data = await res.json()
+      if (!res.ok) { showToast(data.error || 'Failed to create checkout', true); return }
+      if (data.checkout_url) window.location.href = data.checkout_url
+    } catch { showToast('Payment setup failed. Please try again.', true) }
+  })
+
+  // Cancel subscription button
+  el('settCancelSubBtn')?.addEventListener('click', async () => {
+    if (!confirm('Cancel your subscription? Your plan will remain active until the current billing period ends.')) return
+    const session = await getSession()
+    if (!session) return
+
+    try {
+      const res = await fetch(`${EDGE_BASE}/paymongo-checkout/cancel`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      })
+      const data = await res.json()
+      if (!res.ok) { showToast(data.error || 'Failed to cancel', true); return }
+      showToast(data.message || 'Subscription cancelled')
+      populatePlanSettings()
+    } catch { showToast('Failed to cancel subscription', true) }
   })
 
   // Delete account
