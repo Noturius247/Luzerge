@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS trg_notification_preferences_updated_at ON notification_preferences;
 CREATE TRIGGER trg_notification_preferences_updated_at
   BEFORE UPDATE ON notification_preferences
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -87,39 +88,47 @@ ALTER TABLE downtime_incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notification_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alert_log ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users own uptime checks" ON uptime_checks;
 CREATE POLICY "users own uptime checks"
   ON uptime_checks FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "users own downtime incidents" ON downtime_incidents;
 CREATE POLICY "users own downtime incidents"
   ON downtime_incidents FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "users own notification prefs" ON notification_preferences;
 CREATE POLICY "users own notification prefs"
   ON notification_preferences FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "users own alert log" ON alert_log;
 CREATE POLICY "users own alert log"
   ON alert_log FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
 -- ─── Admin policies (admins can view all monitoring data) ────────────────────
+DROP POLICY IF EXISTS "admins select all uptime checks" ON uptime_checks;
 CREATE POLICY "admins select all uptime checks"
   ON uptime_checks FOR SELECT
   USING (is_admin());
 
+DROP POLICY IF EXISTS "admins select all downtime incidents" ON downtime_incidents;
 CREATE POLICY "admins select all downtime incidents"
   ON downtime_incidents FOR SELECT
   USING (is_admin());
 
+DROP POLICY IF EXISTS "admins select all alert log" ON alert_log;
 CREATE POLICY "admins select all alert log"
   ON alert_log FOR SELECT
   USING (is_admin());
 
+DROP POLICY IF EXISTS "admins select all notification prefs" ON notification_preferences;
 CREATE POLICY "admins select all notification prefs"
   ON notification_preferences FOR SELECT
   USING (is_admin());
