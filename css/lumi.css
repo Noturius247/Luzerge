@@ -9,22 +9,21 @@
   height: 56px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: transparent;
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+  box-shadow: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .lumi-fab:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 28px rgba(59, 130, 246, 0.5);
+  transform: scale(1.1);
 }
 .lumi-fab svg.lumi-face {
-  width: 36px;
-  height: 36px;
+  width: 56px;
+  height: 56px;
 }
 .lumi-fab[aria-expanded="true"] svg.lumi-face {
   transform: none;
