@@ -15,7 +15,7 @@
   --color-accent-2:     #a855f7;
   --color-accent-warm:  #f59e0b;
   --color-text:         #e2e8f0;
-  --color-text-muted:   #94a3b8;
+  --color-text-muted:   #a0b1c5;
   --color-bg:           #0a0e1a;
   --color-bg-alt:       #111827;
   --color-border:       rgba(255, 255, 255, 0.1);
@@ -712,9 +712,9 @@ ul[role="list"] { list-style: none; }
   transform: translateX(-50%);
   background: var(--color-brand);
   color: white;
-  font-size: .6rem;
+  font-size: .7rem;
   font-weight: 700;
-  padding: .2rem .6rem;
+  padding: .25rem .7rem;
   border-radius: 99px;
   white-space: nowrap;
   animation: pulse-glow 3s ease-in-out infinite;
@@ -851,10 +851,10 @@ ul[role="list"] { list-style: none; }
   left: 50%;
   transform: translateX(-50%);
   background: var(--color-accent-warm);
-  color: white;
-  font-size: .6rem;
+  color: #1a1a1a;
+  font-size: .7rem;
   font-weight: 700;
-  padding: .2rem .6rem;
+  padding: .25rem .7rem;
   border-radius: 99px;
   animation: pulse-glow 3s ease-in-out infinite;
 }
@@ -1436,7 +1436,7 @@ details[open] .faq__question::after {
   justify-content: space-between;
   gap: 1rem;
   font-size: .8125rem;
-  color: #475569;
+  color: #64748b;
 }
 
 .footer__tech a { color: var(--color-text-muted); }
