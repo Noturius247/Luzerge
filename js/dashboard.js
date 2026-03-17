@@ -2471,10 +2471,12 @@ function updateAvatarPreview(url) {
 
 function populatePlanSettings() {
   const plan = currentProfile?.plan || 'none'
+  const paymentStatus = currentProfile?.payment_status || 'unpaid'
   const planName = plan === 'none' ? 'Free' : plan.charAt(0).toUpperCase() + plan.slice(1)
   const el = (id) => document.getElementById(id)
 
-  el('settPlanName').textContent = planName
+  const isPending = paymentStatus === 'pending' && plan !== 'none'
+  el('settPlanName').textContent = planName + (isPending ? ' (Pending Payment)' : '')
   el('settPlanPrice').textContent = PLAN_PRICES[plan] || '₱0/mo'
 
   const domainCount = userDomains.length
@@ -2482,7 +2484,7 @@ function populatePlanSettings() {
   el('settDomainsUsed').textContent = `${domainCount} / ${limit === Infinity ? '∞' : limit}`
 
   el('settMemberSince').textContent = formatDate(currentUser?.created_at)
-  el('settBillingCycle').textContent = plan === 'none' ? 'N/A' : 'Monthly'
+  el('settBillingCycle').textContent = plan === 'none' ? 'N/A' : isPending ? 'Awaiting payment' : 'Monthly'
 
   // Highlight current plan
   document.querySelectorAll('.plan-option').forEach(opt => {
@@ -2685,21 +2687,66 @@ function initUserSettingsHandlers() {
       const price = PLAN_PRICES[newPlan] || 'Free'
       const isDowngrade = Object.keys(PLAN_LIMITS).indexOf(newPlan) < Object.keys(PLAN_LIMITS).indexOf(currentPlan)
 
-      const action = isDowngrade ? 'Downgrade' : 'Upgrade'
-      if (!confirm(`${action} to ${planName} (${price})?\n\nDomain limit: ${PLAN_LIMITS[newPlan] === Infinity ? 'Unlimited' : PLAN_LIMITS[newPlan]}`)) return
+      // Downgrade to Free — instant
+      if (newPlan === 'none') {
+        if (!confirm('Downgrade to Free? You will lose managed features and extra domain slots.')) return
+        const { error } = await _supabase.from('profiles').update({
+          plan: 'none',
+          payment_status: 'unpaid',
+        }).eq('id', currentUser.id)
+        if (error) { showToast('Failed to downgrade: ' + error.message, true); return }
+        currentProfile.plan = 'none'
+        currentProfile.payment_status = 'unpaid'
+        populatePlanSettings()
+        renderAccountSummary()
+        showToast('Downgraded to Free plan')
+        return
+      }
 
+      // Paid plan — request upgrade with payment instructions
+      const action = isDowngrade ? 'Switch' : 'Upgrade'
+      const paymentMethods = 'GCash, Maya, bank transfer (BDO/BPI/UnionBank), or PayPal'
+      if (!confirm(
+        `${action} to ${planName} (${price})?\n\n` +
+        `Domain limit: ${PLAN_LIMITS[newPlan] === Infinity ? 'Unlimited' : PLAN_LIMITS[newPlan]}\n\n` +
+        `After confirming, your plan will be set to pending. ` +
+        `Send payment via ${paymentMethods} and we'll activate your plan within 24 hours.\n\n` +
+        `Payment reference: hello@luzerge.com`
+      )) return
+
+      // Set plan as pending (admin activates after payment confirmed)
       const { error } = await _supabase.from('profiles').update({
         plan: newPlan,
-        payment_status: newPlan === 'none' ? 'unpaid' : 'paid',
+        payment_status: 'pending',
       }).eq('id', currentUser.id)
 
-      if (error) { showToast('Failed to change plan: ' + error.message, true); return }
+      if (error) { showToast('Failed to request upgrade: ' + error.message, true); return }
 
       currentProfile.plan = newPlan
-      currentProfile.payment_status = newPlan === 'none' ? 'unpaid' : 'paid'
+      currentProfile.payment_status = 'pending'
       populatePlanSettings()
       renderAccountSummary()
-      showToast(`${action}d to ${planName}!`)
+      showToast(`${planName} plan requested! Send payment to activate.`)
+
+      // Notify admin via edge function
+      try {
+        const session = await getSession()
+        if (session) {
+          await fetch(`${SUPABASE_URL}/functions/v1/api/contact`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: currentProfile?.full_name || currentUser.email,
+              email: currentUser.email,
+              subject: `Plan upgrade request: ${planName} (${price})`,
+              message: `User ${currentUser.email} requested ${action.toLowerCase()} to ${planName} plan (${price}). Current plan: ${currentPlan}. Please verify payment and activate.`,
+            }),
+          })
+        }
+      } catch { /* non-critical */ }
     })
   })
 
