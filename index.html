@@ -161,6 +161,60 @@
   }
   </script>
 
+  <!-- Website + Sitelinks hint -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Luzerge",
+    "url": "https://luzerge.com",
+    "description": "Website monitoring, CDN management, and performance platform for Philippine websites.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://luzerge.com/#scanner?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SiteNavigationElement",
+        "name": "Free Website Scanner",
+        "url": "https://luzerge.com/#scanner",
+        "description": "Check if your domain uses Cloudflare, detect hosting provider, nameservers, and DNS platform."
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "Pricing",
+        "url": "https://luzerge.com/#pricing",
+        "description": "Free for 1 domain or fully managed plans starting at ₱99/mo."
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "Login",
+        "url": "https://luzerge.com/login.html",
+        "description": "Sign in to your Luzerge dashboard."
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "System Status",
+        "url": "https://luzerge.com/status.html",
+        "description": "Check Luzerge platform uptime and service status."
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "FAQ",
+        "url": "https://luzerge.com/#faq",
+        "description": "Frequently asked questions about Luzerge CDN and monitoring."
+      }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
@@ -208,10 +262,10 @@
       </h1>
       <p class="hero__subheading">
         Luzerge monitors your website's uptime, boosts load speed with global edge caching,
-        and shields it from DDoS attacks — all from one dashboard.
-        We handle the setup — you just submit your domain.
-        <strong>Free for 1 domain</strong> — or fully managed from ₱699/mo.
-        <strong>First month FREE</strong> — try it risk-free!
+        and shields it from DDoS attacks, all from one dashboard.
+        We handle the setup. You just submit your domain.
+        <strong>Free for 1 domain</strong> or fully managed from ₱99/mo.
+        <strong>First month FREE</strong>, try it risk-free!
       </p>
       <div class="hero__actions">
         <a href="/login.html" class="btn btn--primary">Start Free Trial</a>
@@ -324,7 +378,7 @@
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
           <h3>"CDN services are too expensive and complicated to set up."</h3>
-          <p class="problem-card__solution">Free for self-managed, or fully managed from ₱699/mo. No setup fees.</p>
+          <p class="problem-card__solution">Free for self-managed, or fully managed from ₱99/mo. No setup fees.</p>
         </div>
         <div class="problem-card" data-scroll-reveal>
           <span class="problem-card__icon" aria-hidden="true">
