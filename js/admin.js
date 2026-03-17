@@ -1751,7 +1751,7 @@ function formatBytes(bytes) {
 
 // ─── Analytics ───────────────────────────────────────────────────────────────
 
-let _admAnlRange = '24h'
+let _admAnlRange = '7d'
 let _admAnlChart = null
 
 function _anlStatusColor(code) {
@@ -1877,7 +1877,12 @@ async function admPopulateAnalytics() {
       chartWrap.hidden = false
       const reqData = dates.map(d => dailyMap[d].requests)
       const bwData = dates.map(d => dailyMap[d].bytes)
-      const labels = dates.map(d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+      const isLongRange = _admAnlRange === '12m' || _admAnlRange === '1y'
+      const labels = dates.map(d => {
+        const dt = new Date(d + 'T00:00:00')
+        if (isLongRange) return dt.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+        return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      })
 
       if (_admAnlChart) _admAnlChart.destroy()
       const ctx = document.getElementById('admAnlChart').getContext('2d')
@@ -1886,8 +1891,8 @@ async function admPopulateAnalytics() {
         data: {
           labels,
           datasets: [
-            { label: 'Requests', data: reqData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)', fill: true, tension: 0.3, pointRadius: 3, yAxisID: 'y' },
-            { label: 'Bandwidth', data: bwData, borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.08)', fill: true, tension: 0.3, pointRadius: 3, yAxisID: 'y1' }
+            { label: 'Requests', data: reqData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)', fill: true, tension: 0.3, pointRadius: isLongRange ? 1 : 3, yAxisID: 'y' },
+            { label: 'Bandwidth', data: bwData, borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.08)', fill: true, tension: 0.3, pointRadius: isLongRange ? 1 : 3, yAxisID: 'y1' }
           ]
         },
         options: {
@@ -1896,7 +1901,7 @@ async function admPopulateAnalytics() {
           interaction: { mode: 'index', intersect: false },
           plugins: { legend: { labels: { color: '#94a3b8', font: { size: 12 } } } },
           scales: {
-            x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            x: { ticks: { color: '#64748b', font: { size: 11 }, maxTicksLimit: isLongRange ? 12 : undefined }, grid: { color: 'rgba(255,255,255,0.04)' } },
             y: { position: 'left', ticks: { color: '#3b82f6', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Requests', color: '#3b82f6' } },
             y1: { position: 'right', ticks: { color: '#06b6d4', font: { size: 11 }, callback: v => formatBytes(v) }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Bandwidth', color: '#06b6d4' } }
           }

@@ -76,7 +76,7 @@ serve(async (req: Request) => {
     // Provider-specific actions
     switch (provider) {
       case 'cloudflare':
-        return await handleCloudflare(req, domain, action, url)
+        return await handleCloudflare(req, domain, action, url, supabase)
       case 'cloudfront':
         return await handleCloudFront(req, domain, action)
       case 'fastly':
@@ -200,7 +200,7 @@ async function cfFetch(path: string, token: string, options?: RequestInit) {
   return res.json()
 }
 
-async function handleCloudflare(req: Request, domain: Record<string, unknown>, action: string, url: URL) {
+async function handleCloudflare(req: Request, domain: Record<string, unknown>, action: string, url: URL, supabase?: ReturnType<typeof createClient>) {
   const zoneId = domain.cloudflare_zone_id as string
   const token = domain.cloudflare_api_token as string
 
@@ -246,6 +246,64 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
     case 'analytics': {
       const since = url.searchParams.get('since') || '24h'
       const now = new Date()
+      const domainIdStr = domain.id as string
+      const useDb = since === '12m' || since === '1y'
+
+      // For 12m/1y, serve from stored analytics_daily table
+      if (useDb && supabase) {
+        let sinceDate: Date
+        if (since === '1y') {
+          sinceDate = new Date(now.getFullYear() - 1, 0, 1) // Jan 1 of last year
+        } else {
+          sinceDate = new Date(now.getTime() - 365 * 86400000) // 12 months ago
+        }
+
+        const { data: rows } = await supabase
+          .from('analytics_daily')
+          .select('date, requests, cached_requests, bytes, cached_bytes, threats, uniques')
+          .eq('domain_id', domainIdStr)
+          .gte('date', sinceDate.toISOString().split('T')[0])
+          .lte('date', now.toISOString().split('T')[0])
+          .order('date', { ascending: true })
+
+        if (!rows || !rows.length) return json({ analytics: null, provider: 'cloudflare', message: 'No historical data yet. Data is saved daily when you view 24h/7d/30d ranges.' })
+
+        const totals = { requests: 0, cachedRequests: 0, bytes: 0, cachedBytes: 0, threats: 0, uniques: 0 }
+        const daily: Array<Record<string, unknown>> = []
+
+        for (const r of rows) {
+          totals.requests += r.requests ?? 0
+          totals.cachedRequests += r.cached_requests ?? 0
+          totals.bytes += r.bytes ?? 0
+          totals.cachedBytes += r.cached_bytes ?? 0
+          totals.threats += r.threats ?? 0
+          totals.uniques += r.uniques ?? 0
+          daily.push({
+            date: r.date,
+            requests: r.requests ?? 0,
+            cachedRequests: r.cached_requests ?? 0,
+            bytes: r.bytes ?? 0,
+            cachedBytes: r.cached_bytes ?? 0,
+            threats: r.threats ?? 0,
+            uniques: r.uniques ?? 0,
+          })
+        }
+
+        return json({
+          analytics: {
+            requests_total: totals.requests, requests_cached: totals.cachedRequests,
+            bandwidth_total: totals.bytes, bandwidth_cached: totals.cachedBytes,
+            cache_hit_rate: totals.bytes > 0 ? Math.round((totals.cachedBytes / totals.bytes) * 100) : 0,
+            unique_visitors: totals.uniques, threats_total: totals.threats,
+            daily,
+            countryMap: [], responseStatusMap: [], contentTypeMap: [], clientSSLMap: [],
+          },
+          provider: 'cloudflare',
+          source: 'stored',
+        })
+      }
+
+      // For 24h/7d/30d, fetch live from Cloudflare API
       let sinceDate: Date
       switch (since) {
         case '7d': sinceDate = new Date(now.getTime() - 7 * 86400000); break
@@ -330,6 +388,28 @@ async function handleCloudflare(req: Request, domain: Record<string, unknown>, a
         for (const sl of g.sum?.clientSSLMap || []) {
           const k = sl.clientSSLProtocol || 'None'
           sslMap[k] = (sslMap[k] || 0) + (sl.requests ?? 0)
+        }
+      }
+
+      // Save daily snapshots to analytics_daily for long-term history
+      if (supabase && daily.length > 0) {
+        const rows = daily
+          .filter(d => d.date) // skip entries without a date
+          .map(d => ({
+            domain_id: domainIdStr,
+            date: d.date as string,
+            requests: d.requests as number,
+            cached_requests: d.cachedRequests as number,
+            bytes: d.bytes as number,
+            cached_bytes: d.cachedBytes as number,
+            threats: d.threats as number,
+            uniques: d.uniques as number,
+          }))
+        if (rows.length > 0) {
+          // Upsert: update existing rows, insert new ones
+          await supabase
+            .from('analytics_daily')
+            .upsert(rows, { onConflict: 'domain_id,date' })
         }
       }
 
