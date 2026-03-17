@@ -7,6 +7,10 @@
 
 'use strict'
 
+// ─── Deferred Google Fonts (CSP-safe) ────────────────────────────────────────
+var _gf = document.getElementById('googleFonts')
+if (_gf) _gf.media = 'all'
+
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const API_BASE = 'https://byzuraeyhrxxpztredri.supabase.co/functions/v1/api'
