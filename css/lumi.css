@@ -87,10 +87,10 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .lumi-avatar {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,17 +151,17 @@
 }
 .lumi-msg-avatar {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: rgba(6, 182, 212, 0.1);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .lumi-face--mini {
-  width: 20px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
 }
 
 .lumi-msg {
@@ -319,7 +319,7 @@
   50% { transform: scaleY(0.85); }
 }
 
-.lumi-face--header { width: 34px; height: 34px; }
+.lumi-face--header { width: 38px; height: 38px; }
 
 /* ─── Mobile ─────────────────────────────────────────────────── */
 @media (max-width: 480px) {
