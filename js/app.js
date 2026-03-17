@@ -9,7 +9,7 @@
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const API_BASE = '/api'
+const API_BASE = 'https://byzuraeyhrxxpztredri.supabase.co/functions/v1/api'
 const SESSION_ID = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)
 
 // ─── Analytics (privacy-first, no cookies) ───────────────────────────────────
