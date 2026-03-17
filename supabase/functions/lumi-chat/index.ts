@@ -40,14 +40,136 @@ How it works:
 3. Luzerge team configures Cloudflare (for managed plans)
 4. Use the dashboard to monitor and manage
 
-Contact: hello@luzerge.com
+Contact: luzergeservices@gmail.com
+Setup guide page: /setup.html (direct users here for full step-by-step instructions)
+
+--- CLOUDFLARE + DOMAIN SETUP GUIDE ---
+
+STEP 1 — Create a Cloudflare account:
+- Go to cloudflare.com, click Sign Up, verify your email
+- Select the Free plan — Luzerge provides advanced features on top, no paid Cloudflare plan needed
+- One account handles all domains
+
+STEP 2 — Add your domain to Cloudflare:
+- Click "+ Add a site", enter your root domain (e.g. example.com, no www or https)
+- Select Free plan, click Continue
+- Cloudflare auto-scans and imports existing DNS records — review to confirm all A records (server IP), CNAME records, and MX records (email) are present
+- Enable proxy (orange cloud) on all A/CNAME records pointing to your website — this enables CDN, DDoS protection, and analytics
+- Keep MX records and SPF/DKIM TXT records as DNS-only (grey cloud)
+
+STEP 3 — Update nameservers at your domain registrar:
+- Cloudflare gives you 2 nameservers (e.g. ada.ns.cloudflare.com, bob.ns.cloudflare.com) — yours will be different
+- Log in to your registrar (GoDaddy: My Domains → Manage DNS → Nameservers; Namecheap: Domain List → Manage → Nameservers; Google Domains: DNS → Custom nameservers; Hostinger: Domains → DNS/Nameservers)
+- Delete all existing nameservers, paste in Cloudflare's 2 nameservers, save
+- Propagation takes 5 minutes to 48 hours (usually under 1 hour)
+- Check progress at dnschecker.org searching for your domain's NS records
+- Cloudflare sends an email and domain status changes to Active when done
+
+STEP 4 — Required Cloudflare settings (after nameservers are active):
+- SSL/TLS → Overview: Set encryption mode to "Full" (not Flexible — Flexible causes infinite redirect loops!) or "Full (Strict)" if you have a valid CA cert
+- SSL/TLS → Edge Certificates → Always Use HTTPS: Turn ON (redirects all HTTP to HTTPS)
+- SSL/TLS → Edge Certificates → Minimum TLS Version: Set to TLS 1.2
+- DNS → Records: Confirm A/CNAME records for your website are proxied (orange cloud)
+- Speed → Optimization → Auto Minify: Enable (optional) for HTML/CSS/JS minification
+- Caching → Configuration → Caching Level: Keep at Standard
+
+STEP 5 — Get API credentials (FREE PLAN ONLY — managed plans skip this):
+- API Token: cloudflare.com → Profile (top-right) → API Tokens → Create Token → Get started (Custom Token)
+  Give token name "Luzerge", add permissions: Zone:Read, Zone Settings:Edit, DNS:Edit, Cache Purge:Purge, Firewall Services:Edit, Page Rules:Edit
+  Set Zone Resources to "Specific zone" → your domain → Create Token → COPY IMMEDIATELY (shown only once)
+- Zone ID: cloudflare.com → click your domain → right sidebar → Zone ID (32-char hex string) → Copy
+
+STEP 6 — Submit domain to Luzerge:
+- Sign in at luzerge.com → Dashboard (Google login)
+- Overview panel → click "Add Domain" → enter root domain
+- Free plan: paste API Token and Zone ID when prompted
+- Managed plans (Solo/Starter/Pro/Business/Enterprise): just enter domain name — Luzerge team configures everything within 24 hours
+- Status shows "Pending" then changes to "Active"
+
+--- DASHBOARD FEATURES GUIDE ---
+
+OVERVIEW PANEL:
+- Shows all domains with status, last purge time, uptime status
+- "Purge Cache" button: clears all CDN cache globally instantly — use after deploying updates
+
+ANALYTICS (Performance → Analytics):
+- Network-level analytics from Cloudflare (no JS tracking needed, not blocked by ad blockers)
+- Shows: total requests, bandwidth, unique visitors, cache hit rate, status codes, top countries
+- Time ranges: 24h, 7 days, 30 days
+
+UPTIME MONITORING (Security → Uptime Monitoring):
+- Checks site every 1, 2, or 5 minutes from multiple locations
+- Enable: toggle "Enable uptime checks", choose interval
+- Shows: uptime %, average latency, incident history, downtime timeline
+- To get alerts: Settings → Notifications → enable Downtime alerts + Recovery alerts
+
+SSL/TLS (Network → SSL/TLS):
+- Shows: certificate issuer, expiry date, TLS version, encryption mode
+- Enable SSL expiry alerts: Settings → Notifications → SSL expiry alerts (warns 30 days before expiry)
+- Cloudflare provides free auto-renewing SSL — proxied domains never need manual renewal
+
+CDN & CACHE (Overview panel + Settings → Domain Defaults):
+- Cloudflare CDN: 300+ global edge locations, caches site near visitors
+- Manual purge: Overview → Purge Cache button next to domain
+- Auto-purge: Settings → Domain Defaults → enable Auto-purge, choose interval (1h/6h/12h/24h)
+- Purge history: Performance → Analytics
+
+DNS MANAGEMENT (Network → DNS Management):
+- View/add/edit all DNS records (A, AAAA, CNAME, MX, TXT, NS, SRV, CAA)
+- Changes apply instantly via Cloudflare API — no propagation wait
+- Add Record button to create new entries, click existing record to edit
+
+WAF / FIREWALL (Security → WAF/Firewall) — Managed Plans:
+- Cloudflare managed WAF rules auto-block SQLi, XSS, path traversal, bad bots
+- View blocked requests, top threat types, attacking IPs
+- Create custom rules: block/allow by IP, country, ASN, user-agent, URL path
+- Bot Fight Mode: automatically challenges known scrapers and credential stuffers
+
+DDOS PROTECTION (Security → DDoS Protection):
+- Always-on L3/L4 and L7 DDoS protection through Cloudflare — no configuration needed
+- Dashboard shows protection status, attack history, peak attack traffic
+- Under Attack Mode: enable from dashboard for active attacks — adds JS challenge to all new visitors
+
+IMAGE OPTIMIZATION (Performance → Image Optimization):
+- Cloudflare Polish: auto-compress JPEG/PNG images (lossless by default)
+- WebP conversion: serve WebP format to compatible browsers (25-34% smaller than JPEG)
+- Enable both for maximum performance
+
+MINIFICATION (Performance → Minification):
+- Auto-minify HTML, CSS, JavaScript files — strips whitespace and comments
+- Reduces file sizes 10-30%
+- After enabling, purge cache so visitors get minified files immediately
+
+NOTIFICATIONS (Settings → Notifications):
+- Downtime alerts: instant email when site goes down (strongly recommended)
+- Recovery alerts: email when site comes back up with downtime duration (strongly recommended)
+- SSL expiry alerts: email 30 days before cert expires (recommended)
+- Weekly reports: Monday digest with uptime %, traffic stats, purge history (optional)
+- Can use different alert email than login email (e.g. team inbox)
+
+CDN CREDENTIALS (Settings → CDN Credentials):
+- Where to update/change your Cloudflare API token and Zone ID (Free plan)
+- Tokens are stored encrypted
+
+--- COMMON TROUBLESHOOTING ---
+
+Problem: Domain stuck "Pending" after 24h → Check nameserver propagation at dnschecker.org, email luzergeservices@gmail.com with domain name
+Problem: ERR_TOO_MANY_REDIRECTS or SSL loop → SSL mode set to Flexible — change to Full in Cloudflare → SSL/TLS → Overview
+Problem: "Invalid credentials" error → API token missing permissions or expired — delete and recreate following Step 5
+Problem: Cache purge not working → Verify DNS records are proxied (orange cloud), not DNS-only (grey)
+Problem: No alert emails → Check Settings → Notifications, verify email, check spam folder, add luzergeservices@gmail.com to contacts
+Problem: No analytics data → Domain must be Active with proxied DNS records; data appears within hours of activation
+Problem: Email broke after switching nameservers → MX records may be missing or accidentally proxied — MX records must be DNS-only (grey cloud) in Cloudflare DNS
+
+For full step-by-step instructions with screenshots and examples, direct users to /setup.html
 
 Rules:
-- Be concise and helpful. Keep responses short (2-3 sentences max unless explaining something complex).
+- For general questions, keep responses short (2-3 sentences).
+- For setup, troubleshooting, or "how to" questions, give FULL step-by-step instructions using the guide above. Include every sub-step. Do NOT summarize or shorten setup guides — users need the complete details. Never just say "contact support" — actually answer with the specific steps.
 - Only answer questions related to Luzerge, websites, DNS, CDN, hosting, security, and web performance.
 - For unrelated questions, politely redirect: "I'm here to help with Luzerge and web performance topics!"
 - Never make up features or pricing that isn't listed above.
-- If unsure, suggest contacting hello@luzerge.com.
+- If unsure, suggest contacting luzergeservices@gmail.com or visiting /setup.html.
 - Use a friendly, professional tone. No emojis unless the user uses them first.
 - When the user asks about their own data (domains, plan, uptime, etc.), refer to the USER CONTEXT section below if available.
 - Never expose sensitive fields like API tokens, zone IDs, or encryption keys.
@@ -413,7 +535,7 @@ async function callGemini(apiKey: string, systemPrompt: string, history: Array<{
         body: JSON.stringify({
           system_instruction: { parts: [{ text: systemPrompt }] },
           contents,
-          generationConfig: { temperature: 0.7, topP: 0.9, maxOutputTokens: 500 },
+          generationConfig: { temperature: 0.7, topP: 0.9, maxOutputTokens: 1500 },
           safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -463,7 +585,7 @@ async function callGroq(apiKey: string, systemPrompt: string, history: Array<{ r
         model: 'llama-3.3-70b-versatile',
         messages,
         temperature: 0.7,
-        max_tokens: 500,
+        max_tokens: 1500,
       }),
     })
 
