@@ -25,7 +25,7 @@
     fab.innerHTML = `
       <svg class="lumi-face" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle class="lumi-face__glow" cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="2"/>
-        <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.2)" stroke-width="0.5"/>
+        <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(59,130,246,0.25)" stroke="rgba(6,182,212,0.5)" stroke-width="0.8"/>
         <circle class="lumi-face__eye lumi-face__eye--l" cx="20" cy="28" r="5" fill="#fff"/>
         <circle class="lumi-face__eye lumi-face__eye--r" cx="44" cy="28" r="5" fill="#fff"/>
         <circle class="lumi-face__pupil lumi-face__pupil--l" cx="20" cy="28" r="2.5" fill="#0a0e1a"/>
@@ -48,7 +48,7 @@
         <div class="lumi-avatar">
           <svg class="lumi-face lumi-face--header" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle class="lumi-face__glow" cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.25)" stroke-width="1.5"/>
-            <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(59,130,246,0.1)" stroke="rgba(59,130,246,0.15)" stroke-width="0.5"/>
+            <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(59,130,246,0.25)" stroke="rgba(6,182,212,0.5)" stroke-width="0.8"/>
             <circle class="lumi-face__eye lumi-face__eye--l" cx="20" cy="28" r="5" fill="#fff"/>
             <circle class="lumi-face__eye lumi-face__eye--r" cx="44" cy="28" r="5" fill="#fff"/>
             <circle class="lumi-face__pupil lumi-face__pupil--l" cx="20" cy="28" r="2.5" fill="#0a0e1a"/>
@@ -93,7 +93,7 @@
   }
 
   const MINI_FACE = `<svg class="lumi-face lumi-face--mini" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(6,182,212,0.15)"/>
+    <path class="lumi-face__bolt" d="M36 8L22 32h12l-2 18 14-26H34l2-16z" fill="rgba(6,182,212,0.25)" stroke="rgba(6,182,212,0.4)" stroke-width="0.6"/>
     <circle class="lumi-face__eye lumi-face__eye--l" cx="20" cy="28" r="5.5" fill="#06b6d4"/>
     <circle class="lumi-face__eye lumi-face__eye--r" cx="44" cy="28" r="5.5" fill="#06b6d4"/>
     <circle class="lumi-face__pupil lumi-face__pupil--l" cx="20" cy="28" r="2.8" fill="#0a0e1a"/>
