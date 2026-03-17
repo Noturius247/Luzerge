@@ -404,7 +404,9 @@ serve(async (req: Request) => {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text()
       console.error('Gemini API error:', geminiRes.status, errText)
-      return new Response(JSON.stringify({ error: 'Failed to get response. Please try again.' }), {
+      // Return detailed error in dev, generic in prod
+      const detail = geminiRes.status === 429 ? 'Rate limit reached. Please wait a moment.' : 'Failed to get response. Please try again.'
+      return new Response(JSON.stringify({ error: detail, _debug: { status: geminiRes.status, body: errText.substring(0, 300) } }), {
         status: 502,
         headers: { ...cors, 'Content-Type': 'application/json' },
       })
