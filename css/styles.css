@@ -1281,6 +1281,35 @@ details[open] .faq__question::after {
   line-height: 1.7;
 }
 
+/* ─── Testimonials ──────────────────────────────────────────── */
+.testimonials { padding: clamp(3rem, 8vw, 6rem) 0; }
+.testimonials__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+.testimonial-card {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  transition: border-color .25s;
+}
+.testimonial-card:hover { border-color: rgba(255,255,255,0.18); }
+.testimonial-stars { color: #f59e0b; font-size: 1rem; margin-bottom: 0.75rem; letter-spacing: 2px; }
+.testimonial-card blockquote {
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  font-size: .95rem;
+  margin-bottom: 1.25rem;
+  font-style: normal;
+}
+.testimonial-author { color: #fff; font-weight: 600; font-size: .9rem; margin-bottom: .15rem; }
+.testimonial-role { color: var(--color-text-muted); font-size: .825rem; }
+
 /* ─── Contact ───────────────────────────────────────────────── */
 .contact {
   padding: clamp(3rem, 8vw, 6rem) 0;

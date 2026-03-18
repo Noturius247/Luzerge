@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>Security | Luzerge</title>
+  <meta name="description" content="How Luzerge protects your data. Encryption, access controls, infrastructure security, and our commitment to keeping your Cloudflare credentials safe." />
+  <meta name="keywords" content="Luzerge security, data protection, encryption, Cloudflare credentials security, infrastructure security Philippines" />
+  <link rel="canonical" href="https://luzerge.com/security.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Luzerge" />
+  <meta property="og:url" content="https://luzerge.com/security.html" />
+  <meta property="og:title" content="Security | Luzerge" />
+  <meta property="og:description" content="How Luzerge protects your data. Encryption, access controls, and infrastructure security." />
+  <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Security | Luzerge" />
+  <meta name="twitter:description" content="How Luzerge protects your data. Encryption, access controls, and infrastructure security." />
+  <meta name="twitter:image" content="https://luzerge.com/img/og-image.png" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Security | Luzerge",
+    "description": "How Luzerge protects your data. Encryption, access controls, infrastructure security, and our commitment to keeping your Cloudflare credentials safe.",
+    "url": "https://luzerge.com/security.html",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Luzerge",
+      "url": "https://luzerge.com"
+    }
+  }
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .security-page { max-width: 720px; margin: 0 auto; padding: 4rem 1.5rem; }
+    .security-page h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .security-page .subtitle { color: #888; font-size: 0.95rem; margin-bottom: 2.5rem; line-height: 1.7; }
+    .security-page h2 { font-size: 1.15rem; font-weight: 700; margin: 2rem 0 0.5rem; color: #fff; }
+    .security-page p, .security-page li { color: #aaa; line-height: 1.7; font-size: 0.95rem; }
+    .security-page ul { padding-left: 1.25rem; margin: 0.5rem 0; }
+    .security-page a { color: #60a5fa; }
+    .security-back { display: inline-block; margin-bottom: 2rem; color: #888; font-size: 0.875rem; text-decoration: none; }
+    .security-back:hover { color: #fff; }
+    .security-highlight {
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+    .security-highlight p { color: #94a3b8; }
+    .security-highlight strong { color: #e2e8f0; }
+  </style>
+</head>
+<body style="background:var(--color-bg, #0a0e1a); color:#e0e0e0;">
+  <canvas id="securityStarfield" class="page-starfield" aria-hidden="true"></canvas>
+
+  <div class="security-page">
+    <a href="/" class="security-back">&larr; Back to Luzerge.com</a>
+
+    <h1>Security</h1>
+    <p class="subtitle">
+      We ask you to trust us with your Cloudflare API credentials. Here's exactly how we protect them
+      and the rest of your data.
+    </p>
+
+    <h2>1. Infrastructure</h2>
+    <p>Luzerge is built on battle-tested infrastructure:</p>
+    <ul>
+      <li><strong>Database</strong> — <a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a> PostgreSQL in the Singapore region, with automatic backups</li>
+      <li><strong>Edge delivery</strong> — <a href="https://cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> CDN with 300+ global edge locations</li>
+      <li><strong>API</strong> — Supabase Edge Functions running on Deno Deploy</li>
+      <li><strong>CI/CD</strong> — GitHub Actions for automated deployments</li>
+      <li><strong>Transport</strong> — All communication encrypted via HTTPS / TLS 1.2+</li>
+    </ul>
+
+    <h2>2. Authentication</h2>
+    <p>
+      We use <strong>Google OAuth 2.0</strong> exclusively for sign-in. This means:
+    </p>
+    <ul>
+      <li>We never see or store your password</li>
+      <li>We only request your basic profile (name, email, profile picture)</li>
+      <li>We do not access your Google Drive, Gmail, or any other Google services</li>
+      <li>Session tokens are managed by Supabase Auth and stored in your browser's local storage</li>
+      <li>No third-party tracking cookies are used</li>
+    </ul>
+
+    <h2>3. Data Encryption</h2>
+    <div class="security-highlight">
+      <p>
+        <strong>Your Cloudflare API tokens are encrypted at rest</strong> in our database. They are only
+        decrypted server-side when performing actions you request (cache purges, analytics queries, etc.)
+        and are never exposed in API responses or logs.
+      </p>
+    </div>
+    <ul>
+      <li>All data in transit is encrypted via TLS 1.2+</li>
+      <li>Database connections use SSL</li>
+      <li>API tokens are encrypted before storage — even database administrators cannot read them in plain text</li>
+    </ul>
+
+    <h2>4. Access Control</h2>
+    <p>
+      We enforce strict data isolation using <strong>Supabase Row Level Security (RLS)</strong> at the
+      database level. This means:
+    </p>
+    <ul>
+      <li>You can only read and modify your own domains and tokens</li>
+      <li>RLS policies are enforced by PostgreSQL itself — not application code</li>
+      <li>Admin access is restricted to the platform operator</li>
+    </ul>
+
+    <h2>5. What We Store</h2>
+    <ul>
+      <li>Your name, email, and profile picture (from Google)</li>
+      <li>Domain names you add to your account</li>
+      <li>Cloudflare Zone IDs and API tokens (encrypted)</li>
+      <li>Cache purge action logs</li>
+      <li>Monitoring and analytics data for your domains</li>
+    </ul>
+
+    <h2>6. What We Do NOT Store</h2>
+    <ul>
+      <li>Your Google password</li>
+      <li>Full Cloudflare account credentials — only scoped API tokens with the permissions you choose</li>
+      <li>Payment card numbers — payments are handled via GCash, Maya, bank transfer, or PayPal</li>
+      <li>Browsing history or personal data beyond what is listed above</li>
+    </ul>
+
+    <h2>7. Incident Response</h2>
+    <p>
+      In the unlikely event of a data breach:
+    </p>
+    <ul>
+      <li>Affected users will be notified via email within <strong>72 hours</strong></li>
+      <li>We will immediately rotate any potentially compromised encryption keys</li>
+      <li>A public incident report will be posted on our <a href="/status.html">status page</a></li>
+    </ul>
+
+    <h2>8. Responsible Disclosure</h2>
+    <p>
+      If you discover a security vulnerability, please report it to
+      <a href="mailto:luzergeservices@gmail.com">luzergeservices@gmail.com</a>.
+      We take all reports seriously and will respond within 48 hours.
+    </p>
+
+    <h2>9. Contact</h2>
+    <p>
+      For security questions or concerns, contact us at
+      <a href="mailto:luzergeservices@gmail.com">luzergeservices@gmail.com</a><br />
+      Luzerge &middot; Cebu City, Philippines
+    </p>
+  </div>
+
+  <script>
+    ;(function () {
+      const canvas = document.getElementById('securityStarfield')
+      if (!canvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      const ctx = canvas.getContext('2d')
+      const stars = []
+      const COUNT = 120
+      function resize() { canvas.width = window.innerWidth; canvas.height = document.body.scrollHeight }
+      resize(); window.addEventListener('resize', resize)
+      for (let i = 0; i < COUNT; i++) stars.push({ x: Math.random() * window.innerWidth, y: Math.random() * document.body.scrollHeight, r: Math.random() * 1.2 + 0.3, phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.02 + 0.005 })
+      function draw(t) { ctx.clearRect(0, 0, canvas.width, canvas.height); for (const s of stars) { const o = 0.3 + 0.4 * Math.sin(s.phase + t * s.speed); ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fillStyle = `rgba(255,255,255,${o})`; ctx.fill() } requestAnimationFrame(draw) }
+      requestAnimationFrame(draw)
+    })()
+  </script>
+</body>
+</html>

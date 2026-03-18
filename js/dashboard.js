@@ -639,6 +639,7 @@ async function populateAnalytics() {
       const bwData = dates.map(d => dailyMap[d].bytes)
       const is24h = _anlRange === '24h'
       const isYearly = _anlRange === '1y'
+      const isLongRange = _anlRange === '30d' || _anlRange === '1y'
       const labels = dates.map(d => {
         if (is24h && d.includes('T')) return new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
         const dt = new Date(d + (d.includes('T') ? '' : 'T00:00:00'))

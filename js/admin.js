@@ -1879,6 +1879,7 @@ async function admPopulateAnalytics() {
       const bwData = dates.map(d => dailyMap[d].bytes)
       const is24h = _admAnlRange === '24h'
       const isYearly = _admAnlRange === '1y'
+      const isLongRange = _admAnlRange === '30d' || _admAnlRange === '1y'
       const labels = dates.map(d => {
         if (is24h && d.includes('T')) return new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
         const dt = new Date(d + (d.includes('T') ? '' : 'T00:00:00'))
