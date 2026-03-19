@@ -54,25 +54,57 @@
         "@type": "BlogPosting",
         "headline": "Why Website Security Starts with Monitoring",
         "datePublished": "2026-03-19",
-        "url": "https://luzerge.com/blog.html#security-starts-with-monitoring"
+        "url": "https://luzerge.com/blog.html#security-starts-with-monitoring",
+        "author": { "@type": "Organization", "name": "Luzerge" }
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "How Bot Fight Mode Protects Your Website from Automated Threats",
+        "datePublished": "2026-03-18",
+        "url": "https://luzerge.com/blog.html#bot-fight-mode",
+        "author": { "@type": "Organization", "name": "Luzerge" }
       },
       {
         "@type": "BlogPosting",
         "headline": "Setting Up Cloudflare for Your Philippine Business",
         "datePublished": "2026-03-17",
-        "url": "https://luzerge.com/blog.html#cloudflare-setup-philippines"
+        "url": "https://luzerge.com/blog.html#cloudflare-setup-philippines",
+        "author": { "@type": "Organization", "name": "Luzerge" }
       },
       {
         "@type": "BlogPosting",
-        "headline": "Understanding CDN Cache Hit Rates",
+        "headline": "What Is Always Online and Why Your Site Needs It",
+        "datePublished": "2026-03-16",
+        "url": "https://luzerge.com/blog.html#always-online",
+        "author": { "@type": "Organization", "name": "Luzerge" }
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "Understanding CDN Cache Hit Rates and How to Improve Them",
         "datePublished": "2026-03-15",
-        "url": "https://luzerge.com/blog.html#cdn-cache-hit-rates"
+        "url": "https://luzerge.com/blog.html#cdn-cache-hit-rates",
+        "author": { "@type": "Organization", "name": "Luzerge" }
       },
       {
         "@type": "BlogPosting",
-        "headline": "Introducing Luzerge: Website Monitoring for Philippine SMEs",
+        "headline": "Email Routing with Cloudflare: Free Custom Email for Your Domain",
+        "datePublished": "2026-03-14",
+        "url": "https://luzerge.com/blog.html#email-routing",
+        "author": { "@type": "Organization", "name": "Luzerge" }
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "How to Read HTTP Response Headers for Security and Performance",
+        "datePublished": "2026-03-13",
+        "url": "https://luzerge.com/blog.html#http-headers",
+        "author": { "@type": "Organization", "name": "Luzerge" }
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "Introducing Luzerge: Website Monitoring Built for Philippine SMEs",
         "datePublished": "2026-03-12",
-        "url": "https://luzerge.com/blog.html#introducing-luzerge"
+        "url": "https://luzerge.com/blog.html#introducing-luzerge",
+        "author": { "@type": "Organization", "name": "Luzerge" }
       }
     ]
   }
@@ -82,122 +114,346 @@
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
   <style>
-    .blog-page { max-width: 800px; margin: 0 auto; padding: 4rem 1.5rem; }
-    .blog-page h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .blog-page .tagline { color: #60a5fa; font-size: 1rem; font-weight: 500; margin-bottom: 2.5rem; }
-    .blog-back { display: inline-block; margin-bottom: 2rem; color: #888; font-size: 0.875rem; text-decoration: none; }
+    .blog-page { max-width: 860px; margin: 0 auto; padding: 4rem 1.5rem; }
+
+    /* Header */
+    .blog-header { text-align: center; margin-bottom: 3rem; }
+    .blog-header h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .blog-header .tagline { color: #94a3b8; font-size: 1.05rem; font-weight: 400; line-height: 1.6; max-width: 540px; margin: 0 auto 1.25rem; }
+    .blog-header__meta { display: flex; align-items: center; justify-content: center; gap: 1.5rem; font-size: 0.8rem; color: #64748b; }
+    .blog-header__meta a { color: #f59e0b; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+    .blog-header__meta a:hover { color: #fbbf24; }
+
+    .blog-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 2.5rem; color: #64748b; font-size: 0.85rem; text-decoration: none; transition: color 0.2s; }
     .blog-back:hover { color: #fff; }
 
-    .blog-grid { display: flex; flex-direction: column; gap: 1.5rem; }
-
-    .blog-card {
+    /* Category filter */
+    .blog-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2.5rem; }
+    .blog-filter {
       background: rgba(255,255,255,0.04);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 1.75rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      border-radius: 999px;
+      padding: 0.35rem 1rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    .blog-card:hover {
+    .blog-filter:hover, .blog-filter--active {
+      background: rgba(59,130,246,0.12);
       border-color: rgba(59,130,246,0.3);
-      box-shadow: 0 0 20px rgba(59,130,246,0.1);
-    }
-    .blog-card__date { font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem; }
-    .blog-card__title { font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
-    .blog-card__excerpt { font-size: 0.9rem; color: #94a3b8; line-height: 1.7; margin-bottom: 1rem; }
-    .blog-card__tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .blog-card__tag {
-      background: rgba(59,130,246,0.1);
-      border: 1px solid rgba(59,130,246,0.2);
-      border-radius: 4px;
-      padding: 0.15rem 0.6rem;
-      font-size: 0.75rem;
       color: #60a5fa;
     }
 
-    .blog-rss {
+    /* Featured post */
+    .blog-featured {
+      background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.06));
+      border: 1px solid rgba(59,130,246,0.15);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .blog-featured::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .blog-featured__badge {
+      display: inline-block;
+      background: rgba(59,130,246,0.15);
+      color: #60a5fa;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+    .blog-featured__date { font-size: 0.8rem; color: #64748b; margin-bottom: 0.75rem; }
+    .blog-featured__title { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 0.75rem; line-height: 1.3; }
+    .blog-featured__excerpt { font-size: 0.95rem; color: #cbd5e1; line-height: 1.8; margin-bottom: 1.25rem; }
+    .blog-featured__read {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #f59e0b;
+      color: #60a5fa;
       font-size: 0.85rem;
+      font-weight: 600;
       text-decoration: none;
-      margin-left: 1rem;
     }
-    .blog-rss:hover { color: #fbbf24; }
+    .blog-featured__read:hover { color: #93bbfd; }
+
+    /* Grid */
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.25rem; }
+    @media (max-width: 500px) { .blog-grid { grid-template-columns: 1fr; } }
+
+    /* Card */
+    .blog-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .blog-card:hover {
+      border-color: rgba(59,130,246,0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .blog-card__category {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+    }
+    .blog-card__category--security { color: #f87171; }
+    .blog-card__category--guide { color: #34d399; }
+    .blog-card__category--performance { color: #fbbf24; }
+    .blog-card__category--product { color: #a78bfa; }
+    .blog-card__category--tools { color: #38bdf8; }
+    .blog-card__date { font-size: 0.75rem; color: #475569; margin-bottom: 0.5rem; }
+    .blog-card__title { font-size: 1.1rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.6rem; line-height: 1.4; }
+    .blog-card__excerpt { font-size: 0.875rem; color: #94a3b8; line-height: 1.75; margin-bottom: 1rem; flex: 1; }
+    .blog-card__footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+    .blog-card__tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .blog-card__tag {
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+    .blog-card__readtime { font-size: 0.75rem; color: #475569; white-space: nowrap; }
+
+    /* Footer */
+    .blog-footer {
+      text-align: center;
+      margin-top: 3.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .blog-footer p { color: #475569; font-size: 0.8rem; }
+    .blog-footer a { color: #3b82f6; text-decoration: none; }
+    .blog-footer a:hover { text-decoration: underline; }
+    .blog-newsletter {
+      max-width: 420px;
+      margin: 0 auto 1.5rem;
+      text-align: center;
+    }
+    .blog-newsletter__title { font-size: 1rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.35rem; }
+    .blog-newsletter__desc { font-size: 0.8rem; color: #64748b; margin-bottom: 1rem; }
   </style>
 </head>
 <body style="background:var(--color-bg, #0a0e1a); color:#e0e0e0;">
   <canvas id="blogStarfield" class="page-starfield" aria-hidden="true"></canvas>
 
   <div class="blog-page">
-    <a href="/" class="blog-back">&larr; Back to Luzerge.com</a>
+    <a href="/" class="blog-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Luzerge.com
+    </a>
 
-    <h1>
-      Blog
-      <a href="/rss.xml" class="blog-rss" title="RSS Feed">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="6.18" cy="17.82" r="2.18"/><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56z"/><path d="M4 10.1v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/></svg>
-        RSS
-      </a>
-    </h1>
-    <p class="tagline">Website performance, security, and monitoring insights</p>
+    <div class="blog-header">
+      <h1>Luzerge Blog</h1>
+      <p class="tagline">In-depth guides on website monitoring, CDN optimization, and web security. Written for Philippine SMEs who want to protect and accelerate their online presence.</p>
+      <div class="blog-header__meta">
+        <span>8 Articles</span>
+        <span>Updated March 19, 2026</span>
+        <a href="/rss.xml" title="Subscribe via RSS">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="6.18" cy="17.82" r="2.18"/><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56z"/><path d="M4 10.1v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/></svg>
+          RSS Feed
+        </a>
+      </div>
+    </div>
 
+    <!-- Category filters -->
+    <div class="blog-filters">
+      <span class="blog-filter blog-filter--active" data-filter="all">All</span>
+      <span class="blog-filter" data-filter="security">Security</span>
+      <span class="blog-filter" data-filter="guide">Guides</span>
+      <span class="blog-filter" data-filter="performance">Performance</span>
+      <span class="blog-filter" data-filter="tools">Tools</span>
+      <span class="blog-filter" data-filter="product">Product</span>
+    </div>
+
+    <!-- Featured article -->
+    <article class="blog-featured" id="security-starts-with-monitoring" data-category="security">
+      <span class="blog-featured__badge">Featured</span>
+      <p class="blog-featured__date">March 19, 2026</p>
+      <h2 class="blog-featured__title">Why Website Security Starts with Monitoring</h2>
+      <p class="blog-featured__excerpt">
+        Most cyberattacks succeed not because defenses are weak, but because the target didn't know they were vulnerable. Uptime monitoring detects outages within seconds. SSL management catches expired certificates before browsers block your visitors. DDoS protection identifies traffic spikes before they take your site offline. Together, these form the first line of defense for any website. In this article, we break down the three pillars of proactive web security and how Luzerge helps Philippine businesses implement them at no extra cost.
+      </p>
+      <div class="blog-card__tags" style="margin-bottom:1rem">
+        <span class="blog-card__tag">Security</span>
+        <span class="blog-card__tag">Monitoring</span>
+        <span class="blog-card__tag">Best Practices</span>
+        <span class="blog-card__tag">SSL</span>
+        <span class="blog-card__tag">DDoS</span>
+      </div>
+      <span class="blog-card__readtime">6 min read</span>
+    </article>
+
+    <!-- Article grid -->
     <div class="blog-grid">
-      <article class="blog-card">
-        <p class="blog-card__date">March 19, 2026</p>
-        <h2 class="blog-card__title">Why Website Security Starts with Monitoring</h2>
+
+      <article class="blog-card" id="bot-fight-mode" data-category="security">
+        <span class="blog-card__category blog-card__category--security">Security</span>
+        <p class="blog-card__date">March 18, 2026</p>
+        <h2 class="blog-card__title">How Bot Fight Mode Protects Your Website from Automated Threats</h2>
         <p class="blog-card__excerpt">
-          Most cyberattacks succeed because the target didn't know they were vulnerable. Uptime monitoring, DDoS protection, and SSL management form the first line of defense for any website. Here's why monitoring is the foundation of web security.
+          Bots account for nearly half of all internet traffic. While some are harmless crawlers, others scrape content, stuff credentials, and hoard inventory. Cloudflare's Bot Fight Mode uses machine learning to detect and challenge malicious bots in real time. Learn how to enable it through Luzerge's dashboard, what types of attacks it blocks, and how it differs from traditional firewall rules.
         </p>
-        <div class="blog-card__tags">
-          <span class="blog-card__tag">Security</span>
-          <span class="blog-card__tag">Monitoring</span>
-          <span class="blog-card__tag">Best Practices</span>
+        <div class="blog-card__footer">
+          <div class="blog-card__tags">
+            <span class="blog-card__tag">Bot Protection</span>
+            <span class="blog-card__tag">Cloudflare</span>
+            <span class="blog-card__tag">WAF</span>
+          </div>
+          <span class="blog-card__readtime">5 min read</span>
         </div>
       </article>
 
-      <article class="blog-card">
+      <article class="blog-card" id="cloudflare-setup-philippines" data-category="guide">
+        <span class="blog-card__category blog-card__category--guide">Guide</span>
         <p class="blog-card__date">March 17, 2026</p>
         <h2 class="blog-card__title">Setting Up Cloudflare for Your Philippine Business</h2>
         <p class="blog-card__excerpt">
-          A step-by-step guide to moving your domain to Cloudflare, configuring DNS, enabling caching, and getting free SSL. Designed for Filipino SME owners with no technical background.
+          A step-by-step walkthrough for Filipino business owners with no technical background. We cover creating a Cloudflare account, transferring your DNS, enabling the orange cloud proxy, configuring SSL to Full (Strict), setting up page rules for caching, and connecting your zone to Luzerge for monitoring. Includes screenshots and common mistakes to avoid.
         </p>
-        <div class="blog-card__tags">
-          <span class="blog-card__tag">Cloudflare</span>
-          <span class="blog-card__tag">Guide</span>
-          <span class="blog-card__tag">Philippines</span>
+        <div class="blog-card__footer">
+          <div class="blog-card__tags">
+            <span class="blog-card__tag">Cloudflare</span>
+            <span class="blog-card__tag">DNS</span>
+            <span class="blog-card__tag">Philippines</span>
+          </div>
+          <span class="blog-card__readtime">8 min read</span>
         </div>
       </article>
 
-      <article class="blog-card">
+      <article class="blog-card" id="always-online" data-category="guide">
+        <span class="blog-card__category blog-card__category--guide">Guide</span>
+        <p class="blog-card__date">March 16, 2026</p>
+        <h2 class="blog-card__title">What Is Always Online and Why Your Site Needs It</h2>
+        <p class="blog-card__excerpt">
+          Server outages happen. When they do, your visitors see error pages and lose trust. Cloudflare's Always Online feature serves a cached snapshot of your site during downtime so visitors still see content instead of a blank screen. We explain how it works under the hood, its limitations, and when to pair it with uptime monitoring for full coverage.
+        </p>
+        <div class="blog-card__footer">
+          <div class="blog-card__tags">
+            <span class="blog-card__tag">Always Online</span>
+            <span class="blog-card__tag">Uptime</span>
+            <span class="blog-card__tag">Reliability</span>
+          </div>
+          <span class="blog-card__readtime">4 min read</span>
+        </div>
+      </article>
+
+      <article class="blog-card" id="cdn-cache-hit-rates" data-category="performance">
+        <span class="blog-card__category blog-card__category--performance">Performance</span>
         <p class="blog-card__date">March 15, 2026</p>
-        <h2 class="blog-card__title">Understanding CDN Cache Hit Rates</h2>
+        <h2 class="blog-card__title">Understanding CDN Cache Hit Rates and How to Improve Them</h2>
         <p class="blog-card__excerpt">
-          What is a cache hit rate, why does it matter, and how can you improve it? We break down Cloudflare's caching system and show you how to get the most out of edge caching for faster load times.
+          Your cache hit rate directly affects page load speed and bandwidth costs. A 90% hit rate means Cloudflare serves 9 out of 10 requests from edge servers instead of your origin. We break down how Cloudflare's tiered caching works, explain cache-control headers, and share five practical tips to push your hit rate above 95%.
         </p>
-        <div class="blog-card__tags">
-          <span class="blog-card__tag">CDN</span>
-          <span class="blog-card__tag">Performance</span>
-          <span class="blog-card__tag">Tutorial</span>
+        <div class="blog-card__footer">
+          <div class="blog-card__tags">
+            <span class="blog-card__tag">CDN</span>
+            <span class="blog-card__tag">Caching</span>
+            <span class="blog-card__tag">Speed</span>
+          </div>
+          <span class="blog-card__readtime">6 min read</span>
         </div>
       </article>
 
-      <article class="blog-card">
-        <p class="blog-card__date">March 12, 2026</p>
-        <h2 class="blog-card__title">Introducing Luzerge: Website Monitoring for Philippine SMEs</h2>
+      <article class="blog-card" id="email-routing" data-category="tools">
+        <span class="blog-card__category blog-card__category--tools">Tools</span>
+        <p class="blog-card__date">March 14, 2026</p>
+        <h2 class="blog-card__title">Email Routing with Cloudflare: Free Custom Email for Your Domain</h2>
         <p class="blog-card__excerpt">
-          We built Luzerge because Philippine businesses deserve affordable, easy-to-use website monitoring. Learn about our mission, what we offer, and why we're priced in pesos.
+          Stop paying for email hosting just to have info@yourdomain.com. Cloudflare Email Routing lets you create unlimited custom addresses and forward them to your existing Gmail or Outlook inbox for free. We walk through setup, verification, and how to manage routing rules directly from the Luzerge dashboard.
         </p>
-        <div class="blog-card__tags">
-          <span class="blog-card__tag">Announcement</span>
-          <span class="blog-card__tag">Luzerge</span>
+        <div class="blog-card__footer">
+          <div class="blog-card__tags">
+            <span class="blog-card__tag">Email</span>
+            <span class="blog-card__tag">Cloudflare</span>
+            <span class="blog-card__tag">Free</span>
+          </div>
+          <span class="blog-card__readtime">4 min read</span>
         </div>
       </article>
+
+      <article class="blog-card" id="http-headers" data-category="tools">
+        <span class="blog-card__category blog-card__category--tools">Tools</span>
+        <p class="blog-card__date">March 13, 2026</p>
+        <h2 class="blog-card__title">How to Read HTTP Response Headers for Security and Performance</h2>
+        <p class="blog-card__excerpt">
+          Every HTTP response contains headers that reveal how your server is configured. Security headers like Strict-Transport-Security and Content-Security-Policy protect against common attacks. Cache headers like Cache-Control and CF-Cache-Status tell you whether Cloudflare is caching correctly. We explain each header, what good values look like, and how to use Luzerge's Header Inspector tool.
+        </p>
+        <div class="blog-card__footer">
+          <div class="blog-card__tags">
+            <span class="blog-card__tag">HTTP Headers</span>
+            <span class="blog-card__tag">Debugging</span>
+            <span class="blog-card__tag">Security</span>
+          </div>
+          <span class="blog-card__readtime">7 min read</span>
+        </div>
+      </article>
+
+      <article class="blog-card" id="introducing-luzerge" data-category="product">
+        <span class="blog-card__category blog-card__category--product">Product</span>
+        <p class="blog-card__date">March 12, 2026</p>
+        <h2 class="blog-card__title">Introducing Luzerge: Website Monitoring Built for Philippine SMEs</h2>
+        <p class="blog-card__excerpt">
+          We built Luzerge because Philippine businesses deserve affordable, enterprise-grade website monitoring. Priced in pesos, built on Cloudflare's global network, and designed for business owners who don't have a dedicated IT team. Learn about our mission, what the platform offers, and how we're different from international monitoring services that charge in dollars.
+        </p>
+        <div class="blog-card__footer">
+          <div class="blog-card__tags">
+            <span class="blog-card__tag">Announcement</span>
+            <span class="blog-card__tag">Luzerge</span>
+            <span class="blog-card__tag">Philippines</span>
+          </div>
+          <span class="blog-card__readtime">3 min read</span>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="blog-footer">
+      <div class="blog-newsletter">
+        <p class="blog-newsletter__title">Stay updated</p>
+        <p class="blog-newsletter__desc">Subscribe to our <a href="/rss.xml">RSS feed</a> for new articles on web security, performance, and monitoring.</p>
+      </div>
+      <p>Powered by <a href="https://luzerge.com">Luzerge</a> | Website Monitoring &amp; Performance Platform</p>
     </div>
   </div>
 
   <script>
+    // Category filter
+    document.querySelectorAll('.blog-filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.blog-filter').forEach(b => b.classList.remove('blog-filter--active'))
+        btn.classList.add('blog-filter--active')
+        const cat = btn.dataset.filter
+        document.querySelectorAll('[data-category]').forEach(card => {
+          card.style.display = (cat === 'all' || card.dataset.category === cat) ? '' : 'none'
+        })
+      })
+    })
+
+    // Starfield
     ;(function () {
       const canvas = document.getElementById('blogStarfield')
       if (!canvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return

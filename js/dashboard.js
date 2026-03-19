@@ -3197,16 +3197,18 @@ async function loadBotFightPanel() {
 
   try {
     const session = await getSession()
-    if (!session) return
+    if (!session) { loading.hidden = true; errorEl.textContent = 'Session expired. Please reload.'; errorEl.hidden = false; return }
 
     const rows = await Promise.all(domains.map(async (d) => {
       try {
         const res = await fetch(`${EDGE_BASE}/bot-fight-mode?domain_id=${d.id}`, {
           headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+          signal: AbortSignal.timeout(15000),
         })
+        if (!res.ok) return { domain: d.domain, id: d.id, fight_mode: false, error: `HTTP ${res.status}` }
         const data = await res.json()
         return { domain: d.domain, id: d.id, fight_mode: data.fight_mode ?? false, error: data.error }
-      } catch { return { domain: d.domain, id: d.id, fight_mode: false, error: 'Request failed' } }
+      } catch (e) { return { domain: d.domain, id: d.id, fight_mode: false, error: e?.name === 'TimeoutError' ? 'Timeout' : 'Not available' } }
     }))
 
     body.innerHTML = rows.map(r => `
@@ -3266,16 +3268,18 @@ async function loadAlwaysOnlinePanel() {
 
   try {
     const session = await getSession()
-    if (!session) return
+    if (!session) { loading.hidden = true; errorEl.textContent = 'Session expired. Please reload.'; errorEl.hidden = false; return }
 
     const rows = await Promise.all(domains.map(async (d) => {
       try {
         const res = await fetch(`${EDGE_BASE}/always-online?domain_id=${d.id}`, {
           headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+          signal: AbortSignal.timeout(15000),
         })
+        if (!res.ok) return { domain: d.domain, id: d.id, enabled: false, error: `HTTP ${res.status}` }
         const data = await res.json()
         return { domain: d.domain, id: d.id, enabled: data.enabled ?? false, error: data.error }
-      } catch { return { domain: d.domain, id: d.id, enabled: false, error: 'Request failed' } }
+      } catch (e) { return { domain: d.domain, id: d.id, enabled: false, error: e?.name === 'TimeoutError' ? 'Timeout' : 'Not available' } }
     }))
 
     body.innerHTML = rows.map(r => `
@@ -3333,11 +3337,13 @@ async function loadEmailRoutingPanel() {
 
   try {
     const session = await getSession()
-    if (!session) return
+    if (!session) { loading.hidden = true; errorEl.textContent = 'Session expired. Please reload.'; errorEl.hidden = false; return }
 
     const res = await fetch(`${EDGE_BASE}/email-routing?domain_id=${domainId}`, {
       headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+      signal: AbortSignal.timeout(15000),
     })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
 
     if (data.error) throw new Error(data.error)
@@ -3645,7 +3651,7 @@ async function loadAuditLog(page = 1) {
 
   try {
     const session = await getSession()
-    if (!session) return
+    if (!session) { loading.hidden = true; empty.textContent = 'Session expired. Please reload.'; empty.hidden = false; return }
 
     const res = await fetch(`${EDGE_BASE}/audit-log?page=${page}&limit=25`, {
       headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
