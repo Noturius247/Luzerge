@@ -117,6 +117,63 @@ serve(async (req: Request) => {
       return json({ added: data?.length || 0 }, 200, cors)
     }
 
+    if (action === 'bulk_add_named') {
+      const body = await req.json()
+      const contacts: { email: string; name?: string }[] = (body.contacts || [])
+        .filter((c: { email: string }) => c.email && c.email.includes('@'))
+        .map((c: { email: string; name?: string }) => ({
+          email: c.email.trim().toLowerCase(),
+          name: c.name || null,
+          status: 'active' as const,
+        }))
+
+      if (!contacts.length) return json({ error: 'No valid contacts provided' }, 400, cors)
+
+      const { data, error } = await supabase
+        .from('subscribers')
+        .upsert(contacts, { onConflict: 'email' })
+        .select()
+
+      if (error) return json({ error: error.message }, 500, cors)
+      return json({ added: data?.length || 0 }, 200, cors)
+    }
+
+    if (action === 'import_platform_users') {
+      // Fetch all users from auth.users via admin API
+      const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+      if (listErr) return json({ error: listErr.message }, 500, cors)
+
+      if (!users || !users.length) return json({ added: 0 }, 200, cors)
+
+      // Also fetch profile names
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+
+      const profileMap = new Map((profiles || []).map(p => [p.id, p]))
+
+      const rows = users
+        .filter(u => u.email)
+        .map(u => {
+          const profile = profileMap.get(u.id)
+          return {
+            email: u.email!.toLowerCase(),
+            name: profile?.full_name || u.user_metadata?.full_name || null,
+            status: 'active' as const,
+          }
+        })
+
+      if (!rows.length) return json({ added: 0 }, 200, cors)
+
+      const { data, error } = await supabase
+        .from('subscribers')
+        .upsert(rows, { onConflict: 'email' })
+        .select()
+
+      if (error) return json({ error: error.message }, 500, cors)
+      return json({ added: data?.length || 0 }, 200, cors)
+    }
+
     if (action === 'remove_subscriber') {
       const body = await req.json()
       const email = (body.email || '').trim().toLowerCase()
@@ -147,12 +204,13 @@ serve(async (req: Request) => {
       if (!body.subject || !body.body) return json({ error: 'Subject and body required' }, 400, cors)
 
       const provider = body.provider || 'resend'
-      const unsubLink = `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-marketing?action=unsubscribe&token=${btoa(user.email!)}`
+      const recipient = body.to || user.email!
+      const unsubLink = `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-marketing?action=unsubscribe&token=${btoa(recipient)}`
       const fullBody = `${body.body}\n\n---\nYou are receiving this from Luzerge (luzerge.com).\nUnsubscribe: ${unsubLink}`
 
-      const result = await sendEmail(provider, user.email!, body.subject, fullBody)
+      const result = await sendEmail(provider, recipient, body.subject, fullBody)
       if (!result.success) return json({ error: result.error }, 502, cors)
-      return json({ success: true, message: `Test sent to ${user.email}` }, 200, cors)
+      return json({ success: true, message: `Test sent to ${recipient}` }, 200, cors)
     }
 
     if (action === 'send_campaign') {

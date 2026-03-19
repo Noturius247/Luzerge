@@ -946,6 +946,18 @@
               <input type="text" class="form-input form-input--sm" id="emSubName" placeholder="Name (optional)" style="width:160px" />
               <button type="button" class="btn btn--primary btn--sm" id="emAddSubBtn">Add Subscriber</button>
             </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+              <label class="btn btn--outline btn--sm" style="cursor:pointer;margin:0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Import CSV
+                <input type="file" id="emCsvFile" accept=".csv" hidden />
+              </label>
+              <button type="button" class="btn btn--outline btn--sm" id="emImportUsersBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Import Platform Users
+              </button>
+              <span id="emImportStatus" style="font-size:12px;color:#94a3b8"></span>
+            </div>
             <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
               <textarea class="form-input form-input--sm" id="emBulkEmails" placeholder="Bulk add: one email per line" rows="3" style="flex:1;min-width:200px"></textarea>
               <button type="button" class="btn btn--outline btn--sm" id="emBulkAddBtn" style="align-self:flex-start">Bulk Add</button>
@@ -991,9 +1003,10 @@
                 <label style="font-size:13px;color:#94a3b8;display:block;margin-bottom:4px">Body (plain text)</label>
                 <textarea class="form-input" id="emBody" rows="12" placeholder="Write your email content here...&#10;&#10;Plain text only. No HTML.&#10;&#10;An unsubscribe link will be added automatically." style="font-family:monospace;font-size:13px"></textarea>
               </div>
-              <div style="display:flex;gap:8px;align-items:center">
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <button type="button" class="btn btn--primary btn--sm" id="emSendBtn">Send Campaign</button>
-                <button type="button" class="btn btn--outline btn--sm" id="emTestBtn">Send Test to Me</button>
+                <input type="email" class="form-input form-input--sm" id="emTestEmail" placeholder="Test email address" style="width:220px" />
+                <button type="button" class="btn btn--outline btn--sm" id="emTestBtn">Send Test</button>
                 <span id="emSendStatus" style="font-size:13px;color:#94a3b8"></span>
               </div>
             </div>

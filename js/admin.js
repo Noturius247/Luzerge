@@ -3279,20 +3279,93 @@ function admInitEmailMarketing() {
     a.click()
   })
 
+  // CSV Import (Google Contacts format)
+  document.getElementById('emCsvFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const statusEl = document.getElementById('emImportStatus')
+    statusEl.textContent = 'Parsing CSV...'
+
+    const text = await file.text()
+    const lines = text.split('\n')
+    if (lines.length < 2) { statusEl.textContent = 'Empty CSV'; return }
+
+    // Parse header to find column indices
+    const header = parseCSVLine(lines[0])
+    const firstNameIdx = header.findIndex(h => h.trim().toLowerCase() === 'first name')
+    const lastNameIdx = header.findIndex(h => h.trim().toLowerCase() === 'last name')
+    const emailIdx = header.findIndex(h => h.trim().toLowerCase().includes('e-mail') && h.trim().toLowerCase().includes('value'))
+    // Fallback: try "Email" column
+    const emailIdx2 = emailIdx >= 0 ? emailIdx : header.findIndex(h => h.trim().toLowerCase() === 'email')
+
+    const finalEmailIdx = emailIdx >= 0 ? emailIdx : emailIdx2
+    if (finalEmailIdx < 0) { statusEl.textContent = 'No email column found in CSV'; admShowToast('CSV must have an "E-mail 1 - Value" or "Email" column', true); return }
+
+    const contacts = []
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue
+      const cols = parseCSVLine(lines[i])
+      const email = (cols[finalEmailIdx] || '').trim()
+      if (!email || !email.includes('@')) continue
+      const firstName = firstNameIdx >= 0 ? (cols[firstNameIdx] || '').trim() : ''
+      const lastName = lastNameIdx >= 0 ? (cols[lastNameIdx] || '').trim() : ''
+      const name = [firstName, lastName].filter(Boolean).join(' ') || null
+      contacts.push({ email, name })
+    }
+
+    if (!contacts.length) { statusEl.textContent = 'No valid emails found'; return }
+    statusEl.textContent = `Found ${contacts.length} contacts. Importing...`
+
+    try {
+      const s = await getSession()
+      const res = await fetch(`${EDGE_BASE}/email-marketing?action=bulk_add_named`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contacts }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      statusEl.textContent = `${data.added} imported`
+      admShowToast(`${data.added} subscriber(s) imported from CSV`)
+      emLoadSubscribers()
+    } catch (err) { statusEl.textContent = ''; admShowToast(err.message, true) }
+    e.target.value = ''
+  })
+
+  // Import Platform Users
+  document.getElementById('emImportUsersBtn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('emImportStatus')
+    statusEl.textContent = 'Fetching platform users...'
+    try {
+      const s = await getSession()
+      const res = await fetch(`${EDGE_BASE}/email-marketing?action=import_platform_users`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      statusEl.textContent = `${data.added} user(s) imported`
+      admShowToast(`${data.added} platform user(s) imported as subscribers`)
+      emLoadSubscribers()
+    } catch (err) { statusEl.textContent = ''; admShowToast(err.message, true) }
+  })
+
   // Send test
   document.getElementById('emTestBtn').addEventListener('click', async () => {
     const subject = document.getElementById('emSubject').value.trim()
     const body = document.getElementById('emBody').value.trim()
     const provider = document.getElementById('emFromProvider').value
+    const testEmail = document.getElementById('emTestEmail').value.trim()
     if (!subject || !body) { admShowToast('Subject and body required', true); return }
+    if (!testEmail || !testEmail.includes('@')) { admShowToast('Enter a valid test email address', true); return }
     const status = document.getElementById('emSendStatus')
-    status.textContent = 'Sending test...'
+    status.textContent = `Sending test to ${testEmail}...`
     try {
       const s = await getSession()
       const res = await fetch(`${EDGE_BASE}/email-marketing?action=send_test`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, body, provider }),
+        body: JSON.stringify({ subject, body, provider, to: testEmail }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -3456,4 +3529,19 @@ async function emLoadCampaigns() {
   } catch (err) {
     loading.hidden = true; empty.textContent = err.message; empty.hidden = false
   }
+}
+
+// Parse a CSV line handling quoted fields with commas
+function parseCSVLine(line) {
+  const result = []
+  let current = ''
+  let inQuotes = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (ch === '"') { inQuotes = !inQuotes; continue }
+    if (ch === ',' && !inQuotes) { result.push(current); current = ''; continue }
+    current += ch
+  }
+  result.push(current)
+  return result
 }
