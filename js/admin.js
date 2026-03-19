@@ -194,6 +194,7 @@ function switchPanel(panelId) {
   if (panelId === 'admWhois') admInitWhois()
   if (panelId === 'admScheduledReports') admLoadScheduledReports()
   if (panelId === 'admAuditLog') admLoadAuditLog()
+  if (panelId === 'admEmailMarketing') admInitEmailMarketing()
 }
 
 // ─── Provider helpers ─────────────────────────────────────────────────────────
@@ -3191,3 +3192,268 @@ async function admLoadAuditLog(page = 1) {
 }
 
 document.getElementById('admAuditRefreshBtn')?.addEventListener('click', () => admLoadAuditLog(_admAuditLogPage))
+
+// ─── Email Marketing ────────────────────────────────────────────────────────
+
+let _emInitDone = false
+let _emSubscribers = []
+let _emSelectedEmails = new Set()
+
+function admInitEmailMarketing() {
+  if (_emInitDone) return
+  _emInitDone = true
+
+  // Tab switching
+  document.querySelectorAll('[data-emtab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-emtab]').forEach(b => b.classList.remove('tab-btn--active'))
+      btn.classList.add('tab-btn--active')
+      document.getElementById('emTabSubscribers').hidden = btn.dataset.emtab !== 'subscribers'
+      document.getElementById('emTabCompose').hidden = btn.dataset.emtab !== 'compose'
+      document.getElementById('emTabCampaigns').hidden = btn.dataset.emtab !== 'campaigns'
+      if (btn.dataset.emtab === 'campaigns') emLoadCampaigns()
+    })
+  })
+
+  // Add single subscriber
+  document.getElementById('emAddSubBtn').addEventListener('click', async () => {
+    const email = document.getElementById('emSubEmail').value.trim()
+    const name = document.getElementById('emSubName').value.trim()
+    if (!email) return
+    try {
+      const s = await getSession()
+      const res = await fetch(`${EDGE_BASE}/email-marketing?action=add_subscriber`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      document.getElementById('emSubEmail').value = ''
+      document.getElementById('emSubName').value = ''
+      admShowToast('Subscriber added')
+      emLoadSubscribers()
+    } catch (err) { admShowToast(err.message, true) }
+  })
+
+  // Bulk add
+  document.getElementById('emBulkAddBtn').addEventListener('click', async () => {
+    const raw = document.getElementById('emBulkEmails').value.trim()
+    if (!raw) return
+    const emails = raw.split('\n').map(e => e.trim()).filter(e => e && e.includes('@'))
+    if (!emails.length) { admShowToast('No valid emails found', true); return }
+    try {
+      const s = await getSession()
+      const res = await fetch(`${EDGE_BASE}/email-marketing?action=bulk_add`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      document.getElementById('emBulkEmails').value = ''
+      admShowToast(`${data.added} subscriber(s) added`)
+      emLoadSubscribers()
+    } catch (err) { admShowToast(err.message, true) }
+  })
+
+  // Select all checkbox
+  document.getElementById('emSelectAll').addEventListener('change', (e) => {
+    const checked = e.target.checked
+    _emSelectedEmails.clear()
+    document.querySelectorAll('.em-sub-check').forEach(cb => {
+      cb.checked = checked
+      if (checked) _emSelectedEmails.add(cb.dataset.email)
+    })
+  })
+
+  // Export CSV
+  document.getElementById('emExportBtn').addEventListener('click', () => {
+    const csv = 'Email,Name,Status,Added\n' + _emSubscribers.map(s =>
+      `${s.email},${(s.name || '').replace(/,/g, '')},${s.status},${s.created_at}`
+    ).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'luzerge-subscribers.csv'
+    a.click()
+  })
+
+  // Send test
+  document.getElementById('emTestBtn').addEventListener('click', async () => {
+    const subject = document.getElementById('emSubject').value.trim()
+    const body = document.getElementById('emBody').value.trim()
+    const provider = document.getElementById('emFromProvider').value
+    if (!subject || !body) { admShowToast('Subject and body required', true); return }
+    const status = document.getElementById('emSendStatus')
+    status.textContent = 'Sending test...'
+    try {
+      const s = await getSession()
+      const res = await fetch(`${EDGE_BASE}/email-marketing?action=send_test`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, body, provider }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      status.textContent = data.message || 'Test sent!'
+    } catch (err) { status.textContent = ''; admShowToast(err.message, true) }
+  })
+
+  // Send campaign
+  document.getElementById('emSendBtn').addEventListener('click', async () => {
+    const subject = document.getElementById('emSubject').value.trim()
+    const body = document.getElementById('emBody').value.trim()
+    const provider = document.getElementById('emFromProvider').value
+    const recipientMode = document.getElementById('emRecipients').value
+    if (!subject || !body) { admShowToast('Subject and body required', true); return }
+
+    const emails = recipientMode === 'selected' ? [..._emSelectedEmails] : null
+    if (recipientMode === 'selected' && (!emails || !emails.length)) {
+      admShowToast('No subscribers selected. Go to Subscribers tab and check the ones you want.', true)
+      return
+    }
+
+    const count = emails ? emails.length : _emSubscribers.filter(s => s.status === 'active').length
+    if (!confirm(`Send "${subject}" to ${count} recipient(s)?`)) return
+
+    const status = document.getElementById('emSendStatus')
+    status.textContent = `Sending to ${count} recipients...`
+    document.getElementById('emSendBtn').disabled = true
+
+    try {
+      const s = await getSession()
+      const res = await fetch(`${EDGE_BASE}/email-marketing?action=send_campaign`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, body, provider, emails }),
+        signal: AbortSignal.timeout(120000),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      status.textContent = `Done! Sent: ${data.sent}, Failed: ${data.failed}`
+      admShowToast(`Campaign sent to ${data.sent} recipients`)
+    } catch (err) {
+      status.textContent = ''
+      admShowToast(err.message, true)
+    } finally {
+      document.getElementById('emSendBtn').disabled = false
+    }
+  })
+
+  emLoadSubscribers()
+}
+
+async function emLoadSubscribers() {
+  const loading = document.getElementById('emSubLoading')
+  const content = document.getElementById('emSubContent')
+  const empty = document.getElementById('emSubEmpty')
+  const body = document.getElementById('emSubBody')
+  const countEl = document.getElementById('emSubCount')
+
+  loading.hidden = false; content.hidden = true; empty.hidden = true
+
+  try {
+    const s = await getSession()
+    if (!s) { loading.hidden = true; return }
+    const res = await fetch(`${EDGE_BASE}/email-marketing?action=subscribers`, {
+      headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+      signal: AbortSignal.timeout(15000),
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+
+    _emSubscribers = data.subscribers || []
+    const active = _emSubscribers.filter(s => s.status === 'active').length
+
+    if (!_emSubscribers.length) { loading.hidden = true; empty.hidden = false; return }
+
+    countEl.textContent = `${active} active / ${_emSubscribers.length} total`
+    body.innerHTML = _emSubscribers.map(s => `
+      <tr>
+        <td><input type="checkbox" class="em-sub-check" data-email="${escHtml(s.email)}" ${s.status !== 'active' ? 'disabled' : ''} /></td>
+        <td>${escHtml(s.email)}</td>
+        <td>${escHtml(s.name || '—')}</td>
+        <td>${s.status === 'active'
+          ? '<span class="status-badge status-badge--healthy">Active</span>'
+          : '<span class="status-badge status-badge--down">Unsubscribed</span>'}</td>
+        <td>${new Date(s.created_at).toLocaleDateString()}</td>
+        <td>${s.status === 'active'
+          ? `<button class="btn btn--ghost btn--xs em-unsub-btn" data-email="${escHtml(s.email)}">Remove</button>`
+          : '—'}</td>
+      </tr>
+    `).join('')
+
+    // Bind checkboxes
+    body.querySelectorAll('.em-sub-check').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) _emSelectedEmails.add(cb.dataset.email)
+        else _emSelectedEmails.delete(cb.dataset.email)
+      })
+    })
+
+    // Bind remove buttons
+    body.querySelectorAll('.em-unsub-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm(`Remove ${btn.dataset.email}?`)) return
+        try {
+          const s = await getSession()
+          await fetch(`${EDGE_BASE}/email-marketing?action=remove_subscriber`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: btn.dataset.email }),
+          })
+          admShowToast('Subscriber removed')
+          emLoadSubscribers()
+        } catch { admShowToast('Failed to remove', true) }
+      })
+    })
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    document.getElementById('emError').textContent = err.message
+    document.getElementById('emError').hidden = false
+  }
+}
+
+async function emLoadCampaigns() {
+  const loading = document.getElementById('emCampLoading')
+  const content = document.getElementById('emCampContent')
+  const empty = document.getElementById('emCampEmpty')
+  const body = document.getElementById('emCampBody')
+
+  loading.hidden = false; content.hidden = true; empty.hidden = true
+
+  try {
+    const s = await getSession()
+    if (!s) { loading.hidden = true; return }
+    const res = await fetch(`${EDGE_BASE}/email-marketing?action=campaigns`, {
+      headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+      signal: AbortSignal.timeout(15000),
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+
+    const campaigns = data.campaigns || []
+    if (!campaigns.length) { loading.hidden = true; empty.hidden = false; return }
+
+    body.innerHTML = campaigns.map(c => `
+      <tr>
+        <td>${new Date(c.created_at).toLocaleString()}</td>
+        <td>${escHtml(c.subject)}</td>
+        <td>${escHtml(c.provider)}</td>
+        <td>${c.recipient_count}${c.failed_count ? ` <span style="color:#ef4444">(${c.failed_count} failed)</span>` : ''}</td>
+        <td>${c.status === 'sent'
+          ? '<span class="status-badge status-badge--healthy">Sent</span>'
+          : c.status === 'partial'
+          ? '<span class="status-badge status-badge--pending">Partial</span>'
+          : '<span class="status-badge status-badge--down">Failed</span>'}</td>
+      </tr>
+    `).join('')
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true; empty.textContent = err.message; empty.hidden = false
+  }
+}

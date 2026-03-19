@@ -6,7 +6,8 @@
       "Bash(git push:*)",
       "Bash(node -c js/admin.js)",
       "Bash(node -c d:/Luzerge.com/js/dashboard.js)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(npx supabase:*)"
     ],
     "additionalDirectories": [
       "d:\\Luzerge.com\\supabase\\functions"

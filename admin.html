@@ -194,6 +194,19 @@
         </div>
 
         <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="marketing">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Marketing
+          </button>
+          <div class="sidebar-section-items" id="sectionMarketing">
+            <button type="button" class="sidebar-item" data-panel="admEmailMarketing">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Email Marketing
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
           <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="settings">
             <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             Settings
@@ -908,6 +921,99 @@
             </div>
           </div>
           <div id="admAuditLogEmpty" class="dash-empty dash-empty--sm" hidden>No audit log entries yet.</div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ EMAIL MARKETING PANEL ═══════════════════ -->
+      <div id="panelAdmEmailMarketing" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Email Marketing</h2>
+          </div>
+          <p class="dash-panel__desc">Manage subscribers and send plain-text email campaigns. CAN-SPAM / RA 10173 compliant.</p>
+
+          <!-- Tabs -->
+          <div class="tab-bar" style="margin-bottom:1rem">
+            <button type="button" class="tab-btn tab-btn--active" data-emtab="subscribers">Subscribers</button>
+            <button type="button" class="tab-btn" data-emtab="compose">Compose</button>
+            <button type="button" class="tab-btn" data-emtab="campaigns">Campaigns</button>
+          </div>
+
+          <!-- Subscribers Tab -->
+          <div id="emTabSubscribers">
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+              <input type="email" class="form-input form-input--sm" id="emSubEmail" placeholder="Email address" style="flex:1;min-width:200px" />
+              <input type="text" class="form-input form-input--sm" id="emSubName" placeholder="Name (optional)" style="width:160px" />
+              <button type="button" class="btn btn--primary btn--sm" id="emAddSubBtn">Add Subscriber</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+              <textarea class="form-input form-input--sm" id="emBulkEmails" placeholder="Bulk add: one email per line" rows="3" style="flex:1;min-width:200px"></textarea>
+              <button type="button" class="btn btn--outline btn--sm" id="emBulkAddBtn" style="align-self:flex-start">Bulk Add</button>
+            </div>
+            <div id="emSubLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading subscribers...</div>
+            <div id="emSubContent" hidden>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span id="emSubCount" style="font-size:13px;color:#94a3b8"></span>
+                <button type="button" class="btn btn--outline btn--xs" id="emExportBtn">Export CSV</button>
+              </div>
+              <div class="feature-table-wrap">
+                <table class="history-table">
+                  <thead><tr><th><input type="checkbox" id="emSelectAll" /></th><th>Email</th><th>Name</th><th>Status</th><th>Added</th><th>Action</th></tr></thead>
+                  <tbody id="emSubBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="emSubEmpty" class="dash-empty dash-empty--sm" hidden>No subscribers yet. Add your first one above.</div>
+          </div>
+
+          <!-- Compose Tab -->
+          <div id="emTabCompose" hidden>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div>
+                <label style="font-size:13px;color:#94a3b8;display:block;margin-bottom:4px">From</label>
+                <select class="form-input form-input--sm" id="emFromProvider">
+                  <option value="resend">Resend (noreply@luzerge.com)</option>
+                  <option value="gmail">Gmail (luzergeservices@gmail.com)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:13px;color:#94a3b8;display:block;margin-bottom:4px">Recipients</label>
+                <select class="form-input form-input--sm" id="emRecipients">
+                  <option value="all">All active subscribers</option>
+                  <option value="selected">Selected subscribers only</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:13px;color:#94a3b8;display:block;margin-bottom:4px">Subject</label>
+                <input type="text" class="form-input form-input--sm" id="emSubject" placeholder="Email subject line" />
+              </div>
+              <div>
+                <label style="font-size:13px;color:#94a3b8;display:block;margin-bottom:4px">Body (plain text)</label>
+                <textarea class="form-input" id="emBody" rows="12" placeholder="Write your email content here...&#10;&#10;Plain text only. No HTML.&#10;&#10;An unsubscribe link will be added automatically." style="font-family:monospace;font-size:13px"></textarea>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button type="button" class="btn btn--primary btn--sm" id="emSendBtn">Send Campaign</button>
+                <button type="button" class="btn btn--outline btn--sm" id="emTestBtn">Send Test to Me</button>
+                <span id="emSendStatus" style="font-size:13px;color:#94a3b8"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campaigns Tab -->
+          <div id="emTabCampaigns" hidden>
+            <div id="emCampLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading campaigns...</div>
+            <div id="emCampContent" hidden>
+              <div class="feature-table-wrap">
+                <table class="history-table">
+                  <thead><tr><th>Date</th><th>Subject</th><th>Provider</th><th>Recipients</th><th>Status</th></tr></thead>
+                  <tbody id="emCampBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="emCampEmpty" class="dash-empty dash-empty--sm" hidden>No campaigns sent yet.</div>
+          </div>
+
+          <div id="emError" class="dash-alert dash-alert--error" style="margin-top:12px" hidden></div>
         </section>
       </div>
 
