@@ -24,14 +24,19 @@ serve(async (req: Request) => {
 
     const targetUrl = target.startsWith('http') ? target : `https://${target}`
 
-    // Google PageSpeed Insights API (free tier, no key needed)
-    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo`
+    // Google PageSpeed Insights API (uses API key for higher rate limits)
+    const psiKey = Deno.env.get('GOOGLE_PSI_KEY') || ''
+    const keyParam = psiKey ? `&key=${psiKey}` : ''
+    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo${keyParam}`
 
     const psiRes = await fetch(apiUrl, {
       signal: AbortSignal.timeout(60000),
     })
 
     if (!psiRes.ok) {
+      if (psiRes.status === 429) {
+        return json({ error: 'Rate limited by Google. Please wait a minute and try again.' }, 429, cors)
+      }
       const errText = await psiRes.text()
       return json({ error: 'PageSpeed API error', detail: errText }, 502, cors)
     }
