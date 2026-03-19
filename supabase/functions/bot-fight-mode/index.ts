@@ -65,19 +65,13 @@ serve(async (req: Request) => {
     }
 
     if (req.method === 'POST') {
-      const body = await req.json()
-      const enabled = body.enabled !== undefined ? body.enabled : true
-
-      const res = await cfFetch(`/zones/${zoneId}/bot_management`, cfToken, {
-        method: 'PUT',
-        body: JSON.stringify({ fight_mode: enabled }),
-      })
-
-      if (!res.success) {
-        return json({ error: 'Failed to update bot fight mode', cf_errors: res.errors }, 502, cors)
-      }
-
-      return json({ success: true, fight_mode: res.result?.fight_mode ?? enabled }, 200, cors)
+      // Bot Management API does not support write via API tokens (free plan limitation).
+      // Direct users to the Cloudflare dashboard to toggle Bot Fight Mode.
+      return json({
+        error: 'read_only',
+        message: 'Bot Fight Mode can only be toggled from the Cloudflare dashboard. API tokens do not have write access to Bot Management.',
+        dashboard_url: `https://dash.cloudflare.com/?to=/:account/${domain.domain}/security/bots`,
+      }, 403, cors)
     }
 
     return json({ error: 'Method not allowed' }, 405, cors)

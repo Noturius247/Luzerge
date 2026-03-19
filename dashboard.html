@@ -959,13 +959,13 @@
             <h2 class="dash-panel__title">Bot Fight Mode</h2>
             <select class="form-input form-input--sm panel-domain-select" id="botFightDomainSelect"></select>
           </div>
-          <p class="dash-panel__desc">Challenge bots and crawlers detected by Cloudflare. This helps reduce spam, credential stuffing, and inventory hoarding.</p>
+          <p class="dash-panel__desc">Challenge bots and crawlers detected by Cloudflare. Helps reduce spam, credential stuffing, and inventory hoarding.<br><small style="opacity:.7">Note: Bot Fight Mode is read-only — toggle it directly in the Cloudflare dashboard.</small></p>
           <div id="botFightLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading bot fight settings...</div>
           <div id="botFightNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
           <div id="botFightContent" hidden>
             <div class="feature-table-wrap">
               <table class="history-table">
-                <thead><tr><th>Domain</th><th>Bot Fight Mode</th><th>Status</th></tr></thead>
+                <thead><tr><th>Domain</th><th>Status</th><th>Action</th></tr></thead>
                 <tbody id="botFightBody"></tbody>
               </table>
             </div>

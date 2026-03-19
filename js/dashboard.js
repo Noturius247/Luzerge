@@ -3214,32 +3214,10 @@ async function loadBotFightPanel() {
     body.innerHTML = rows.map(r => `
       <tr>
         <td>${escHtml(r.domain)}</td>
-        <td>
-          <label class="toggle-switch toggle-switch--sm">
-            <input type="checkbox" ${r.fight_mode ? 'checked' : ''} data-domain-id="${r.id}" class="bot-fight-toggle" ${r.error ? 'disabled' : ''} />
-            <span class="toggle-switch__slider"></span>
-          </label>
-        </td>
         <td>${r.error ? `<span class="status-badge status-badge--pending">${escHtml(r.error)}</span>` : settingBadge(r.fight_mode)}</td>
+        <td><a href="https://dash.cloudflare.com/?to=/:account/${encodeURIComponent(r.domain)}/security/bots" target="_blank" rel="noopener" class="btn btn--xs btn--outline">Toggle in Cloudflare ↗</a></td>
       </tr>
     `).join('')
-
-    // Bind toggles
-    body.querySelectorAll('.bot-fight-toggle').forEach(toggle => {
-      toggle.addEventListener('change', async () => {
-        const domainId = toggle.dataset.domainId
-        const enabled = toggle.checked
-        try {
-          const s = await getSession()
-          await fetch(`${EDGE_BASE}/bot-fight-mode?domain_id=${domainId}`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ enabled }),
-          })
-          showToast(`Bot Fight Mode ${enabled ? 'enabled' : 'disabled'}`)
-        } catch { showToast('Failed to update Bot Fight Mode', true) }
-      })
-    })
 
     loading.hidden = true; content.hidden = false
   } catch (err) {
