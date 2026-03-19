@@ -184,6 +184,16 @@ function switchPanel(panelId) {
   if (panelId === 'monMinify') admPopulateMinify()
   if (panelId === 'monUptime') admPopulateUptime()
   if (panelId === 'monDdos') admPopulateDdos()
+
+  // New feature panels
+  if (panelId === 'admBotFight') admLoadBotFight()
+  if (panelId === 'admAlwaysOnline') admLoadAlwaysOnline()
+  if (panelId === 'admEmailRouting') admLoadEmailRouting()
+  if (panelId === 'admHeaderInspector') admInitHeaderInspector()
+  if (panelId === 'admPageSpeed') admInitPageSpeed()
+  if (panelId === 'admWhois') admInitWhois()
+  if (panelId === 'admScheduledReports') admLoadScheduledReports()
+  if (panelId === 'admAuditLog') admLoadAuditLog()
 }
 
 // ─── Provider helpers ─────────────────────────────────────────────────────────
@@ -2732,3 +2742,467 @@ function admPopulateUsersTable() {
     })
   })
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NEW FEATURE PANELS (Admin)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Bot Fight Mode ──────────────────────────────────────────────────────────
+
+async function admLoadBotFight() {
+  const loading = document.getElementById('admBotFightLoading')
+  const content = document.getElementById('admBotFightContent')
+  const noDomains = document.getElementById('admBotFightNoDomains')
+  const errorEl = document.getElementById('admBotFightError')
+  const body = document.getElementById('admBotFightBody')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; errorEl.hidden = true
+
+  admPopulateDomainSelect('admBotFightDomainSelect')
+  const domains = admGetSelectedDomains('admBotFightDomainSelect')
+  document.getElementById('admBotFightDomainSelect').onchange = () => admLoadBotFight()
+
+  if (!domains.length) { loading.hidden = true; noDomains.hidden = false; return }
+
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const rows = await Promise.all(domains.map(async (d) => {
+      try {
+        const res = await fetch(`${EDGE_BASE}/bot-fight-mode?domain_id=${d.id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+        })
+        const data = await res.json()
+        return { domain: d.domain, id: d.id, fight_mode: data.fight_mode ?? false, error: data.error }
+      } catch { return { domain: d.domain, id: d.id, fight_mode: false, error: 'Request failed' } }
+    }))
+
+    body.innerHTML = rows.map(r => `
+      <tr>
+        <td>${escHtml(r.domain)}</td>
+        <td>
+          <label class="toggle-switch toggle-switch--sm">
+            <input type="checkbox" ${r.fight_mode ? 'checked' : ''} data-domain-id="${r.id}" class="adm-bot-fight-toggle" ${r.error ? 'disabled' : ''} />
+            <span class="toggle-switch__slider"></span>
+          </label>
+        </td>
+        <td>${r.error ? `<span class="status-badge status-badge--pending">${escHtml(r.error)}</span>` : admSettingBadge(r.fight_mode)}</td>
+      </tr>
+    `).join('')
+
+    body.querySelectorAll('.adm-bot-fight-toggle').forEach(toggle => {
+      toggle.addEventListener('change', async () => {
+        const domainId = toggle.dataset.domainId
+        const enabled = toggle.checked
+        try {
+          const s = await getSession()
+          await fetch(`${EDGE_BASE}/bot-fight-mode?domain_id=${domainId}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled }),
+          })
+          admShowToast(`Bot Fight Mode ${enabled ? 'enabled' : 'disabled'}`)
+        } catch { admShowToast('Failed to update Bot Fight Mode', true) }
+      })
+    })
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+  }
+}
+
+// ─── Always Online ───────────────────────────────────────────────────────────
+
+async function admLoadAlwaysOnline() {
+  const loading = document.getElementById('admAlwaysOnlineLoading')
+  const content = document.getElementById('admAlwaysOnlineContent')
+  const noDomains = document.getElementById('admAlwaysOnlineNoDomains')
+  const errorEl = document.getElementById('admAlwaysOnlineError')
+  const body = document.getElementById('admAlwaysOnlineBody')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; errorEl.hidden = true
+
+  admPopulateDomainSelect('admAlwaysOnlineDomainSelect')
+  const domains = admGetSelectedDomains('admAlwaysOnlineDomainSelect')
+  document.getElementById('admAlwaysOnlineDomainSelect').onchange = () => admLoadAlwaysOnline()
+
+  if (!domains.length) { loading.hidden = true; noDomains.hidden = false; return }
+
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const rows = await Promise.all(domains.map(async (d) => {
+      try {
+        const res = await fetch(`${EDGE_BASE}/always-online?domain_id=${d.id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+        })
+        const data = await res.json()
+        return { domain: d.domain, id: d.id, enabled: data.enabled ?? false, error: data.error }
+      } catch { return { domain: d.domain, id: d.id, enabled: false, error: 'Request failed' } }
+    }))
+
+    body.innerHTML = rows.map(r => `
+      <tr>
+        <td>${escHtml(r.domain)}</td>
+        <td>
+          <label class="toggle-switch toggle-switch--sm">
+            <input type="checkbox" ${r.enabled ? 'checked' : ''} data-domain-id="${r.id}" class="adm-always-online-toggle" ${r.error ? 'disabled' : ''} />
+            <span class="toggle-switch__slider"></span>
+          </label>
+        </td>
+        <td>${r.error ? `<span class="status-badge status-badge--pending">${escHtml(r.error)}</span>` : admSettingBadge(r.enabled)}</td>
+      </tr>
+    `).join('')
+
+    body.querySelectorAll('.adm-always-online-toggle').forEach(toggle => {
+      toggle.addEventListener('change', async () => {
+        const domainId = toggle.dataset.domainId
+        const enabled = toggle.checked
+        try {
+          const s = await getSession()
+          await fetch(`${EDGE_BASE}/always-online?domain_id=${domainId}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled }),
+          })
+          admShowToast(`Always Online ${enabled ? 'enabled' : 'disabled'}`)
+        } catch { admShowToast('Failed to update Always Online', true) }
+      })
+    })
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+  }
+}
+
+// ─── Email Routing ───────────────────────────────────────────────────────────
+
+async function admLoadEmailRouting() {
+  const loading = document.getElementById('admEmailRoutingLoading')
+  const content = document.getElementById('admEmailRoutingContent')
+  const noDomains = document.getElementById('admEmailRoutingNoDomains')
+  const errorEl = document.getElementById('admEmailRoutingError')
+  const body = document.getElementById('admEmailRoutingBody')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; errorEl.hidden = true
+
+  admPopulateDomainSelect('admEmailRoutingDomainSelect')
+  const domains = admGetSelectedDomains('admEmailRoutingDomainSelect')
+  document.getElementById('admEmailRoutingDomainSelect').onchange = () => admLoadEmailRouting()
+
+  if (!domains.length) { loading.hidden = true; noDomains.hidden = false; return }
+
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const allRows = []
+    for (const d of domains) {
+      try {
+        const res = await fetch(`${EDGE_BASE}/email-routing?domain_id=${d.id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+        })
+        const data = await res.json()
+        for (const r of (data.rules || [])) {
+          allRows.push({ ...r, domain: d.domain, domainId: d.id })
+        }
+      } catch { /* skip */ }
+    }
+
+    body.innerHTML = allRows.length
+      ? allRows.map(r => {
+          const from = r.matchers?.[0]?.value || '—'
+          const to = r.actions?.[0]?.value?.[0] || r.actions?.[0]?.value || '—'
+          return `<tr>
+            <td>${escHtml(from)}</td>
+            <td>${escHtml(to)}</td>
+            <td>${escHtml(r.domain)}</td>
+            <td>${admSettingBadge(r.enabled)}</td>
+            <td><button class="btn btn--ghost btn--sm btn--danger-text adm-email-route-delete" data-rule-id="${r.id}" data-domain-id="${r.domainId}">Delete</button></td>
+          </tr>`
+        }).join('')
+      : '<tr><td colspan="5" style="text-align:center;color:#64748b">No email routes configured</td></tr>'
+
+    body.querySelectorAll('.adm-email-route-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this email route?')) return
+        try {
+          const s = await getSession()
+          await fetch(`${EDGE_BASE}/email-routing?domain_id=${btn.dataset.domainId}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', rule_id: btn.dataset.ruleId }),
+          })
+          admShowToast('Email route deleted')
+          admLoadEmailRouting()
+        } catch { admShowToast('Failed to delete route', true) }
+      })
+    })
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+  }
+}
+
+// ─── Header Inspector ────────────────────────────────────────────────────────
+
+let _admHeaderInspectorBound = false
+function admInitHeaderInspector() {
+  if (_admHeaderInspectorBound) return
+  _admHeaderInspectorBound = true
+
+  document.getElementById('admHeaderInspectorForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const urlInput = document.getElementById('admHeaderInspectorUrl')
+    const loading = document.getElementById('admHeaderInspectorLoading')
+    const content = document.getElementById('admHeaderInspectorContent')
+    const errorEl = document.getElementById('admHeaderInspectorError')
+    const body = document.getElementById('admHeaderInspectorBody')
+
+    const targetUrl = urlInput.value.trim()
+    if (!targetUrl) return
+
+    loading.hidden = false; content.hidden = true; errorEl.hidden = true
+
+    try {
+      const res = await fetch(`${EDGE_BASE}/header-inspector?url=${encodeURIComponent(targetUrl)}`)
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+
+      const rows = Object.entries(data.headers || {}).map(([key, val]) => {
+        const isSecHeader = data.security && key in data.security
+        return `<tr>
+          <td><code style="font-size:12px;${isSecHeader ? 'color:#22c55e' : ''}">${escHtml(key)}</code></td>
+          <td style="font-size:12px;word-break:break-all">${escHtml(val)}</td>
+        </tr>`
+      })
+
+      const summary = `<tr style="background:rgba(59,130,246,0.08)">
+        <td><strong>Status</strong></td>
+        <td><strong>${data.status} ${escHtml(data.status_text || '')}</strong> · ${data.latency_ms}ms${data.cdn ? ` · CDN: ${escHtml(data.cdn)}` : ''}${data.redirected ? ' · Redirected' : ''}</td>
+      </tr>`
+
+      body.innerHTML = summary + rows.join('')
+      loading.hidden = true; content.hidden = false
+    } catch (err) {
+      loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+    }
+  })
+}
+
+// ─── Page Speed Insights ─────────────────────────────────────────────────────
+
+let _admPageSpeedBound = false
+function admInitPageSpeed() {
+  if (_admPageSpeedBound) return
+  _admPageSpeedBound = true
+
+  document.getElementById('admPageSpeedForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const urlInput = document.getElementById('admPageSpeedUrl')
+    const strategy = document.getElementById('admPageSpeedStrategy').value
+    const loading = document.getElementById('admPageSpeedLoading')
+    const content = document.getElementById('admPageSpeedContent')
+    const errorEl = document.getElementById('admPageSpeedError')
+    const scoresEl = document.getElementById('admPageSpeedScores')
+    const auditsEl = document.getElementById('admPageSpeedAudits')
+
+    const targetUrl = urlInput.value.trim()
+    if (!targetUrl) return
+
+    loading.hidden = false; content.hidden = true; errorEl.hidden = true
+
+    try {
+      const res = await fetch(`${EDGE_BASE}/page-speed?url=${encodeURIComponent(targetUrl)}&strategy=${strategy}`)
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+
+      const scoreColors = (s) => s >= 90 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'
+      scoresEl.innerHTML = Object.entries(data.scores || {}).map(([cat, score]) => `
+        <div class="stat-card" style="text-align:center">
+          <div class="stat-card__value" style="color:${scoreColors(score)}">${score}</div>
+          <div class="stat-card__label">${escHtml(cat.replace(/-/g, ' '))}</div>
+        </div>
+      `).join('')
+
+      auditsEl.innerHTML = '<h3 style="font-size:14px;color:#94a3b8;margin:1rem 0 0.5rem;text-transform:uppercase">Core Web Vitals</h3>' +
+        '<div class="feature-table-wrap"><table class="history-table"><thead><tr><th>Metric</th><th>Value</th><th>Score</th></tr></thead><tbody>' +
+        Object.entries(data.metrics || {}).map(([key, m]) => `
+          <tr>
+            <td>${escHtml(key.replace(/-/g, ' '))}</td>
+            <td>${escHtml(m.value || '—')}</td>
+            <td><span style="color:${scoreColors(m.score)}">${m.score}/100</span></td>
+          </tr>
+        `).join('') +
+        '</tbody></table></div>'
+
+      loading.hidden = true; content.hidden = false
+    } catch (err) {
+      loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+    }
+  })
+}
+
+// ─── Whois Lookup ────────────────────────────────────────────────────────────
+
+let _admWhoisBound = false
+function admInitWhois() {
+  if (_admWhoisBound) return
+  _admWhoisBound = true
+
+  document.getElementById('admWhoisForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const domainInput = document.getElementById('admWhoisDomain')
+    const loading = document.getElementById('admWhoisLoading')
+    const content = document.getElementById('admWhoisContent')
+    const errorEl = document.getElementById('admWhoisError')
+    const body = document.getElementById('admWhoisBody')
+
+    const domain = domainInput.value.trim()
+    if (!domain) return
+
+    loading.hidden = false; content.hidden = true; errorEl.hidden = true
+
+    try {
+      const res = await fetch(`${EDGE_BASE}/whois-lookup?domain=${encodeURIComponent(domain)}`)
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+
+      const fields = [
+        ['Domain', data.domain],
+        ['Registrar', data.registrar],
+        ['Registrant', data.registrant],
+        ['Registered', data.registered ? formatDate(data.registered) : '—'],
+        ['Expires', data.expires ? formatDate(data.expires) : '—'],
+        ['Last Updated', data.last_updated ? formatDate(data.last_updated) : '—'],
+        ['Nameservers', (data.nameservers || []).join(', ') || '—'],
+        ['DNSSEC', data.dnssec ? 'Signed' : 'Unsigned'],
+        ['Status', (data.status || []).join(', ') || '—'],
+      ]
+
+      body.innerHTML = fields.map(([label, val]) => `
+        <tr><td><strong>${escHtml(label)}</strong></td><td>${escHtml(val || '—')}</td></tr>
+      `).join('')
+
+      loading.hidden = true; content.hidden = false
+    } catch (err) {
+      loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+    }
+  })
+}
+
+// ─── Scheduled Reports ───────────────────────────────────────────────────────
+
+async function admLoadScheduledReports() {
+  const session = await getSession()
+  if (!session) return
+
+  try {
+    const res = await fetch(`${EDGE_BASE}/scheduled-reports`, {
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+    })
+    const data = await res.json()
+    const settings = data.settings || []
+
+    const weekly = settings.find(s => s.frequency === 'weekly')
+    const daily = settings.find(s => s.frequency === 'daily')
+    const monthly = settings.find(s => s.frequency === 'monthly')
+
+    const weeklyEl = document.getElementById('admReportWeeklyPerf')
+    const dailyEl = document.getElementById('admReportDailyUptime')
+    const monthlyEl = document.getElementById('admReportMonthlySecurity')
+
+    if (weeklyEl) { weeklyEl.checked = weekly?.enabled ?? false; weeklyEl.dataset.settingId = weekly?.id || '' }
+    if (dailyEl) { dailyEl.checked = daily?.enabled ?? false; dailyEl.dataset.settingId = daily?.id || '' }
+    if (monthlyEl) { monthlyEl.checked = monthly?.enabled ?? false; monthlyEl.dataset.settingId = monthly?.id || '' }
+  } catch { /* first load, no settings yet */ }
+
+  const saveBtn = document.getElementById('admSaveReportSettingsBtn')
+  saveBtn.onclick = async () => {
+    const s = await getSession()
+    if (!s) return
+
+    const email = currentUser?.email || ''
+    const domain = allDomains.find(d => d.status === 'active')?.domain || ''
+    const headers = { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }
+
+    const reports = [
+      { el: document.getElementById('admReportWeeklyPerf'), frequency: 'weekly' },
+      { el: document.getElementById('admReportDailyUptime'), frequency: 'daily' },
+      { el: document.getElementById('admReportMonthlySecurity'), frequency: 'monthly' },
+    ]
+
+    try {
+      for (const r of reports) {
+        const reqBody = { domain, frequency: r.frequency, email, enabled: r.el.checked }
+        if (r.el.dataset.settingId) reqBody.id = r.el.dataset.settingId
+        await fetch(`${EDGE_BASE}/scheduled-reports`, { method: 'POST', headers, body: JSON.stringify(reqBody) })
+      }
+      admShowToast('Report settings saved')
+    } catch { admShowToast('Failed to save report settings', true) }
+  }
+}
+
+// ─── Audit Log ───────────────────────────────────────────────────────────────
+
+let _admAuditLogPage = 1
+
+async function admLoadAuditLog(page = 1) {
+  _admAuditLogPage = page
+  const loading = document.getElementById('admAuditLogLoading')
+  const content = document.getElementById('admAuditLogContent')
+  const empty = document.getElementById('admAuditLogEmpty')
+  const body = document.getElementById('admAuditLogBody')
+  const pagination = document.getElementById('admAuditLogPagination')
+
+  loading.hidden = false; content.hidden = true; empty.hidden = true
+
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const res = await fetch(`${EDGE_BASE}/audit-log?page=${page}&limit=25`, {
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+
+    const logs = data.logs || []
+    if (!logs.length && page === 1) {
+      loading.hidden = true; empty.hidden = false; return
+    }
+
+    body.innerHTML = logs.map(log => `
+      <tr>
+        <td style="white-space:nowrap;font-size:12px">${new Date(log.created_at).toLocaleString()}</td>
+        <td style="font-size:12px">${escHtml(log.user_id?.substring(0, 8) || '—')}...</td>
+        <td><span class="status-badge status-badge--active" style="font-size:11px">${escHtml(log.action)}</span></td>
+        <td style="font-size:12px">${escHtml(log.detail || log.domain || '—')}</td>
+        <td style="font-size:12px;color:#64748b">${escHtml(log.ip_address || '—')}</td>
+      </tr>
+    `).join('')
+
+    if (data.pages > 1) {
+      let paginationHtml = ''
+      for (let i = 1; i <= data.pages; i++) {
+        paginationHtml += `<button class="btn btn--ghost btn--sm ${i === page ? 'btn--primary' : ''}" onclick="admLoadAuditLog(${i})">${i}</button> `
+      }
+      pagination.innerHTML = paginationHtml
+    } else {
+      pagination.innerHTML = ''
+    }
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    empty.textContent = err.message
+    empty.hidden = false
+  }
+}
+
+document.getElementById('admAuditRefreshBtn')?.addEventListener('click', () => admLoadAuditLog(_admAuditLogPage))
