@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>Blog | Website Monitoring &amp; CDN Tips for SMEs | Luzerge</title>
+  <meta name="description" content="Practical tips on website monitoring, CDN management, Cloudflare setup, and web security. Written for Philippine SMEs by the Luzerge team in Cebu City." />
+  <meta name="keywords" content="Luzerge blog, website monitoring tips, Cloudflare guide Philippines, CDN management, web security blog" />
+  <link rel="canonical" href="https://luzerge.com/blog.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Luzerge" />
+  <meta property="og:url" content="https://luzerge.com/blog.html" />
+  <meta property="og:title" content="Blog | Website Monitoring &amp; CDN Tips for SMEs | Luzerge" />
+  <meta property="og:description" content="Practical tips on website monitoring, CDN management, Cloudflare setup, and web security. Written for Philippine SMEs by the Luzerge team." />
+  <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Blog | Website Monitoring &amp; CDN Tips for SMEs | Luzerge" />
+  <meta name="twitter:description" content="Practical tips on website monitoring, CDN management, Cloudflare setup, and web security. Written for Philippine SMEs by the Luzerge team." />
+  <meta name="twitter:image" content="https://luzerge.com/img/og-image.png" />
+
+  <!-- Geographic targeting -->
+  <meta name="geo.region" content="PH" />
+  <meta name="geo.placename" content="Cebu City" />
+  <meta name="geo.position" content="10.3157;123.8854" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "Luzerge Blog",
+    "url": "https://luzerge.com/blog.html",
+    "description": "Website monitoring, CDN management, and web security insights for Philippine businesses.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Luzerge",
+      "url": "https://luzerge.com",
+      "email": "luzergeservices@gmail.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Cebu City",
+        "addressRegion": "Cebu",
+        "addressCountry": "PH"
+      }
+    },
+    "blogPost": [
+      {
+        "@type": "BlogPosting",
+        "headline": "Why Website Security Starts with Monitoring",
+        "datePublished": "2026-03-19",
+        "url": "https://luzerge.com/blog.html#security-starts-with-monitoring"
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "Setting Up Cloudflare for Your Philippine Business",
+        "datePublished": "2026-03-17",
+        "url": "https://luzerge.com/blog.html#cloudflare-setup-philippines"
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "Understanding CDN Cache Hit Rates",
+        "datePublished": "2026-03-15",
+        "url": "https://luzerge.com/blog.html#cdn-cache-hit-rates"
+      },
+      {
+        "@type": "BlogPosting",
+        "headline": "Introducing Luzerge: Website Monitoring for Philippine SMEs",
+        "datePublished": "2026-03-12",
+        "url": "https://luzerge.com/blog.html#introducing-luzerge"
+      }
+    ]
+  }
+  </script>
+
+  <link rel="alternate" type="application/rss+xml" title="Luzerge Blog RSS" href="/rss.xml" />
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .blog-page { max-width: 800px; margin: 0 auto; padding: 4rem 1.5rem; }
+    .blog-page h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .blog-page .tagline { color: #60a5fa; font-size: 1rem; font-weight: 500; margin-bottom: 2.5rem; }
+    .blog-back { display: inline-block; margin-bottom: 2rem; color: #888; font-size: 0.875rem; text-decoration: none; }
+    .blog-back:hover { color: #fff; }
+
+    .blog-grid { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .blog-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .blog-card:hover {
+      border-color: rgba(59,130,246,0.3);
+      box-shadow: 0 0 20px rgba(59,130,246,0.1);
+    }
+    .blog-card__date { font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem; }
+    .blog-card__title { font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+    .blog-card__excerpt { font-size: 0.9rem; color: #94a3b8; line-height: 1.7; margin-bottom: 1rem; }
+    .blog-card__tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .blog-card__tag {
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 4px;
+      padding: 0.15rem 0.6rem;
+      font-size: 0.75rem;
+      color: #60a5fa;
+    }
+
+    .blog-rss {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #f59e0b;
+      font-size: 0.85rem;
+      text-decoration: none;
+      margin-left: 1rem;
+    }
+    .blog-rss:hover { color: #fbbf24; }
+  </style>
+</head>
+<body style="background:var(--color-bg, #0a0e1a); color:#e0e0e0;">
+  <canvas id="blogStarfield" class="page-starfield" aria-hidden="true"></canvas>
+
+  <div class="blog-page">
+    <a href="/" class="blog-back">&larr; Back to Luzerge.com</a>
+
+    <h1>
+      Blog
+      <a href="/rss.xml" class="blog-rss" title="RSS Feed">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="6.18" cy="17.82" r="2.18"/><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56z"/><path d="M4 10.1v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/></svg>
+        RSS
+      </a>
+    </h1>
+    <p class="tagline">Website performance, security, and monitoring insights</p>
+
+    <div class="blog-grid">
+      <article class="blog-card">
+        <p class="blog-card__date">March 19, 2026</p>
+        <h2 class="blog-card__title">Why Website Security Starts with Monitoring</h2>
+        <p class="blog-card__excerpt">
+          Most cyberattacks succeed because the target didn't know they were vulnerable. Uptime monitoring, DDoS protection, and SSL management form the first line of defense for any website. Here's why monitoring is the foundation of web security.
+        </p>
+        <div class="blog-card__tags">
+          <span class="blog-card__tag">Security</span>
+          <span class="blog-card__tag">Monitoring</span>
+          <span class="blog-card__tag">Best Practices</span>
+        </div>
+      </article>
+
+      <article class="blog-card">
+        <p class="blog-card__date">March 17, 2026</p>
+        <h2 class="blog-card__title">Setting Up Cloudflare for Your Philippine Business</h2>
+        <p class="blog-card__excerpt">
+          A step-by-step guide to moving your domain to Cloudflare, configuring DNS, enabling caching, and getting free SSL. Designed for Filipino SME owners with no technical background.
+        </p>
+        <div class="blog-card__tags">
+          <span class="blog-card__tag">Cloudflare</span>
+          <span class="blog-card__tag">Guide</span>
+          <span class="blog-card__tag">Philippines</span>
+        </div>
+      </article>
+
+      <article class="blog-card">
+        <p class="blog-card__date">March 15, 2026</p>
+        <h2 class="blog-card__title">Understanding CDN Cache Hit Rates</h2>
+        <p class="blog-card__excerpt">
+          What is a cache hit rate, why does it matter, and how can you improve it? We break down Cloudflare's caching system and show you how to get the most out of edge caching for faster load times.
+        </p>
+        <div class="blog-card__tags">
+          <span class="blog-card__tag">CDN</span>
+          <span class="blog-card__tag">Performance</span>
+          <span class="blog-card__tag">Tutorial</span>
+        </div>
+      </article>
+
+      <article class="blog-card">
+        <p class="blog-card__date">March 12, 2026</p>
+        <h2 class="blog-card__title">Introducing Luzerge: Website Monitoring for Philippine SMEs</h2>
+        <p class="blog-card__excerpt">
+          We built Luzerge because Philippine businesses deserve affordable, easy-to-use website monitoring. Learn about our mission, what we offer, and why we're priced in pesos.
+        </p>
+        <div class="blog-card__tags">
+          <span class="blog-card__tag">Announcement</span>
+          <span class="blog-card__tag">Luzerge</span>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    ;(function () {
+      const canvas = document.getElementById('blogStarfield')
+      if (!canvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      const ctx = canvas.getContext('2d')
+      const stars = []
+      const COUNT = 120
+      function resize() { canvas.width = window.innerWidth; canvas.height = document.body.scrollHeight }
+      resize(); window.addEventListener('resize', resize)
+      for (let i = 0; i < COUNT; i++) stars.push({ x: Math.random() * window.innerWidth, y: Math.random() * document.body.scrollHeight, r: Math.random() * 1.2 + 0.3, phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.02 + 0.005 })
+      function draw(t) { ctx.clearRect(0, 0, canvas.width, canvas.height); for (const s of stars) { const o = 0.3 + 0.4 * Math.sin(s.phase + t * s.speed); ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fillStyle = `rgba(255,255,255,${o})`; ctx.fill() } requestAnimationFrame(draw) }
+      requestAnimationFrame(draw)
+    })()
+  </script>
+</body>
+</html>

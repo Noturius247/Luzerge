@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Luzerge Blog</title>
+    <link>https://luzerge.com/blog.html</link>
+    <description>Website monitoring, CDN management, and web security tips for Philippine businesses.</description>
+    <language>en</language>
+    <lastBuildDate>Wed, 19 Mar 2026 08:00:00 +0800</lastBuildDate>
+    <atom:link href="https://luzerge.com/rss.xml" rel="self" type="application/rss+xml" />
+
+    <item>
+      <title>Why Website Security Starts with Monitoring</title>
+      <link>https://luzerge.com/blog.html</link>
+      <description>Most cyberattacks succeed because the target didn't know they were vulnerable. Uptime monitoring, DDoS protection, and SSL management form the first line of defense for any website.</description>
+      <pubDate>Wed, 19 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog.html#security-starts-with-monitoring</guid>
+    </item>
+
+    <item>
+      <title>Setting Up Cloudflare for Your Philippine Business</title>
+      <link>https://luzerge.com/blog.html</link>
+      <description>A step-by-step guide to moving your domain to Cloudflare, configuring DNS, enabling caching, and getting free SSL. Designed for Filipino SME owners.</description>
+      <pubDate>Mon, 17 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog.html#cloudflare-setup-philippines</guid>
+    </item>
+
+    <item>
+      <title>Understanding CDN Cache Hit Rates</title>
+      <link>https://luzerge.com/blog.html</link>
+      <description>What is a cache hit rate, why does it matter, and how can you improve it? We break down Cloudflare's caching system for faster load times.</description>
+      <pubDate>Sat, 15 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog.html#cdn-cache-hit-rates</guid>
+    </item>
+
+    <item>
+      <title>Introducing Luzerge: Website Monitoring for Philippine SMEs</title>
+      <link>https://luzerge.com/blog.html</link>
+      <description>We built Luzerge because Philippine businesses deserve affordable, easy-to-use website monitoring. Learn about our mission and what we offer.</description>
+      <pubDate>Wed, 12 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog.html#introducing-luzerge</guid>
+    </item>
+  </channel>
+</rss>

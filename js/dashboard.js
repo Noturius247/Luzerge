@@ -16,6 +16,36 @@ let scannedDomain = null  // holds the domain name after a successful scan
 const PLAN_LIMITS = { none: 1, solo: 1, starter: 3, pro: 10, business: 50, enterprise: Infinity }
 const PLAN_PRICES = { none: 'Free', solo: '₱99/mo', starter: '₱299/mo', pro: '₱999/mo', business: '₱1,999/mo', enterprise: '₱3,499/mo' }
 
+// ─── Theme Toggle ────────────────────────────────────────────────────────────
+
+;(function initTheme() {
+  const saved = localStorage.getItem('luzerge-theme')
+  if (saved) document.documentElement.setAttribute('data-theme', saved)
+})()
+
+function setupThemeToggle() {
+  const btn = document.getElementById('themeToggle')
+  if (!btn) return
+  const iconDark = document.getElementById('themeIconDark')
+  const iconLight = document.getElementById('themeIconLight')
+
+  function updateIcons() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light'
+    if (iconDark) iconDark.hidden = !isDark
+    if (iconLight) iconLight.hidden = isDark
+  }
+
+  btn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme')
+    const next = current === 'light' ? 'dark' : 'light'
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('luzerge-theme', next)
+    updateIcons()
+  })
+
+  updateIcons()
+}
+
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -159,7 +189,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('deleteCancelBtn')?.addEventListener('click', closeDeleteModal)
   document.getElementById('deleteConfirmBtn')?.addEventListener('click', confirmDelete)
 
-  // Sidebar
+  // Theme & Sidebar
+  setupThemeToggle()
   initSidebar()
 
   // CF toggle switches

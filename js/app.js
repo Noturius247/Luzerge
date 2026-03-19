@@ -178,6 +178,26 @@ function initMobileNav() {
   })
 }
 
+// ─── Nav dropdown ────────────────────────────────────────────────────────────
+
+function initNavDropdown() {
+  document.querySelectorAll('.nav__dropdown-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const dropdown = btn.closest('.nav__dropdown')
+      const isOpen = dropdown.classList.toggle('is-open')
+      btn.setAttribute('aria-expanded', isOpen.toString())
+    })
+  })
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.nav__dropdown.is-open').forEach(d => {
+      d.classList.remove('is-open')
+      d.querySelector('.nav__dropdown-btn')?.setAttribute('aria-expanded', 'false')
+    })
+  })
+}
+
 // ─── Footer year ─────────────────────────────────────────────────────────────
 
 function setFooterYear() {
@@ -936,6 +956,7 @@ function initPageTracking() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initMobileNav()
+  initNavDropdown()
   initContactForm()
   initScrollReveals()
   initStarfield()

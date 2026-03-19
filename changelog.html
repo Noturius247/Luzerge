@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>Changelog | Latest Updates &amp; New Features | Luzerge</title>
+  <meta name="description" content="See what's new in Luzerge. Latest features, improvements, and bug fixes for the website monitoring and CDN management platform built for Philippine businesses." />
+  <meta name="keywords" content="Luzerge changelog, updates, new features, release notes" />
+  <link rel="canonical" href="https://luzerge.com/changelog.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Luzerge" />
+  <meta property="og:url" content="https://luzerge.com/changelog.html" />
+  <meta property="og:title" content="Changelog | Latest Updates &amp; New Features | Luzerge" />
+  <meta property="og:description" content="See what's new in Luzerge. Latest features, improvements, and bug fixes for the website monitoring platform." />
+  <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Changelog | Latest Updates &amp; New Features | Luzerge" />
+  <meta name="twitter:description" content="See what's new in Luzerge. Latest features, improvements, and bug fixes for the website monitoring platform." />
+  <meta name="twitter:image" content="https://luzerge.com/img/og-image.png" />
+
+  <!-- Geographic targeting -->
+  <meta name="geo.region" content="PH" />
+  <meta name="geo.placename" content="Cebu City" />
+  <meta name="geo.position" content="10.3157;123.8854" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Luzerge Changelog",
+    "url": "https://luzerge.com/changelog.html",
+    "description": "Latest features, improvements, and bug fixes for the Luzerge website monitoring platform.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Luzerge",
+      "url": "https://luzerge.com",
+      "email": "luzergeservices@gmail.com"
+    }
+  }
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .changelog-page { max-width: 800px; margin: 0 auto; padding: 4rem 1.5rem; }
+    .changelog-page h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .changelog-page .tagline { color: #60a5fa; font-size: 1rem; font-weight: 500; margin-bottom: 2.5rem; }
+    .changelog-back { display: inline-block; margin-bottom: 2rem; color: #888; font-size: 0.875rem; text-decoration: none; }
+    .changelog-back:hover { color: #fff; }
+
+    .changelog-entry {
+      position: relative;
+      padding-left: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .changelog-entry::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.6rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #3b82f6;
+      box-shadow: 0 0 8px rgba(59,130,246,0.5);
+    }
+    .changelog-entry::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 1.6rem;
+      width: 2px;
+      bottom: -1.5rem;
+      background: rgba(255,255,255,0.08);
+    }
+    .changelog-entry:last-child::after { display: none; }
+
+    .changelog-entry__date { font-size: 0.8rem; color: #64748b; font-weight: 600; margin-bottom: 0.3rem; }
+    .changelog-entry__version { font-size: 0.75rem; color: #06b6d4; background: rgba(6,182,212,0.1); padding: 0.1rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 0.5rem; }
+    .changelog-entry__title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+    .changelog-entry__list { padding-left: 1.25rem; margin: 0; }
+    .changelog-entry__list li { color: #94a3b8; font-size: 0.9rem; line-height: 1.8; }
+    .changelog-entry__list li strong { color: #e2e8f0; }
+
+    .changelog-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.1rem 0.45rem;
+      border-radius: 3px;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+    .changelog-badge--new { background: rgba(16,185,129,0.15); color: #10b981; }
+    .changelog-badge--improved { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .changelog-badge--fix { background: rgba(239,68,68,0.15); color: #ef4444; }
+  </style>
+</head>
+<body style="background:var(--color-bg, #0a0e1a); color:#e0e0e0;">
+  <canvas id="changelogStarfield" class="page-starfield" aria-hidden="true"></canvas>
+
+  <div class="changelog-page">
+    <a href="/" class="changelog-back">&larr; Back to Luzerge.com</a>
+
+    <h1>Changelog</h1>
+    <p class="tagline">What's new in Luzerge</p>
+
+    <div class="changelog-entry">
+      <p class="changelog-entry__date">March 19, 2026</p>
+      <span class="changelog-entry__version">v1.4.0</span>
+      <h2 class="changelog-entry__title">New Tools, Reports &amp; Light Mode</h2>
+      <ul class="changelog-entry__list">
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Bot Fight Mode</strong> panel to manage Cloudflare bot protection</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Always Online</strong> toggle for cached fallback pages</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Email Routing</strong> panel for custom domain email forwarding</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>HTTP Header Inspector</strong> tool for debugging response headers</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Page Speed Insights</strong> powered by Google PageSpeed API</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Whois Lookup</strong> for domain registration details</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Scheduled Reports</strong> for weekly, daily, and monthly summaries</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Audit Log</strong> to track all account actions</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Dark/Light mode</strong> toggle in dashboard</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Blog</strong> and <strong>Changelog</strong> pages</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>RSS Feed</strong> for blog updates</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <p class="changelog-entry__date">March 18, 2026</p>
+      <span class="changelog-entry__version">v1.3.0</span>
+      <h2 class="changelog-entry__title">SEO &amp; New Pages</h2>
+      <ul class="changelog-entry__list">
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>About</strong>, <strong>Security</strong>, and <strong>Terms of Service</strong> pages</li>
+        <li><span class="changelog-badge changelog-badge--improved">Improved</span> SEO meta tags, Open Graph, and Twitter Cards across all pages</li>
+        <li><span class="changelog-badge changelog-badge--improved">Improved</span> Sitemap updated with all public pages</li>
+        <li><span class="changelog-badge changelog-badge--improved">Improved</span> Setup guide with expanded Cloudflare API token instructions</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <p class="changelog-entry__date">March 16, 2026</p>
+      <span class="changelog-entry__version">v1.2.0</span>
+      <h2 class="changelog-entry__title">Lumi AI &amp; Fallback Provider</h2>
+      <ul class="changelog-entry__list">
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Groq (Llama 3.3 70B)</strong> as fallback when Gemini hits rate limits</li>
+        <li><span class="changelog-badge changelog-badge--improved">Improved</span> Lumi setup answers with higher token limits and better prompts</li>
+        <li><span class="changelog-badge changelog-badge--fix">Fix</span> Gemini error responses now include debug info</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <p class="changelog-entry__date">March 14, 2026</p>
+      <span class="changelog-entry__version">v1.1.0</span>
+      <h2 class="changelog-entry__title">Platform Launch</h2>
+      <ul class="changelog-entry__list">
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Dashboard</strong> with domain submission, cache purge, and analytics</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Uptime monitoring</strong> with latency tracking</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Free website scanner</strong> on the landing page</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>SSL/TLS</strong> certificate viewer</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>DNS management</strong> panel</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>WAF/Firewall</strong> and <strong>DDoS protection</strong> panels</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Google OAuth</strong> and email/password authentication</li>
+        <li><span class="changelog-badge changelog-badge--new">New</span> <strong>Two-factor authentication</strong> (TOTP)</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    ;(function () {
+      const canvas = document.getElementById('changelogStarfield')
+      if (!canvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      const ctx = canvas.getContext('2d')
+      const stars = []
+      const COUNT = 120
+      function resize() { canvas.width = window.innerWidth; canvas.height = document.body.scrollHeight }
+      resize(); window.addEventListener('resize', resize)
+      for (let i = 0; i < COUNT; i++) stars.push({ x: Math.random() * window.innerWidth, y: Math.random() * document.body.scrollHeight, r: Math.random() * 1.2 + 0.3, phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.02 + 0.005 })
+      function draw(t) { ctx.clearRect(0, 0, canvas.width, canvas.height); for (const s of stars) { const o = 0.3 + 0.4 * Math.sin(s.phase + t * s.speed); ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fillStyle = `rgba(255,255,255,${o})`; ctx.fill() } requestAnimationFrame(draw) }
+      requestAnimationFrame(draw)
+    })()
+  </script>
+</body>
+</html>

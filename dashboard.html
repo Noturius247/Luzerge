@@ -28,6 +28,10 @@
       </a>
     </div>
     <div class="dash-nav__right">
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" title="Toggle theme">
+        <svg id="themeIconDark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="themeIconLight" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
       <div class="dash-nav__avatar" id="navAvatar"></div>
       <span class="dash-nav__user" id="navUser"></span>
       <button class="btn btn--ghost btn--sm" id="logoutBtn">Sign Out</button>
@@ -112,6 +116,56 @@
             <button type="button" class="sidebar-item" data-panel="uptime">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Uptime Monitoring
+            </button>
+            <button type="button" class="sidebar-item" data-panel="botFight">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="5" r="3"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+              Bot Fight Mode
+            </button>
+            <button type="button" class="sidebar-item" data-panel="alwaysOnline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Always Online
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" data-section="tools">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Tools
+          </button>
+          <div class="sidebar-section-items" id="sectionTools">
+            <button type="button" class="sidebar-item" data-panel="headerInspector">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Header Inspector
+            </button>
+            <button type="button" class="sidebar-item" data-panel="pageSpeed">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Page Speed
+            </button>
+            <button type="button" class="sidebar-item" data-panel="whois">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Whois Lookup
+            </button>
+            <button type="button" class="sidebar-item" data-panel="emailRouting">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+              Email Routing
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" data-section="reports">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Reports
+          </button>
+          <div class="sidebar-section-items" id="sectionReports">
+            <button type="button" class="sidebar-item" data-panel="scheduledReports">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Scheduled Reports
+            </button>
+            <button type="button" class="sidebar-item" data-panel="auditLog">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              Audit Log
             </button>
           </div>
         </div>
@@ -895,6 +949,222 @@
             </div>
           </div>
           <div id="ddosError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ BOT FIGHT MODE PANEL ═══════════════════ -->
+      <div id="panelBotFight" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Bot Fight Mode</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="botFightDomainSelect"></select>
+          </div>
+          <p class="dash-panel__desc">Challenge bots and crawlers detected by Cloudflare. This helps reduce spam, credential stuffing, and inventory hoarding.</p>
+          <div id="botFightLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading bot fight settings...</div>
+          <div id="botFightNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="botFightContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Bot Fight Mode</th><th>Status</th></tr></thead>
+                <tbody id="botFightBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="botFightError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ ALWAYS ONLINE PANEL ═══════════════════ -->
+      <div id="panelAlwaysOnline" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Always Online</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="alwaysOnlineDomainSelect"></select>
+          </div>
+          <p class="dash-panel__desc">When your origin server goes down, Cloudflare serves a cached version of your site to visitors so they still see content instead of an error page.</p>
+          <div id="alwaysOnlineLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading settings...</div>
+          <div id="alwaysOnlineNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="alwaysOnlineContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Always Online</th><th>Status</th></tr></thead>
+                <tbody id="alwaysOnlineBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="alwaysOnlineError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ EMAIL ROUTING PANEL ═══════════════════ -->
+      <div id="panelEmailRouting" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Email Routing</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="emailRoutingDomainSelect"></select>
+          </div>
+          <p class="dash-panel__desc">Create custom email addresses for your domain and forward them to your existing inbox. Free with Cloudflare.</p>
+          <div id="emailRoutingLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading email routing...</div>
+          <div id="emailRoutingNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="emailRoutingContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Custom Address</th><th>Forwards To</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="emailRoutingBody"></tbody>
+              </table>
+            </div>
+            <div style="margin-top:1rem">
+              <h3 class="settings-group__title">Add Email Route</h3>
+              <div class="form-row form-row--inline" style="gap:8px;margin-top:0.5rem">
+                <input type="text" class="form-input form-input--sm" id="emailRouteAlias" placeholder="info" style="max-width:140px" />
+                <span style="color:#64748b;font-size:13px">@yourdomain.com &rarr;</span>
+                <input type="email" class="form-input form-input--sm" id="emailRouteDestination" placeholder="you@gmail.com" style="max-width:200px" />
+                <button class="btn btn--primary btn--sm" id="addEmailRouteBtn" type="button">Add</button>
+              </div>
+            </div>
+          </div>
+          <div id="emailRoutingError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ HEADER INSPECTOR PANEL ═══════════════════ -->
+      <div id="panelHeaderInspector" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">HTTP Header Inspector</h2>
+          <p class="dash-panel__desc">Inspect HTTP response headers for any URL. Useful for debugging cache, security headers, and redirects.</p>
+          <form class="form-row form-row--inline" id="headerInspectorForm" style="gap:8px;margin:1rem 0">
+            <input type="url" class="form-input form-input--sm" id="headerInspectorUrl" placeholder="https://example.com" style="flex:1" required />
+            <button class="btn btn--primary btn--sm" type="submit">Inspect</button>
+          </form>
+          <div id="headerInspectorLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Fetching headers...</div>
+          <div id="headerInspectorContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Header</th><th>Value</th></tr></thead>
+                <tbody id="headerInspectorBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="headerInspectorError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ PAGE SPEED INSIGHTS PANEL ═══════════════════ -->
+      <div id="panelPageSpeed" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Page Speed Insights</h2>
+          <p class="dash-panel__desc">Analyze your website's performance using Google PageSpeed Insights. Get actionable recommendations to improve load times.</p>
+          <form class="form-row form-row--inline" id="pageSpeedForm" style="gap:8px;margin:1rem 0">
+            <input type="url" class="form-input form-input--sm" id="pageSpeedUrl" placeholder="https://yourdomain.com" style="flex:1" required />
+            <select class="form-input form-input--sm" id="pageSpeedStrategy" style="width:auto">
+              <option value="mobile">Mobile</option>
+              <option value="desktop">Desktop</option>
+            </select>
+            <button class="btn btn--primary btn--sm" type="submit">Analyze</button>
+          </form>
+          <div id="pageSpeedLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Analyzing page speed...</div>
+          <div id="pageSpeedContent" hidden>
+            <div class="stats-row" id="pageSpeedScores" style="margin-bottom:1rem"></div>
+            <div id="pageSpeedAudits"></div>
+          </div>
+          <div id="pageSpeedError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ WHOIS LOOKUP PANEL ═══════════════════ -->
+      <div id="panelWhois" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Whois Lookup</h2>
+          <p class="dash-panel__desc">Look up domain registration details including registrar, creation date, expiry, and nameservers.</p>
+          <form class="form-row form-row--inline" id="whoisForm" style="gap:8px;margin:1rem 0">
+            <input type="text" class="form-input form-input--sm" id="whoisDomain" placeholder="example.com" style="flex:1" required />
+            <button class="btn btn--primary btn--sm" type="submit">Lookup</button>
+          </form>
+          <div id="whoisLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Looking up domain...</div>
+          <div id="whoisContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Field</th><th>Value</th></tr></thead>
+                <tbody id="whoisBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="whoisError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SCHEDULED REPORTS PANEL ═══════════════════ -->
+      <div id="panelScheduledReports" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Scheduled Reports</h2>
+          <p class="dash-panel__desc">Set up automated email reports for uptime, performance, and security summaries.</p>
+          <div id="scheduledReportsContent">
+            <div class="settings-group">
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Weekly Performance Report</span>
+                  <span class="settings-row__desc">Receive a weekly summary of cache hit rates, requests, and bandwidth</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="reportWeeklyPerf" aria-label="Weekly performance report" />
+                  <span class="toggle-switch__slider"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Daily Uptime Report</span>
+                  <span class="settings-row__desc">Get daily uptime and latency summaries for all monitored domains</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="reportDailyUptime" aria-label="Daily uptime report" />
+                  <span class="toggle-switch__slider"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Monthly Security Report</span>
+                  <span class="settings-row__desc">Monthly overview of threats blocked, DDoS events, and firewall activity</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="reportMonthlySecurity" aria-label="Monthly security report" />
+                  <span class="toggle-switch__slider"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Report Email</span>
+                  <span class="settings-row__desc">Send reports to this email (defaults to account email)</span>
+                </div>
+                <input type="email" class="form-input form-input--sm settings-input" id="reportEmail" placeholder="you@example.com" />
+              </div>
+            </div>
+            <button class="btn btn--primary" id="saveReportSettingsBtn" type="button">Save Report Settings</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ AUDIT LOG PANEL ═══════════════════ -->
+      <div id="panelAuditLog" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Audit Log</h2>
+            <button class="btn btn--outline btn--sm" id="auditRefreshBtn" type="button">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Refresh
+            </button>
+          </div>
+          <p class="dash-panel__desc">Track all actions performed on your account. Purges, setting changes, domain additions, and login events.</p>
+          <div id="auditLogLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading audit log...</div>
+          <div id="auditLogContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Timestamp</th><th>Action</th><th>Details</th><th>IP Address</th></tr></thead>
+                <tbody id="auditLogBody"></tbody>
+              </table>
+              <div class="pagination" id="auditLogPagination"></div>
+            </div>
+          </div>
+          <div id="auditLogEmpty" class="dash-empty dash-empty--sm" hidden>No audit log entries yet.</div>
         </section>
       </div>
 

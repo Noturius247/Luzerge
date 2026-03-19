@@ -15,6 +15,36 @@ let setupDomainId = null
 let domainToDelete = null
 let adminScannedDomain = null
 
+// ─── Theme Toggle ────────────────────────────────────────────────────────────
+
+;(function initTheme() {
+  const saved = localStorage.getItem('luzerge-theme')
+  if (saved) document.documentElement.setAttribute('data-theme', saved)
+})()
+
+function setupThemeToggle() {
+  const btn = document.getElementById('themeToggle')
+  if (!btn) return
+  const iconDark = document.getElementById('themeIconDark')
+  const iconLight = document.getElementById('themeIconLight')
+
+  function updateIcons() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light'
+    if (iconDark) iconDark.hidden = !isDark
+    if (iconLight) iconLight.hidden = isDark
+  }
+
+  btn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme')
+    const next = current === 'light' ? 'dark' : 'light'
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('luzerge-theme', next)
+    updateIcons()
+  })
+
+  updateIcons()
+}
+
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -43,7 +73,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Logout
   document.getElementById('logoutBtn')?.addEventListener('click', signOut)
 
-  // Sidebar
+  // Theme & Sidebar
+  setupThemeToggle()
   initSidebar()
 
   // Setup modal
