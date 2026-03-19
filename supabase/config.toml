@@ -78,3 +78,91 @@ inspector_port = 8083
 enabled = true
 port = 54327
 backend = "postgres"
+
+[functions.header-inspector]
+enabled = true
+verify_jwt = true
+import_map = "./functions/header-inspector/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/header-inspector/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/header-inspector/*.html" ]
+
+[functions.whois-lookup]
+enabled = true
+verify_jwt = true
+import_map = "./functions/whois-lookup/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/whois-lookup/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/whois-lookup/*.html" ]
+
+[functions.page-speed]
+enabled = true
+verify_jwt = true
+import_map = "./functions/page-speed/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/page-speed/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/page-speed/*.html" ]
+
+[functions.bot-fight-mode]
+enabled = true
+verify_jwt = true
+import_map = "./functions/bot-fight-mode/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/bot-fight-mode/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/bot-fight-mode/*.html" ]
+
+[functions.always-online]
+enabled = true
+verify_jwt = true
+import_map = "./functions/always-online/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/always-online/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/always-online/*.html" ]
+
+[functions.email-routing]
+enabled = true
+verify_jwt = true
+import_map = "./functions/email-routing/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/email-routing/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/email-routing/*.html" ]
+
+[functions.audit-log]
+enabled = true
+verify_jwt = true
+import_map = "./functions/audit-log/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/audit-log/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/audit-log/*.html" ]
+
+[functions.scheduled-reports]
+enabled = true
+verify_jwt = true
+import_map = "./functions/scheduled-reports/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/scheduled-reports/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/scheduled-reports/*.html" ]

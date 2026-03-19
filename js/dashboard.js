@@ -278,6 +278,14 @@ function switchPanel(panelId) {
   if (panelId === 'settingsCredentials') populateCredsSettings()
   if (panelId === 'settingsPlan') populatePlanSettings()
   if (panelId === 'settingsSecurity') populateSecuritySettings()
+  if (panelId === 'botFight') loadBotFightPanel()
+  if (panelId === 'alwaysOnline') loadAlwaysOnlinePanel()
+  if (panelId === 'emailRouting') loadEmailRoutingPanel()
+  if (panelId === 'headerInspector') initHeaderInspector()
+  if (panelId === 'pageSpeed') initPageSpeed()
+  if (panelId === 'whois') initWhois()
+  if (panelId === 'scheduledReports') loadScheduledReports()
+  if (panelId === 'auditLog') loadAuditLog()
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -3163,3 +3171,521 @@ function fmtNum(n) {
     : n >= 1_000 ? `${(n/1_000).toFixed(1)}K`
     : String(n)
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NEW FEATURE PANELS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Bot Fight Mode ──────────────────────────────────────────────────────────
+
+async function loadBotFightPanel() {
+  const loading = document.getElementById('botFightLoading')
+  const content = document.getElementById('botFightContent')
+  const noDomains = document.getElementById('botFightNoDomains')
+  const errorEl = document.getElementById('botFightError')
+  const body = document.getElementById('botFightBody')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; errorEl.hidden = true
+
+  populateMultiDomainSelect('botFightDomainSelect')
+  const domains = getSelectedDomains('botFightDomainSelect')
+  document.getElementById('botFightDomainSelect').onchange = () => loadBotFightPanel()
+
+  if (!domains.length) {
+    loading.hidden = true; noDomains.hidden = false; return
+  }
+
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const rows = await Promise.all(domains.map(async (d) => {
+      try {
+        const res = await fetch(`${EDGE_BASE}/bot-fight-mode?domain_id=${d.id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+        })
+        const data = await res.json()
+        return { domain: d.domain, id: d.id, fight_mode: data.fight_mode ?? false, error: data.error }
+      } catch { return { domain: d.domain, id: d.id, fight_mode: false, error: 'Request failed' } }
+    }))
+
+    body.innerHTML = rows.map(r => `
+      <tr>
+        <td>${escHtml(r.domain)}</td>
+        <td>
+          <label class="toggle-switch toggle-switch--sm">
+            <input type="checkbox" ${r.fight_mode ? 'checked' : ''} data-domain-id="${r.id}" class="bot-fight-toggle" ${r.error ? 'disabled' : ''} />
+            <span class="toggle-switch__slider"></span>
+          </label>
+        </td>
+        <td>${r.error ? `<span class="status-badge status-badge--pending">${escHtml(r.error)}</span>` : settingBadge(r.fight_mode)}</td>
+      </tr>
+    `).join('')
+
+    // Bind toggles
+    body.querySelectorAll('.bot-fight-toggle').forEach(toggle => {
+      toggle.addEventListener('change', async () => {
+        const domainId = toggle.dataset.domainId
+        const enabled = toggle.checked
+        try {
+          const s = await getSession()
+          await fetch(`${EDGE_BASE}/bot-fight-mode?domain_id=${domainId}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled }),
+          })
+          showToast(`Bot Fight Mode ${enabled ? 'enabled' : 'disabled'}`)
+        } catch { showToast('Failed to update Bot Fight Mode', true) }
+      })
+    })
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+  }
+}
+
+// ─── Always Online ───────────────────────────────────────────────────────────
+
+async function loadAlwaysOnlinePanel() {
+  const loading = document.getElementById('alwaysOnlineLoading')
+  const content = document.getElementById('alwaysOnlineContent')
+  const noDomains = document.getElementById('alwaysOnlineNoDomains')
+  const errorEl = document.getElementById('alwaysOnlineError')
+  const body = document.getElementById('alwaysOnlineBody')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; errorEl.hidden = true
+
+  populateMultiDomainSelect('alwaysOnlineDomainSelect')
+  const domains = getSelectedDomains('alwaysOnlineDomainSelect')
+  document.getElementById('alwaysOnlineDomainSelect').onchange = () => loadAlwaysOnlinePanel()
+
+  if (!domains.length) {
+    loading.hidden = true; noDomains.hidden = false; return
+  }
+
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const rows = await Promise.all(domains.map(async (d) => {
+      try {
+        const res = await fetch(`${EDGE_BASE}/always-online?domain_id=${d.id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+        })
+        const data = await res.json()
+        return { domain: d.domain, id: d.id, enabled: data.enabled ?? false, error: data.error }
+      } catch { return { domain: d.domain, id: d.id, enabled: false, error: 'Request failed' } }
+    }))
+
+    body.innerHTML = rows.map(r => `
+      <tr>
+        <td>${escHtml(r.domain)}</td>
+        <td>
+          <label class="toggle-switch toggle-switch--sm">
+            <input type="checkbox" ${r.enabled ? 'checked' : ''} data-domain-id="${r.id}" class="always-online-toggle" ${r.error ? 'disabled' : ''} />
+            <span class="toggle-switch__slider"></span>
+          </label>
+        </td>
+        <td>${r.error ? `<span class="status-badge status-badge--pending">${escHtml(r.error)}</span>` : settingBadge(r.enabled)}</td>
+      </tr>
+    `).join('')
+
+    body.querySelectorAll('.always-online-toggle').forEach(toggle => {
+      toggle.addEventListener('change', async () => {
+        const domainId = toggle.dataset.domainId
+        const enabled = toggle.checked
+        try {
+          const s = await getSession()
+          await fetch(`${EDGE_BASE}/always-online?domain_id=${domainId}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled }),
+          })
+          showToast(`Always Online ${enabled ? 'enabled' : 'disabled'}`)
+        } catch { showToast('Failed to update Always Online', true) }
+      })
+    })
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+  }
+}
+
+// ─── Email Routing ───────────────────────────────────────────────────────────
+
+async function loadEmailRoutingPanel() {
+  const loading = document.getElementById('emailRoutingLoading')
+  const content = document.getElementById('emailRoutingContent')
+  const noDomains = document.getElementById('emailRoutingNoDomains')
+  const errorEl = document.getElementById('emailRoutingError')
+  const body = document.getElementById('emailRoutingBody')
+
+  loading.hidden = false; content.hidden = true; noDomains.hidden = true; errorEl.hidden = true
+
+  populateDomainSelect('emailRoutingDomainSelect')
+  const select = document.getElementById('emailRoutingDomainSelect')
+  const domainId = select?.value
+  select.onchange = () => loadEmailRoutingPanel()
+
+  if (!domainId) { loading.hidden = true; noDomains.hidden = false; return }
+
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const res = await fetch(`${EDGE_BASE}/email-routing?domain_id=${domainId}`, {
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+    })
+    const data = await res.json()
+
+    if (data.error) throw new Error(data.error)
+
+    const rules = data.rules || []
+    body.innerHTML = rules.length
+      ? rules.map(r => {
+          const from = r.matchers?.[0]?.value || '—'
+          const to = r.actions?.[0]?.value?.[0] || r.actions?.[0]?.value || '—'
+          return `<tr>
+            <td>${escHtml(from)}</td>
+            <td>${escHtml(to)}</td>
+            <td>${settingBadge(r.enabled)}</td>
+            <td><button class="btn btn--ghost btn--sm btn--danger-text email-route-delete" data-rule-id="${r.id}">Delete</button></td>
+          </tr>`
+        }).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:#64748b">No email routes configured</td></tr>'
+
+    // Update placeholder with actual domain
+    const domainObj = userDomains.find(d => d.id === domainId)
+    const aliasInput = document.getElementById('emailRouteAlias')
+    const domainLabel = aliasInput?.parentElement?.querySelector('span')
+    if (domainLabel && domainObj) domainLabel.textContent = `@${domainObj.domain} →`
+
+    // Bind delete buttons
+    body.querySelectorAll('.email-route-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this email route?')) return
+        try {
+          const s = await getSession()
+          await fetch(`${EDGE_BASE}/email-routing?domain_id=${domainId}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', rule_id: btn.dataset.ruleId }),
+          })
+          showToast('Email route deleted')
+          loadEmailRoutingPanel()
+        } catch { showToast('Failed to delete route', true) }
+      })
+    })
+
+    // Bind add button
+    const addBtn = document.getElementById('addEmailRouteBtn')
+    addBtn.onclick = async () => {
+      const alias = document.getElementById('emailRouteAlias').value.trim()
+      const dest = document.getElementById('emailRouteDestination').value.trim()
+      if (!alias || !dest) { showToast('Fill in both fields', true); return }
+      const fromAddr = `${alias}@${domainObj?.domain || 'yourdomain.com'}`
+      try {
+        const s = await getSession()
+        await fetch(`${EDGE_BASE}/email-routing?domain_id=${domainId}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create', from: fromAddr, to: dest }),
+        })
+        showToast('Email route added')
+        document.getElementById('emailRouteAlias').value = ''
+        document.getElementById('emailRouteDestination').value = ''
+        loadEmailRoutingPanel()
+      } catch { showToast('Failed to add route', true) }
+    }
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+  }
+}
+
+// ─── Header Inspector ────────────────────────────────────────────────────────
+
+let _headerInspectorBound = false
+function initHeaderInspector() {
+  if (_headerInspectorBound) return
+  _headerInspectorBound = true
+
+  document.getElementById('headerInspectorForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const urlInput = document.getElementById('headerInspectorUrl')
+    const loading = document.getElementById('headerInspectorLoading')
+    const content = document.getElementById('headerInspectorContent')
+    const errorEl = document.getElementById('headerInspectorError')
+    const body = document.getElementById('headerInspectorBody')
+
+    const targetUrl = urlInput.value.trim()
+    if (!targetUrl) return
+
+    loading.hidden = false; content.hidden = true; errorEl.hidden = true
+
+    try {
+      const res = await fetch(`${EDGE_BASE}/header-inspector?url=${encodeURIComponent(targetUrl)}`)
+      const data = await res.json()
+
+      if (data.error) throw new Error(data.error)
+
+      const rows = Object.entries(data.headers || {}).map(([key, val]) => {
+        const isSecHeader = data.security && key in data.security
+        return `<tr>
+          <td><code style="font-size:12px;${isSecHeader ? 'color:#22c55e' : ''}">${escHtml(key)}</code></td>
+          <td style="font-size:12px;word-break:break-all">${escHtml(val)}</td>
+        </tr>`
+      })
+
+      // Add summary row at top
+      const summary = `<tr style="background:rgba(59,130,246,0.08)">
+        <td><strong>Status</strong></td>
+        <td><strong>${data.status} ${escHtml(data.status_text || '')}</strong> · ${data.latency_ms}ms${data.cdn ? ` · CDN: ${escHtml(data.cdn)}` : ''}${data.redirected ? ' · Redirected' : ''}</td>
+      </tr>`
+
+      body.innerHTML = summary + rows.join('')
+      loading.hidden = true; content.hidden = false
+    } catch (err) {
+      loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+    }
+  })
+}
+
+// ─── Page Speed Insights ─────────────────────────────────────────────────────
+
+let _pageSpeedBound = false
+function initPageSpeed() {
+  if (_pageSpeedBound) return
+  _pageSpeedBound = true
+
+  document.getElementById('pageSpeedForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const urlInput = document.getElementById('pageSpeedUrl')
+    const strategy = document.getElementById('pageSpeedStrategy').value
+    const loading = document.getElementById('pageSpeedLoading')
+    const content = document.getElementById('pageSpeedContent')
+    const errorEl = document.getElementById('pageSpeedError')
+    const scoresEl = document.getElementById('pageSpeedScores')
+    const auditsEl = document.getElementById('pageSpeedAudits')
+
+    const targetUrl = urlInput.value.trim()
+    if (!targetUrl) return
+
+    loading.hidden = false; content.hidden = true; errorEl.hidden = true
+
+    try {
+      const res = await fetch(`${EDGE_BASE}/page-speed?url=${encodeURIComponent(targetUrl)}&strategy=${strategy}`)
+      const data = await res.json()
+
+      if (data.error) throw new Error(data.error)
+
+      // Render score cards
+      const scoreColors = (s) => s >= 90 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'
+      scoresEl.innerHTML = Object.entries(data.scores || {}).map(([cat, score]) => `
+        <div class="stat-card" style="text-align:center">
+          <div class="stat-card__value" style="color:${scoreColors(score)}">${score}</div>
+          <div class="stat-card__label">${escHtml(cat.replace(/-/g, ' '))}</div>
+        </div>
+      `).join('')
+
+      // Render metrics
+      auditsEl.innerHTML = '<h3 style="font-size:14px;color:#94a3b8;margin:1rem 0 0.5rem;text-transform:uppercase">Core Web Vitals</h3>' +
+        '<div class="feature-table-wrap"><table class="history-table"><thead><tr><th>Metric</th><th>Value</th><th>Score</th></tr></thead><tbody>' +
+        Object.entries(data.metrics || {}).map(([key, m]) => `
+          <tr>
+            <td>${escHtml(key.replace(/-/g, ' '))}</td>
+            <td>${escHtml(m.value || '—')}</td>
+            <td><span style="color:${scoreColors(m.score)}">${m.score}/100</span></td>
+          </tr>
+        `).join('') +
+        '</tbody></table></div>'
+
+      loading.hidden = true; content.hidden = false
+    } catch (err) {
+      loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+    }
+  })
+}
+
+// ─── Whois Lookup ────────────────────────────────────────────────────────────
+
+let _whoisBound = false
+function initWhois() {
+  if (_whoisBound) return
+  _whoisBound = true
+
+  document.getElementById('whoisForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const domainInput = document.getElementById('whoisDomain')
+    const loading = document.getElementById('whoisLoading')
+    const content = document.getElementById('whoisContent')
+    const errorEl = document.getElementById('whoisError')
+    const body = document.getElementById('whoisBody')
+
+    const domain = domainInput.value.trim()
+    if (!domain) return
+
+    loading.hidden = false; content.hidden = true; errorEl.hidden = true
+
+    try {
+      const res = await fetch(`${EDGE_BASE}/whois-lookup?domain=${encodeURIComponent(domain)}`)
+      const data = await res.json()
+
+      if (data.error) throw new Error(data.error)
+
+      const fields = [
+        ['Domain', data.domain],
+        ['Registrar', data.registrar],
+        ['Registrant', data.registrant],
+        ['Registered', data.registered ? formatDate(data.registered) : '—'],
+        ['Expires', data.expires ? formatDate(data.expires) : '—'],
+        ['Last Updated', data.last_updated ? formatDate(data.last_updated) : '—'],
+        ['Nameservers', (data.nameservers || []).join(', ') || '—'],
+        ['DNSSEC', data.dnssec ? 'Signed' : 'Unsigned'],
+        ['Status', (data.status || []).join(', ') || '—'],
+      ]
+
+      body.innerHTML = fields.map(([label, val]) => `
+        <tr><td><strong>${escHtml(label)}</strong></td><td>${escHtml(val || '—')}</td></tr>
+      `).join('')
+
+      loading.hidden = true; content.hidden = false
+    } catch (err) {
+      loading.hidden = true; errorEl.textContent = err.message; errorEl.hidden = false
+    }
+  })
+}
+
+// ─── Scheduled Reports ───────────────────────────────────────────────────────
+
+async function loadScheduledReports() {
+  const session = await getSession()
+  if (!session) return
+
+  try {
+    const res = await fetch(`${EDGE_BASE}/scheduled-reports`, {
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+    })
+    const data = await res.json()
+    const settings = data.settings || []
+
+    // Pre-fill toggles based on existing settings
+    const weekly = settings.find(s => s.frequency === 'weekly')
+    const daily = settings.find(s => s.frequency === 'daily')
+    const monthly = settings.find(s => s.frequency === 'monthly')
+
+    const weeklyEl = document.getElementById('reportWeeklyPerf')
+    const dailyEl = document.getElementById('reportDailyUptime')
+    const monthlyEl = document.getElementById('reportMonthlySecurity')
+    const emailEl = document.getElementById('reportEmail')
+
+    if (weeklyEl) weeklyEl.checked = weekly?.enabled ?? false
+    if (dailyEl) dailyEl.checked = daily?.enabled ?? false
+    if (monthlyEl) monthlyEl.checked = monthly?.enabled ?? false
+    if (emailEl) emailEl.value = settings[0]?.email || currentUser?.email || ''
+
+    // Store IDs for updates
+    weeklyEl.dataset.settingId = weekly?.id || ''
+    dailyEl.dataset.settingId = daily?.id || ''
+    monthlyEl.dataset.settingId = monthly?.id || ''
+  } catch { /* first load, no settings yet */ }
+
+  // Bind save button
+  const saveBtn = document.getElementById('saveReportSettingsBtn')
+  saveBtn.onclick = async () => {
+    const s = await getSession()
+    if (!s) return
+
+    const email = document.getElementById('reportEmail').value.trim() || currentUser?.email
+    const domain = userDomains.find(d => d.status === 'active')?.domain || ''
+    const headers = { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }
+
+    const reports = [
+      { el: document.getElementById('reportWeeklyPerf'), frequency: 'weekly' },
+      { el: document.getElementById('reportDailyUptime'), frequency: 'daily' },
+      { el: document.getElementById('reportMonthlySecurity'), frequency: 'monthly' },
+    ]
+
+    try {
+      for (const r of reports) {
+        const body = {
+          domain,
+          frequency: r.frequency,
+          email,
+          enabled: r.el.checked,
+        }
+        if (r.el.dataset.settingId) body.id = r.el.dataset.settingId
+        await fetch(`${EDGE_BASE}/scheduled-reports`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body),
+        })
+      }
+      showToast('Report settings saved')
+    } catch { showToast('Failed to save report settings', true) }
+  }
+}
+
+// ─── Audit Log ───────────────────────────────────────────────────────────────
+
+let _auditLogPage = 1
+
+async function loadAuditLog(page = 1) {
+  _auditLogPage = page
+  const loading = document.getElementById('auditLogLoading')
+  const content = document.getElementById('auditLogContent')
+  const empty = document.getElementById('auditLogEmpty')
+  const body = document.getElementById('auditLogBody')
+  const pagination = document.getElementById('auditLogPagination')
+
+  loading.hidden = false; content.hidden = true; empty.hidden = true
+
+  try {
+    const session = await getSession()
+    if (!session) return
+
+    const res = await fetch(`${EDGE_BASE}/audit-log?page=${page}&limit=25`, {
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+    })
+    const data = await res.json()
+
+    if (data.error) throw new Error(data.error)
+
+    const logs = data.logs || []
+    if (!logs.length && page === 1) {
+      loading.hidden = true; empty.hidden = false; return
+    }
+
+    body.innerHTML = logs.map(log => `
+      <tr>
+        <td style="white-space:nowrap;font-size:12px">${new Date(log.created_at).toLocaleString()}</td>
+        <td><span class="status-badge status-badge--active" style="font-size:11px">${escHtml(log.action)}</span></td>
+        <td style="font-size:12px">${escHtml(log.detail || log.domain || '—')}</td>
+        <td style="font-size:12px;color:#64748b">${escHtml(log.ip_address || '—')}</td>
+      </tr>
+    `).join('')
+
+    // Pagination
+    if (data.pages > 1) {
+      let paginationHtml = ''
+      for (let i = 1; i <= data.pages; i++) {
+        paginationHtml += `<button class="btn btn--ghost btn--sm ${i === page ? 'btn--primary' : ''}" onclick="loadAuditLog(${i})">${i}</button> `
+      }
+      pagination.innerHTML = paginationHtml
+    } else {
+      pagination.innerHTML = ''
+    }
+
+    loading.hidden = true; content.hidden = false
+  } catch (err) {
+    loading.hidden = true
+    document.getElementById('auditLogEmpty').textContent = err.message
+    document.getElementById('auditLogEmpty').hidden = false
+  }
+}
+
+// Bind audit refresh button
+document.getElementById('auditRefreshBtn')?.addEventListener('click', () => loadAuditLog(_auditLogPage))
