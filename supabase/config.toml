@@ -81,7 +81,7 @@ backend = "postgres"
 
 [functions.header-inspector]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/header-inspector/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -92,7 +92,7 @@ entrypoint = "./functions/header-inspector/index.ts"
 
 [functions.whois-lookup]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/whois-lookup/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -103,7 +103,7 @@ entrypoint = "./functions/whois-lookup/index.ts"
 
 [functions.page-speed]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/page-speed/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -114,7 +114,7 @@ entrypoint = "./functions/page-speed/index.ts"
 
 [functions.bot-fight-mode]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/bot-fight-mode/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -125,7 +125,7 @@ entrypoint = "./functions/bot-fight-mode/index.ts"
 
 [functions.always-online]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/always-online/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -136,7 +136,7 @@ entrypoint = "./functions/always-online/index.ts"
 
 [functions.email-routing]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/email-routing/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -147,7 +147,7 @@ entrypoint = "./functions/email-routing/index.ts"
 
 [functions.audit-log]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/audit-log/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -158,7 +158,7 @@ entrypoint = "./functions/audit-log/index.ts"
 
 [functions.scheduled-reports]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/scheduled-reports/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
