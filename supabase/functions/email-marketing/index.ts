@@ -205,8 +205,7 @@ serve(async (req: Request) => {
 
       const provider = body.provider || 'resend'
       const recipient = body.to || user.email!
-      const unsubLink = `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-marketing?action=unsubscribe&token=${btoa(recipient)}`
-      const fullBody = `${body.body}\n\n---\nYou are receiving this from Luzerge (luzerge.com).\nUnsubscribe: ${unsubLink}`
+      const fullBody = buildEmailBody(body.body, recipient)
 
       const result = await sendEmail(provider, recipient, body.subject, fullBody)
       if (!result.success) return json({ error: result.error }, 502, cors)
@@ -241,8 +240,7 @@ serve(async (req: Request) => {
       let providerFailed = false
 
       for (const r of recipients) {
-        const unsubLink = `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-marketing?action=unsubscribe&token=${btoa(r.email)}`
-        const fullBody = `${body.body}\n\n---\nYou are receiving this from Luzerge (luzerge.com).\nUnsubscribe: ${unsubLink}`
+        const fullBody = buildEmailBody(body.body, r.email)
 
         let result = await sendEmail(usedProvider, r.email, body.subject, fullBody)
 
@@ -276,6 +274,28 @@ serve(async (req: Request) => {
     return json({ error: 'Internal server error', detail: String(err) }, 500, cors)
   }
 })
+
+// ─── Email Body Builder ─────────────────────────────────────────────────────
+
+function buildEmailBody(content: string, recipientEmail: string): string {
+  const unsubLink = `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-marketing?action=unsubscribe&token=${btoa(recipientEmail)}`
+
+  return `${content}
+
+---
+
+⚡ Luzerge — Website Monitoring & CDN Management Platform
+
+Start for FREE — self-managed plans begin at ₱0/month.
+Managed plans from just ₱99/mo. No setup fees.
+
+Try it now → https://luzerge.com
+
+---
+You are receiving this from Luzerge (https://luzerge.com).
+Contact us: luzergeservices@gmail.com
+Unsubscribe: ${unsubLink}`
+}
 
 // ─── Email Senders ──────────────────────────────────────────────────────────
 

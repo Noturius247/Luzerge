@@ -7,7 +7,10 @@
       "Bash(node -c js/admin.js)",
       "Bash(node -c d:/Luzerge.com/js/dashboard.js)",
       "Bash(git ls-tree:*)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(find /d/Luzerge.com -type f -name *email* -o -name *marketing* -o -name *newsletter* -o -name *campaign* -o -name *subscriber*)",
+      "Bash(find /d/Luzerge.com/src -type f -name *.ts -o -name *.tsx -o -name *.js -o -name *.jsx)",
+      "Bash(grep -l \"subscriber\\\\|email_campaign\" /d/Luzerge.com/supabase/migrations/*.sql)"
     ],
     "additionalDirectories": [
       "d:\\Luzerge.com\\supabase\\functions"

@@ -3198,6 +3198,200 @@ document.getElementById('admAuditRefreshBtn')?.addEventListener('click', () => a
 let _emInitDone = false
 let _emSubscribers = []
 let _emSelectedEmails = new Set()
+let _emCurrentFilter = 'all'
+let _emSearchQuery = ''
+
+// Custom modal confirm (replaces browser confirm)
+function emConfirm(title, message) {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('emModal')
+    document.getElementById('emModalTitle').textContent = title
+    document.getElementById('emModalMessage').textContent = message
+    overlay.hidden = false
+
+    const cleanup = (result) => {
+      overlay.hidden = true
+      document.getElementById('emModalConfirm').removeEventListener('click', onConfirm)
+      document.getElementById('emModalCancel').removeEventListener('click', onCancel)
+      resolve(result)
+    }
+    const onConfirm = () => cleanup(true)
+    const onCancel = () => cleanup(false)
+
+    document.getElementById('emModalConfirm').addEventListener('click', onConfirm)
+    document.getElementById('emModalCancel').addEventListener('click', onCancel)
+  })
+}
+
+// Update selected count badge
+function emUpdateSelectedCount() {
+  const badge = document.getElementById('emSelectedCount')
+  if (_emSelectedEmails.size > 0) {
+    badge.textContent = `${_emSelectedEmails.size} selected`
+    badge.hidden = false
+  } else {
+    badge.hidden = true
+  }
+}
+
+// Update stats cards
+function emUpdateStats() {
+  const total = _emSubscribers.length
+  const active = _emSubscribers.filter(s => s.status === 'active').length
+  const unsub = _emSubscribers.filter(s => s.status === 'unsubscribed').length
+  document.getElementById('emStatTotal').textContent = total
+  document.getElementById('emStatActive').textContent = active
+  document.getElementById('emStatUnsub').textContent = unsub
+}
+
+// Filter and render subscriber table
+function emRenderSubscribers() {
+  const body = document.getElementById('emSubBody')
+  const countEl = document.getElementById('emSubCount')
+  const content = document.getElementById('emSubContent')
+  const empty = document.getElementById('emSubEmpty')
+
+  let filtered = _emSubscribers
+  if (_emCurrentFilter !== 'all') {
+    filtered = filtered.filter(s => s.status === _emCurrentFilter)
+  }
+  if (_emSearchQuery) {
+    const q = _emSearchQuery.toLowerCase()
+    filtered = filtered.filter(s =>
+      s.email.toLowerCase().includes(q) || (s.name && s.name.toLowerCase().includes(q))
+    )
+  }
+
+  if (!_emSubscribers.length) { content.hidden = true; empty.hidden = false; return }
+  empty.hidden = true; content.hidden = false
+
+  const active = _emSubscribers.filter(s => s.status === 'active').length
+  countEl.textContent = `${active} active / ${_emSubscribers.length} total` + (filtered.length !== _emSubscribers.length ? ` (showing ${filtered.length})` : '')
+
+  body.innerHTML = filtered.map(s => `
+    <tr>
+      <td><input type="checkbox" class="em-sub-check" data-email="${escHtml(s.email)}" ${s.status !== 'active' ? 'disabled' : ''} ${_emSelectedEmails.has(s.email) ? 'checked' : ''} /></td>
+      <td>${escHtml(s.email)}</td>
+      <td>${escHtml(s.name || '—')}</td>
+      <td>${s.status === 'active'
+        ? '<span class="status-badge status-badge--healthy">Active</span>'
+        : '<span class="status-badge status-badge--down">Unsubscribed</span>'}</td>
+      <td>${new Date(s.created_at).toLocaleDateString()}</td>
+      <td>${s.status === 'active'
+        ? `<button class="btn btn--ghost btn--xs em-unsub-btn" data-email="${escHtml(s.email)}">Remove</button>`
+        : '—'}</td>
+    </tr>
+  `).join('')
+
+  // Bind checkboxes
+  body.querySelectorAll('.em-sub-check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) _emSelectedEmails.add(cb.dataset.email)
+      else _emSelectedEmails.delete(cb.dataset.email)
+      emUpdateSelectedCount()
+    })
+  })
+
+  // Bind remove buttons
+  body.querySelectorAll('.em-unsub-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const confirmed = await emConfirm('Remove Subscriber', `Remove ${btn.dataset.email} from your subscriber list? They will be marked as unsubscribed.`)
+      if (!confirmed) return
+      try {
+        const s = await getSession()
+        await fetch(`${EDGE_BASE}/email-marketing?action=remove_subscriber`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: btn.dataset.email }),
+        })
+        admShowToast('Subscriber removed')
+        emLoadSubscribers()
+      } catch { admShowToast('Failed to remove', true) }
+    })
+  })
+}
+
+// Live preview update
+function emUpdatePreview() {
+  const subject = document.getElementById('emSubject').value.trim()
+  const bodyVal = document.getElementById('emBody').value
+  const provider = document.getElementById('emFromProvider').value
+
+  // Subject preview
+  const subEl = document.getElementById('emPreviewSubject')
+  if (subject) {
+    subEl.textContent = subject
+    subEl.classList.remove('em-preview-placeholder')
+  } else {
+    subEl.textContent = 'Your subject line'
+    subEl.classList.add('em-preview-placeholder')
+  }
+
+  // From preview
+  document.getElementById('emPreviewFrom').textContent = provider === 'resend' ? 'noreply@luzerge.com' : 'luzergeservices@gmail.com'
+
+  // Body preview
+  const bodyEl = document.getElementById('emPreviewBody')
+  if (bodyVal.trim()) {
+    bodyEl.textContent = bodyVal
+    bodyEl.classList.remove('em-preview-placeholder')
+  } else {
+    bodyEl.innerHTML = '<p class="em-preview-placeholder">Your email content will appear here as you type...</p>'
+  }
+
+  // Word count
+  const words = bodyVal.trim() ? bodyVal.trim().split(/\s+/).length : 0
+  const chars = bodyVal.length
+  document.getElementById('emWordCount').textContent = `${words} word${words !== 1 ? 's' : ''} / ${chars} char${chars !== 1 ? 's' : ''}`
+}
+
+// CSV file handler (shared between file input and drag & drop)
+async function emHandleCsvFile(file) {
+  const statusEl = document.getElementById('emImportStatus')
+  statusEl.textContent = 'Parsing CSV...'
+
+  const text = await file.text()
+  const lines = text.split('\n')
+  if (lines.length < 2) { statusEl.textContent = 'Empty CSV'; return }
+
+  const header = parseCSVLine(lines[0])
+  const firstNameIdx = header.findIndex(h => h.trim().toLowerCase() === 'first name')
+  const lastNameIdx = header.findIndex(h => h.trim().toLowerCase() === 'last name')
+  const emailIdx = header.findIndex(h => h.trim().toLowerCase().includes('e-mail') && h.trim().toLowerCase().includes('value'))
+  const emailIdx2 = emailIdx >= 0 ? emailIdx : header.findIndex(h => h.trim().toLowerCase() === 'email')
+
+  const finalEmailIdx = emailIdx >= 0 ? emailIdx : emailIdx2
+  if (finalEmailIdx < 0) { statusEl.textContent = 'No email column found in CSV'; admShowToast('CSV must have an "E-mail 1 - Value" or "Email" column', true); return }
+
+  const contacts = []
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue
+    const cols = parseCSVLine(lines[i])
+    const email = (cols[finalEmailIdx] || '').trim()
+    if (!email || !email.includes('@')) continue
+    const firstName = firstNameIdx >= 0 ? (cols[firstNameIdx] || '').trim() : ''
+    const lastName = lastNameIdx >= 0 ? (cols[lastNameIdx] || '').trim() : ''
+    const name = [firstName, lastName].filter(Boolean).join(' ') || null
+    contacts.push({ email, name })
+  }
+
+  if (!contacts.length) { statusEl.textContent = 'No valid emails found'; return }
+  statusEl.textContent = `Found ${contacts.length} contacts. Importing...`
+
+  try {
+    const s = await getSession()
+    const res = await fetch(`${EDGE_BASE}/email-marketing?action=bulk_add_named`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contacts }),
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+    statusEl.textContent = `${data.added} imported`
+    admShowToast(`${data.added} subscriber(s) imported from CSV`)
+    emLoadSubscribers()
+  } catch (err) { statusEl.textContent = ''; admShowToast(err.message, true) }
+}
 
 function admInitEmailMarketing() {
   if (_emInitDone) return
@@ -3206,12 +3400,28 @@ function admInitEmailMarketing() {
   // Tab switching
   document.querySelectorAll('[data-emtab]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-emtab]').forEach(b => b.classList.remove('tab-btn--active'))
-      btn.classList.add('tab-btn--active')
+      document.querySelectorAll('[data-emtab]').forEach(b => b.classList.remove('em-tab-btn--active'))
+      btn.classList.add('em-tab-btn--active')
       document.getElementById('emTabSubscribers').hidden = btn.dataset.emtab !== 'subscribers'
       document.getElementById('emTabCompose').hidden = btn.dataset.emtab !== 'compose'
       document.getElementById('emTabCampaigns').hidden = btn.dataset.emtab !== 'campaigns'
       if (btn.dataset.emtab === 'campaigns') emLoadCampaigns()
+    })
+  })
+
+  // Search input
+  document.getElementById('emSearchInput').addEventListener('input', (e) => {
+    _emSearchQuery = e.target.value
+    emRenderSubscribers()
+  })
+
+  // Filter pills
+  document.querySelectorAll('[data-emfilter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-emfilter]').forEach(b => b.classList.remove('em-filter-pill--active'))
+      btn.classList.add('em-filter-pill--active')
+      _emCurrentFilter = btn.dataset.emfilter
+      emRenderSubscribers()
     })
   })
 
@@ -3265,6 +3475,7 @@ function admInitEmailMarketing() {
       cb.checked = checked
       if (checked) _emSelectedEmails.add(cb.dataset.email)
     })
+    emUpdateSelectedCount()
   })
 
   // Export CSV
@@ -3279,57 +3490,27 @@ function admInitEmailMarketing() {
     a.click()
   })
 
-  // CSV Import (Google Contacts format)
+  // CSV Import via file input
   document.getElementById('emCsvFile').addEventListener('change', async (e) => {
     const file = e.target.files[0]
     if (!file) return
-    const statusEl = document.getElementById('emImportStatus')
-    statusEl.textContent = 'Parsing CSV...'
-
-    const text = await file.text()
-    const lines = text.split('\n')
-    if (lines.length < 2) { statusEl.textContent = 'Empty CSV'; return }
-
-    // Parse header to find column indices
-    const header = parseCSVLine(lines[0])
-    const firstNameIdx = header.findIndex(h => h.trim().toLowerCase() === 'first name')
-    const lastNameIdx = header.findIndex(h => h.trim().toLowerCase() === 'last name')
-    const emailIdx = header.findIndex(h => h.trim().toLowerCase().includes('e-mail') && h.trim().toLowerCase().includes('value'))
-    // Fallback: try "Email" column
-    const emailIdx2 = emailIdx >= 0 ? emailIdx : header.findIndex(h => h.trim().toLowerCase() === 'email')
-
-    const finalEmailIdx = emailIdx >= 0 ? emailIdx : emailIdx2
-    if (finalEmailIdx < 0) { statusEl.textContent = 'No email column found in CSV'; admShowToast('CSV must have an "E-mail 1 - Value" or "Email" column', true); return }
-
-    const contacts = []
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue
-      const cols = parseCSVLine(lines[i])
-      const email = (cols[finalEmailIdx] || '').trim()
-      if (!email || !email.includes('@')) continue
-      const firstName = firstNameIdx >= 0 ? (cols[firstNameIdx] || '').trim() : ''
-      const lastName = lastNameIdx >= 0 ? (cols[lastNameIdx] || '').trim() : ''
-      const name = [firstName, lastName].filter(Boolean).join(' ') || null
-      contacts.push({ email, name })
-    }
-
-    if (!contacts.length) { statusEl.textContent = 'No valid emails found'; return }
-    statusEl.textContent = `Found ${contacts.length} contacts. Importing...`
-
-    try {
-      const s = await getSession()
-      const res = await fetch(`${EDGE_BASE}/email-marketing?action=bulk_add_named`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contacts }),
-      })
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
-      statusEl.textContent = `${data.added} imported`
-      admShowToast(`${data.added} subscriber(s) imported from CSV`)
-      emLoadSubscribers()
-    } catch (err) { statusEl.textContent = ''; admShowToast(err.message, true) }
+    await emHandleCsvFile(file)
     e.target.value = ''
+  })
+
+  // Drag & Drop CSV
+  const dropZone = document.getElementById('emDropZone')
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('em-drop-zone--active') })
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('em-drop-zone--active') })
+  dropZone.addEventListener('drop', async (e) => {
+    e.preventDefault()
+    dropZone.classList.remove('em-drop-zone--active')
+    const file = e.dataTransfer.files[0]
+    if (file && (file.name.endsWith('.csv') || file.type === 'text/csv')) {
+      await emHandleCsvFile(file)
+    } else {
+      admShowToast('Please drop a CSV file', true)
+    }
   })
 
   // Import Platform Users
@@ -3349,6 +3530,11 @@ function admInitEmailMarketing() {
       emLoadSubscribers()
     } catch (err) { statusEl.textContent = ''; admShowToast(err.message, true) }
   })
+
+  // Live preview bindings
+  document.getElementById('emSubject').addEventListener('input', emUpdatePreview)
+  document.getElementById('emBody').addEventListener('input', emUpdatePreview)
+  document.getElementById('emFromProvider').addEventListener('change', emUpdatePreview)
 
   // Send test
   document.getElementById('emTestBtn').addEventListener('click', async () => {
@@ -3373,7 +3559,7 @@ function admInitEmailMarketing() {
     } catch (err) { status.textContent = ''; admShowToast(err.message, true) }
   })
 
-  // Send campaign
+  // Send campaign (with styled modal instead of browser confirm)
   document.getElementById('emSendBtn').addEventListener('click', async () => {
     const subject = document.getElementById('emSubject').value.trim()
     const body = document.getElementById('emBody').value.trim()
@@ -3388,7 +3574,8 @@ function admInitEmailMarketing() {
     }
 
     const count = emails ? emails.length : _emSubscribers.filter(s => s.status === 'active').length
-    if (!confirm(`Send "${subject}" to ${count} recipient(s)?`)) return
+    const confirmed = await emConfirm('Send Campaign', `You are about to send "${subject}" to ${count} recipient(s). This action cannot be undone.`)
+    if (!confirmed) return
 
     const status = document.getElementById('emSendStatus')
     status.textContent = `Sending to ${count} recipients...`
@@ -3415,14 +3602,13 @@ function admInitEmailMarketing() {
   })
 
   emLoadSubscribers()
+  emLoadCampaignStats()
 }
 
 async function emLoadSubscribers() {
   const loading = document.getElementById('emSubLoading')
   const content = document.getElementById('emSubContent')
   const empty = document.getElementById('emSubEmpty')
-  const body = document.getElementById('emSubBody')
-  const countEl = document.getElementById('emSubCount')
 
   loading.hidden = false; content.hidden = true; empty.hidden = true
 
@@ -3437,57 +3623,29 @@ async function emLoadSubscribers() {
     if (data.error) throw new Error(data.error)
 
     _emSubscribers = data.subscribers || []
-    const active = _emSubscribers.filter(s => s.status === 'active').length
-
-    if (!_emSubscribers.length) { loading.hidden = true; empty.hidden = false; return }
-
-    countEl.textContent = `${active} active / ${_emSubscribers.length} total`
-    body.innerHTML = _emSubscribers.map(s => `
-      <tr>
-        <td><input type="checkbox" class="em-sub-check" data-email="${escHtml(s.email)}" ${s.status !== 'active' ? 'disabled' : ''} /></td>
-        <td>${escHtml(s.email)}</td>
-        <td>${escHtml(s.name || '—')}</td>
-        <td>${s.status === 'active'
-          ? '<span class="status-badge status-badge--healthy">Active</span>'
-          : '<span class="status-badge status-badge--down">Unsubscribed</span>'}</td>
-        <td>${new Date(s.created_at).toLocaleDateString()}</td>
-        <td>${s.status === 'active'
-          ? `<button class="btn btn--ghost btn--xs em-unsub-btn" data-email="${escHtml(s.email)}">Remove</button>`
-          : '—'}</td>
-      </tr>
-    `).join('')
-
-    // Bind checkboxes
-    body.querySelectorAll('.em-sub-check').forEach(cb => {
-      cb.addEventListener('change', () => {
-        if (cb.checked) _emSelectedEmails.add(cb.dataset.email)
-        else _emSelectedEmails.delete(cb.dataset.email)
-      })
-    })
-
-    // Bind remove buttons
-    body.querySelectorAll('.em-unsub-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm(`Remove ${btn.dataset.email}?`)) return
-        try {
-          const s = await getSession()
-          await fetch(`${EDGE_BASE}/email-marketing?action=remove_subscriber`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: btn.dataset.email }),
-          })
-          admShowToast('Subscriber removed')
-          emLoadSubscribers()
-        } catch { admShowToast('Failed to remove', true) }
-      })
-    })
-
-    loading.hidden = true; content.hidden = false
+    emUpdateStats()
+    emRenderSubscribers()
+    loading.hidden = true
   } catch (err) {
     loading.hidden = true
     document.getElementById('emError').textContent = err.message
     document.getElementById('emError').hidden = false
   }
+}
+
+async function emLoadCampaignStats() {
+  try {
+    const s = await getSession()
+    if (!s) return
+    const res = await fetch(`${EDGE_BASE}/email-marketing?action=campaigns`, {
+      headers: { Authorization: `Bearer ${s.access_token}`, apikey: __LUZERGE_CONFIG.SUPABASE_ANON_KEY },
+      signal: AbortSignal.timeout(15000),
+    })
+    const data = await res.json()
+    if (!data.error) {
+      document.getElementById('emStatCampaigns').textContent = (data.campaigns || []).length
+    }
+  } catch {}
 }
 
 async function emLoadCampaigns() {
@@ -3511,7 +3669,9 @@ async function emLoadCampaigns() {
     const campaigns = data.campaigns || []
     if (!campaigns.length) { loading.hidden = true; empty.hidden = false; return }
 
-    body.innerHTML = campaigns.map(c => `
+    document.getElementById('emStatCampaigns').textContent = campaigns.length
+
+    body.innerHTML = campaigns.map((c, i) => `
       <tr>
         <td>${new Date(c.created_at).toLocaleString()}</td>
         <td>${escHtml(c.subject)}</td>
@@ -3522,8 +3682,27 @@ async function emLoadCampaigns() {
           : c.status === 'partial'
           ? '<span class="status-badge status-badge--pending">Partial</span>'
           : '<span class="status-badge status-badge--down">Failed</span>'}</td>
+        <td>
+          <button class="em-camp-toggle" data-camp-idx="${i}" title="View email body">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </td>
+      </tr>
+      <tr class="em-camp-detail" id="emCampDetail${i}" hidden>
+        <td colspan="6">${escHtml(c.body || 'No body saved')}</td>
       </tr>
     `).join('')
+
+    // Bind campaign expand toggles
+    body.querySelectorAll('.em-camp-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = btn.dataset.campIdx
+        const detail = document.getElementById(`emCampDetail${idx}`)
+        const isOpen = !detail.hidden
+        detail.hidden = isOpen
+        btn.classList.toggle('em-camp-toggle--open', !isOpen)
+      })
+    })
 
     loading.hidden = true; content.hidden = false
   } catch (err) {
