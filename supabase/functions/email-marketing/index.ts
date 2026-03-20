@@ -224,9 +224,8 @@ serve(async (req: Request) => {
 
       const provider = body.provider || 'resend'
       const recipient = body.to || user.email!
-      const fullBody = buildEmailBody(body.body, recipient)
 
-      const result = await sendEmail(provider, recipient, body.subject, fullBody)
+      const result = await sendEmail(provider, recipient, body.subject, body.body)
       if (!result.success) return json({ error: result.error }, 502, cors)
       return json({ success: true, message: `Test sent to ${recipient}` }, 200, cors)
     }
@@ -259,15 +258,13 @@ serve(async (req: Request) => {
       let providerFailed = false
 
       for (const r of recipients) {
-        const fullBody = buildEmailBody(body.body, r.email)
-
-        let result = await sendEmail(usedProvider, r.email, body.subject, fullBody)
+        let result = await sendEmail(usedProvider, r.email, body.subject, body.body)
 
         // Fallback to other provider on failure
         if (!result.success && !providerFailed) {
           providerFailed = true
           usedProvider = usedProvider === 'resend' ? 'gmail' : 'resend'
-          result = await sendEmail(usedProvider, r.email, body.subject, fullBody)
+          result = await sendEmail(usedProvider, r.email, body.subject, body.body)
         }
 
         if (result.success) sent++
