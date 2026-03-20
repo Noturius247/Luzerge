@@ -139,29 +139,48 @@ serve(async (req: Request) => {
     }
 
     if (action === 'import_platform_users') {
-      // Fetch all users from auth.users via admin API
-      const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 })
-      if (listErr) return json({ error: listErr.message }, 500, cors)
+      // Fetch from both auth.users AND profiles table to ensure all users are captured
+      const emailMap = new Map<string, { email: string; name: string | null }>()
 
-      if (!users || !users.length) return json({ added: 0 }, 200, cors)
-
-      // Also fetch profile names
+      // 1. Fetch from profiles table (primary source — matches admin User Management)
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, email')
 
-      const profileMap = new Map((profiles || []).map(p => [p.id, p]))
-
-      const rows = users
-        .filter(u => u.email)
-        .map(u => {
-          const profile = profileMap.get(u.id)
-          return {
-            email: u.email!.toLowerCase(),
-            name: profile?.full_name || u.user_metadata?.full_name || null,
-            status: 'active' as const,
+      if (profiles) {
+        for (const p of profiles) {
+          if (p.email && p.email.includes('@')) {
+            emailMap.set(p.email.toLowerCase(), {
+              email: p.email.toLowerCase(),
+              name: p.full_name || null,
+            })
           }
-        })
+        }
+      }
+
+      // 2. Also fetch from auth.users to catch any users not yet in profiles
+      try {
+        const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+        if (users) {
+          for (const u of users) {
+            if (u.email && !emailMap.has(u.email.toLowerCase())) {
+              const profile = profiles?.find(p => p.id === u.id)
+              emailMap.set(u.email.toLowerCase(), {
+                email: u.email.toLowerCase(),
+                name: profile?.full_name || u.user_metadata?.full_name || null,
+              })
+            }
+          }
+        }
+      } catch {
+        // If auth.admin fails, profiles-only import is still valid
+      }
+
+      const rows = [...emailMap.values()].map(r => ({
+        email: r.email,
+        name: r.name,
+        status: 'active' as const,
+      }))
 
       if (!rows.length) return json({ added: 0 }, 200, cors)
 
