@@ -2023,5 +2023,5 @@ details[open] .faq__question::after {
 
 /* Nav Lumi Logo */
 .nav-lumi-bolt {
-  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(6,182,212,0.7));
+  filter: drop-shadow(0 0 3px rgba(59,130,246,0.6));
 }
