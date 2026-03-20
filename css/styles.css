@@ -2020,3 +2020,8 @@ details[open] .faq__question::after {
     scroll-behavior: auto !important;
   }
 }
+
+/* Nav Lumi Logo */
+.nav-lumi-bolt {
+  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(6,182,212,0.7));
+}
