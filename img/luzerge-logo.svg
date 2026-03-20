@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="lg-sphere" cx="38%" cy="32%" r="58%">
+      <stop offset="0%" stop-color="#122a4a"/>
+      <stop offset="60%" stop-color="#0a1628"/>
+      <stop offset="100%" stop-color="#060c18"/>
+    </radialGradient>
+    <radialGradient id="lg-shine" cx="32%" cy="22%" r="38%">
+      <stop offset="0%" stop-color="rgba(6,182,212,0.3)"/>
+      <stop offset="100%" stop-color="rgba(6,182,212,0)"/>
+    </radialGradient>
+  </defs>
+  <circle cx="512" cy="512" r="480" fill="url(#lg-sphere)"/>
+  <circle cx="512" cy="512" r="480" fill="url(#lg-shine)"/>
+  <circle cx="512" cy="512" r="464" fill="none" stroke="#0ea5e9" stroke-width="8" opacity="0.5"/>
+  <path d="M608 64L272 560h240l-48 400L816 448H560l48-384z" fill="#3b82f6" stroke="#93c5fd" stroke-width="4"/>
+  <circle cx="176" cy="240" r="12" fill="#06b6d4" opacity="0.8"/>
+  <circle cx="848" cy="208" r="10" fill="#3b82f6" opacity="0.7"/>
+  <circle cx="816" cy="816" r="8" fill="#8b5cf6" opacity="0.6"/>
+</svg>

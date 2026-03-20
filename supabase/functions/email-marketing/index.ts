@@ -296,39 +296,90 @@ serve(async (req: Request) => {
 
 // ─── Email Body Builder ─────────────────────────────────────────────────────
 
-function buildEmailBody(content: string, recipientEmail: string): string {
+function escHtmlEmail(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function buildEmail(content: string, recipientEmail: string): { text: string; html: string; unsubLink: string } {
   const unsubLink = `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-marketing?action=unsubscribe&token=${btoa(recipientEmail)}`
 
-  return `${content}
+  // Plain text version
+  const text = `${content}
 
----
+--
+Luzerge | Website Monitoring & CDN Management
+https://luzerge.com | luzergeservices@gmail.com
 
-⚡ Luzerge — Website Monitoring & CDN Management Platform
+To unsubscribe: ${unsubLink}`
 
-Start for FREE — self-managed plans begin at ₱0/month.
-Managed plans from just ₱99/mo. No setup fees.
+  // HTML version — clean, minimal, no spam triggers
+  const bodyHtml = escHtmlEmail(content).replace(/\n/g, '<br/>')
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;">
+    <tr><td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
 
-Try it now → https://luzerge.com
+        <!-- Header -->
+        <tr><td style="background:#0a0e1a;padding:24px 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="padding-right:12px;vertical-align:middle;">
+              <img src="https://luzerge.com/img/favicon.svg" width="32" height="32" alt="Luzerge" style="display:block;border:0;"/>
+            </td>
+            <td style="vertical-align:middle;">
+              <span style="font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">Luzerge</span>
+            </td>
+          </tr></table>
+        </td></tr>
 
----
-You are receiving this from Luzerge (https://luzerge.com).
-Contact us: luzergeservices@gmail.com
-Unsubscribe: ${unsubLink}`
+        <!-- Body -->
+        <tr><td style="padding:32px;font-size:15px;line-height:1.7;color:#1e293b;">
+          ${bodyHtml}
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding:0 32px;">
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:0;"/>
+        </td></tr>
+        <tr><td style="padding:20px 32px 24px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;color:#64748b;">
+            Luzerge &mdash; Website Monitoring &amp; CDN Management
+          </p>
+          <p style="margin:0 0 12px;font-size:12px;color:#94a3b8;">
+            <a href="https://luzerge.com" style="color:#3b82f6;text-decoration:none;">luzerge.com</a>
+            &nbsp;&middot;&nbsp;
+            <a href="mailto:luzergeservices@gmail.com" style="color:#3b82f6;text-decoration:none;">luzergeservices@gmail.com</a>
+          </p>
+          <p style="margin:0;font-size:11px;color:#94a3b8;">
+            <a href="${unsubLink}" style="color:#94a3b8;text-decoration:underline;">Unsubscribe</a>
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+
+  return { text, html, unsubLink }
 }
 
 // ─── Email Senders ──────────────────────────────────────────────────────────
 
-async function sendEmail(provider: string, to: string, subject: string, body: string): Promise<{ success: boolean; error?: string }> {
+async function sendEmail(provider: string, to: string, subject: string, content: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (provider === 'resend') return await sendViaResend(to, subject, body)
-    if (provider === 'gmail') return await sendViaGmail(to, subject, body)
+    const email = buildEmail(content, to)
+    if (provider === 'resend') return await sendViaResend(to, subject, email)
+    if (provider === 'gmail') return await sendViaGmail(to, subject, email)
     return { success: false, error: 'Unknown provider' }
   } catch (err) {
     return { success: false, error: String(err) }
   }
 }
 
-async function sendViaResend(to: string, subject: string, body: string) {
+async function sendViaResend(to: string, subject: string, email: { text: string; html: string; unsubLink: string }) {
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) return { success: false, error: 'RESEND_API_KEY not set' }
 
@@ -339,7 +390,12 @@ async function sendViaResend(to: string, subject: string, body: string) {
       from: 'Luzerge <noreply@luzerge.com>',
       to: [to],
       subject,
-      text: body,
+      text: email.text,
+      html: email.html,
+      headers: {
+        'List-Unsubscribe': `<${email.unsubLink}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
     }),
   })
 
@@ -350,7 +406,7 @@ async function sendViaResend(to: string, subject: string, body: string) {
   return { success: true }
 }
 
-async function sendViaGmail(to: string, subject: string, body: string) {
+async function sendViaGmail(to: string, subject: string, email: { text: string; html: string; unsubLink: string }) {
   const gmailUser = Deno.env.get('GMAIL_USER')
   const gmailPass = Deno.env.get('GMAIL_APP_PASSWORD')
   if (!gmailUser || !gmailPass) return { success: false, error: 'Gmail credentials not set' }
@@ -368,7 +424,8 @@ async function sendViaGmail(to: string, subject: string, body: string) {
     from: gmailUser,
     to,
     subject,
-    content: body,
+    content: email.text,
+    html: email.html,
   })
 
   await client.close()
