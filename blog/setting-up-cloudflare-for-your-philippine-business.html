@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Setting Up Cloudflare for Your Philippine Business | Luzerge Blog</title>
+  <meta name="description" content="Step-by-step guide for Filipino business owners to set up Cloudflare. From creating an account to enabling SSL Full (Strict), page rules, and connecting to Luzerge for monitoring." />
+  <meta name="keywords" content="Cloudflare setup Philippines, DNS configuration, SSL setup, page rules, Cloudflare guide Filipino business" />
+  <link rel="canonical" href="https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+  <meta name="author" content="Luzerge Team" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Luzerge" />
+  <meta property="og:url" content="https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html" />
+  <meta property="og:title" content="Setting Up Cloudflare for Your Philippine Business" />
+  <meta property="og:description" content="Step-by-step guide for Filipino business owners to set up Cloudflare. From creating an account to enabling SSL Full (Strict), page rules, and connecting to Luzerge for monitoring." />
+  <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
+  <meta property="og:locale" content="en_PH" />
+  <meta property="article:published_time" content="2026-03-17" />
+  <meta property="article:section" content="Guide" />
+  <meta property="article:tag" content="Cloudflare" />
+  <meta property="article:tag" content="DNS" />
+  <meta property="article:tag" content="Philippines" />
+  <meta property="article:tag" content="SSL" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Setting Up Cloudflare for Your Philippine Business" />
+  <meta name="twitter:description" content="Step-by-step guide for Filipino business owners to set up Cloudflare. From creating an account to enabling SSL Full (Strict), page rules, and connecting to Luzerge for monitoring." />
+  <meta name="twitter:image" content="https://luzerge.com/img/og-image.png" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Setting Up Cloudflare for Your Philippine Business",
+    "description": "Step-by-step guide for Filipino business owners to set up Cloudflare. From creating an account to enabling SSL Full (Strict), page rules, and connecting to Luzerge for monitoring.",
+    "datePublished": "2026-03-17",
+    "dateModified": "2026-03-17",
+    "url": "https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html",
+    "wordCount": 1800,
+    "articleSection": "Guide",
+    "keywords": ["Cloudflare setup Philippines", "DNS configuration", "SSL setup", "page rules", "Cloudflare guide Filipino business"],
+    "author": { "@type": "Organization", "name": "Luzerge", "url": "https://luzerge.com" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Luzerge",
+      "url": "https://luzerge.com",
+      "logo": { "@type": "ImageObject", "url": "https://luzerge.com/img/luzerge-logo.svg" }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://luzerge.com" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://luzerge.com/blog.html" },
+      { "@type": "ListItem", "position": 3, "name": "Setting Up Cloudflare for Your Philippine Business", "item": "https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html" }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is Cloudflare free for small businesses?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Cloudflare offers a generous free plan that includes CDN caching, basic DDoS protection, universal SSL certificates, and DNS hosting. For most Philippine small businesses, the free plan is more than enough to get started. You only need to upgrade to a paid plan if you require advanced features like Web Application Firewall (WAF) custom rules, image optimization, or priority support."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does it take to set up Cloudflare?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The initial setup — creating an account, adding your domain, and updating nameservers — takes about 15 to 30 minutes. However, nameserver propagation can take anywhere from a few minutes to 24 hours, depending on your domain registrar. Once propagation completes, Cloudflare activates automatically and your site starts benefiting from its CDN and security features."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Will Cloudflare slow down my website?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No — Cloudflare will almost certainly make your website faster. Cloudflare operates data centers in over 300 cities worldwide, including multiple locations across Asia. By caching your static content at edge servers closer to your visitors, Cloudflare reduces latency and load times. Philippine businesses typically see a 30-60% improvement in page load speeds after enabling Cloudflare."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to change my hosting provider to use Cloudflare?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Cloudflare works as a reverse proxy that sits between your visitors and your hosting provider. You keep your existing hosting — whether it's shared hosting, a VPS, or a dedicated server. You only need to update your domain's nameservers to point to Cloudflare. Your hosting setup, files, and databases remain exactly where they are."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .post { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .post-breadcrumbs { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #475569; margin-bottom: 2rem; flex-wrap: wrap; }
+    .post-breadcrumbs a { color: #64748b; text-decoration: none; transition: color 0.2s; }
+    .post-breadcrumbs a:hover { color: #93bbfd; }
+    .post-breadcrumbs .sep { color: #334155; }
+    .post-header { margin-bottom: 2.5rem; }
+    .post-category { display: inline-block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #34d399; margin-bottom: 0.75rem; }
+    .post-title { font-size: 2.25rem; font-weight: 800; color: #fff; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    .post-meta { display: flex; align-items: center; gap: 1.5rem; font-size: 0.8rem; color: #64748b; flex-wrap: wrap; }
+    .post-meta__author { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .post-meta__avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .post-content { font-size: 1.05rem; color: #cbd5e1; line-height: 1.9; }
+    .post-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin: 2.5rem 0 1rem; letter-spacing: -0.01em; }
+    .post-content h3 { font-size: 1.15rem; font-weight: 600; color: #e2e8f0; margin: 2rem 0 0.75rem; }
+    .post-content p { margin-bottom: 1.25rem; }
+    .post-content ul, .post-content ol { margin: 0 0 1.25rem 1.5rem; }
+    .post-content li { margin-bottom: 0.5rem; }
+    .post-content strong { color: #f1f5f9; }
+    .post-content a { color: #60a5fa; text-decoration: underline; text-underline-offset: 2px; }
+    .post-content a:hover { color: #93bbfd; }
+    .post-content blockquote { border-left: 3px solid #3b82f6; margin: 1.5rem 0; padding: 1rem 1.5rem; background: rgba(59,130,246,0.05); border-radius: 0 8px 8px 0; color: #94a3b8; font-style: italic; }
+    .post-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 2.5rem 0; }
+    .post-tag { background: rgba(255,255,255,0.05); border-radius: 4px; padding: 0.2rem 0.6rem; font-size: 0.75rem; color: #64748b; }
+    .post-share { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 0; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 2.5rem; }
+    .post-share__label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+    .post-share__btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: #64748b; text-decoration: none; transition: all 0.2s; }
+    .post-share__btn:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.25); color: #60a5fa; }
+    .post-faq { margin: 3rem 0; }
+    .post-faq h2 { font-size: 1.3rem; font-weight: 700; color: #f1f5f9; margin-bottom: 1.5rem; }
+    .post-faq__item { border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; }
+    .post-faq__q { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; cursor: pointer; color: #e2e8f0; font-size: 0.95rem; font-weight: 600; background: rgba(255,255,255,0.02); -webkit-user-select: none; user-select: none; }
+    .post-faq__q:hover { background: rgba(255,255,255,0.04); }
+    .post-faq__q svg { flex-shrink: 0; transition: transform 0.2s; color: #475569; }
+    .post-faq__item.open .post-faq__q svg { transform: rotate(180deg); }
+    .post-faq__a { padding: 0 1.25rem; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; color: #94a3b8; font-size: 0.9rem; line-height: 1.7; }
+    .post-faq__item.open .post-faq__a { max-height: 300px; padding: 0 1.25rem 1.25rem; }
+    .post-related { margin-top: 3rem; }
+    .post-related__title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; margin-bottom: 1rem; }
+    .post-related__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .post-related__card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.25rem; text-decoration: none; transition: border-color 0.2s, transform 0.2s; display: block; }
+    .post-related__card:hover { border-color: rgba(59,130,246,0.25); transform: translateY(-2px); }
+    .post-related__cat { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+    .post-related__cat--security { color: #f87171; }
+    .post-related__cat--guide { color: #34d399; }
+    .post-related__cat--tools { color: #38bdf8; }
+    .post-related__cat--performance { color: #fbbf24; }
+    .post-related__cat--product { color: #a78bfa; }
+    .post-related__name { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; line-height: 1.4; margin-bottom: 0.35rem; }
+    .post-related__time { font-size: 0.7rem; color: #475569; }
+    .post-cta { text-align: center; margin: 3rem 0; padding: 2.5rem 2rem; background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.06)); border: 1px solid rgba(59,130,246,0.15); border-radius: 16px; }
+    .post-cta__title { font-size: 1.25rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.5rem; }
+    .post-cta__desc { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.25rem; line-height: 1.6; }
+    .post-cta__btn { display: inline-flex; align-items: center; gap: 6px; padding: 0.7rem 1.5rem; background: #3b82f6; color: #fff; border-radius: 8px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+    .post-cta__btn:hover { background: #2563eb; }
+    .post-back { display: inline-flex; align-items: center; gap: 6px; color: #60a5fa; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin-top: 2rem; transition: gap 0.2s; }
+    .post-back:hover { gap: 10px; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav__container">
+      <a href="/" class="nav__logo" aria-label="Luzerge home">
+        <svg class="nav__logo-icon nav-lumi-logo" width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden="true"><defs><radialGradient id="nv-s" cx="38%" cy="32%" r="58%"><stop offset="0%" stop-color="#122a4a"/><stop offset="60%" stop-color="#0a1628"/><stop offset="100%" stop-color="#060c18"/></radialGradient><radialGradient id="nv-h" cx="32%" cy="22%" r="38%"><stop offset="0%" stop-color="rgba(6,182,212,0.3)"/><stop offset="100%" stop-color="rgba(6,182,212,0)"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#nv-s)"/><circle cx="32" cy="32" r="30" fill="url(#nv-h)"/><circle cx="32" cy="32" r="29" fill="none" stroke="#0ea5e9" stroke-width="1.5" opacity="0.5"/><path d="M38 4L17 35h15l-3 25L51 28H35l3-24z" fill="#3b82f6" stroke="#93c5fd" stroke-width="1" class="nav-lumi-bolt"/><circle cx="11" cy="15" r="1.5" fill="#06b6d4" opacity="0.8"/><circle cx="53" cy="13" r="1.2" fill="#3b82f6" opacity="0.7"/><circle cx="51" cy="51" r="1" fill="#8b5cf6" opacity="0.6"/></svg>
+        Luzerge
+      </a>
+      <ul class="nav__links" role="list">
+        <li><a href="/#scanner">Free Scanner</a></li>
+        <li><a href="/#services">Services</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="/#faq">FAQ</a></li>
+        <li class="nav__dropdown">
+          <button type="button" class="nav__dropdown-btn" aria-expanded="false">More <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <ul class="nav__dropdown-menu" role="list">
+            <li><a href="/setup.html">Setup Guide</a></li>
+            <li><a href="/blog.html" class="active">Blog</a></li>
+            <li><a href="/changelog.html">Changelog</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/security.html">Security</a></li>
+            <li><a href="/status.html">Status</a></li>
+          </ul>
+        </li>
+        <li><a href="/#contact" class="btn btn--outline">Get Started</a></li>
+        <li><a href="/login.html" class="btn btn--primary">Dashboard</a></li>
+      </ul>
+      <button type="button" class="nav__toggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="post">
+    <nav class="post-breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a> <span class="sep">/</span>
+      <a href="/blog.html">Blog</a> <span class="sep">/</span>
+      <span>Setting Up Cloudflare for Your Philippine Business</span>
+    </nav>
+
+    <header class="post-header">
+      <span class="post-category">Guide</span>
+      <h1 class="post-title">Setting Up Cloudflare for Your Philippine Business</h1>
+      <div class="post-meta">
+        <span class="post-meta__author">
+          <span class="post-meta__avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          Luzerge Team
+        </span>
+        <time datetime="2026-03-17">March 17, 2026</time>
+        <span>8 min read</span>
+      </div>
+    </header>
+
+    <article class="post-content">
+      <p>If you run a business website in the Philippines, chances are your visitors are experiencing slower load times than they should be. Your origin server might be located in the US or Singapore, your site might lack proper SSL encryption, and you could be one bad bot attack away from an outage. <strong>Cloudflare fixes all of these problems</strong> — and the best part is that it's free to get started.</p>
+
+      <p>This step-by-step guide walks you through the entire Cloudflare setup process, from creating your account to configuring SSL Full (Strict) mode and connecting your domain to <a href="/">Luzerge</a> for ongoing monitoring. Whether you're running a small sari-sari store's online presence or a growing e-commerce platform, this guide has you covered.</p>
+
+      <h2>Why Philippine Businesses Need Cloudflare</h2>
+
+      <p>Before diving into the setup, let's talk about why Cloudflare is practically a requirement for any Philippine business with a website. There are three core reasons:</p>
+
+      <h3>Free CDN with Asian Edge Servers</h3>
+
+      <p>A Content Delivery Network (CDN) caches copies of your website's static files — images, CSS, JavaScript — at servers around the world. When a visitor in Manila loads your site, they get the content from a nearby Cloudflare data center instead of waiting for it to travel from a server in Dallas or Amsterdam. Cloudflare has data centers in Manila, Cebu, and multiple cities across Asia, which means <strong>your Filipino visitors get dramatically faster load times</strong>. You can learn more about how caching works in our <a href="/blog/understanding-cdn-cache-hit-rates.html">guide to CDN cache hit rates</a>.</p>
+
+      <h3>Built-In Security</h3>
+
+      <p>Cloudflare acts as a reverse proxy, meaning all traffic flows through their network before reaching your server. This gives you automatic DDoS protection, bot mitigation, and a Web Application Firewall — even on the free plan. For Philippine businesses that can't afford dedicated security infrastructure, this is a game-changer. Learn more about how <a href="/blog/why-website-security-starts-with-monitoring.html">monitoring forms the foundation of website security</a>.</p>
+
+      <h3>Free SSL Certificates</h3>
+
+      <p>Cloudflare provides free Universal SSL certificates for every domain on their platform. This means your site gets HTTPS encryption without paying for or managing certificates yourself. Combined with proper configuration (which we'll cover below), this ensures your visitors' data is protected end-to-end.</p>
+
+      <blockquote>Cloudflare is the single highest-impact, lowest-cost upgrade you can make to your Philippine business website.</blockquote>
+
+      <h2>Step 1: Creating a Cloudflare Account</h2>
+
+      <p>Head to <strong>dash.cloudflare.com</strong> and sign up for a free account. Use a business email address rather than a personal one — this makes it easier to manage access if you later add team members. Cloudflare will ask you to verify your email address, so check your inbox and click the verification link.</p>
+
+      <p>Once logged in, you'll land on the Cloudflare dashboard. This is your control center for managing all your domains, DNS records, security settings, and performance optimizations. Take a moment to enable two-factor authentication (2FA) under your profile settings — this is critical for protecting your account since Cloudflare controls your domain's traffic flow.</p>
+
+      <h2>Step 2: Adding Your Domain and Transferring DNS</h2>
+
+      <p>Click <strong>"Add a Site"</strong> in the dashboard and type your domain name (e.g., yourbusiness.com.ph). Cloudflare will scan your existing DNS records automatically. This scan typically finds most of your records, but <strong>verify everything carefully</strong> before proceeding.</p>
+
+      <p>Check that the following records are present and correct:</p>
+
+      <ul>
+        <li><strong>A record</strong> — points your root domain to your server's IP address</li>
+        <li><strong>CNAME record for www</strong> — points www.yourdomain.com.ph to your root domain</li>
+        <li><strong>MX records</strong> — these handle your email delivery. Missing or incorrect MX records mean you'll stop receiving email</li>
+        <li><strong>TXT records</strong> — SPF, DKIM, and DMARC records for email authentication</li>
+      </ul>
+
+      <p>Select the <strong>Free plan</strong> when prompted. For most Philippine small businesses, the free plan provides everything you need: CDN caching, DDoS protection, Universal SSL, and DNS hosting.</p>
+
+      <h2>Step 3: Updating Nameservers at Your Registrar</h2>
+
+      <p>After adding your domain, Cloudflare will give you two nameservers — something like <strong>ada.ns.cloudflare.com</strong> and <strong>bert.ns.cloudflare.com</strong>. You need to update your domain registrar to use these nameservers instead of your current ones.</p>
+
+      <p>Log in to your domain registrar (common Philippine registrars include domains.ph, Web.com.ph, or international registrars like Namecheap or GoDaddy). Find the nameserver settings for your domain and replace the existing nameservers with the two Cloudflare nameservers.</p>
+
+      <p><strong>Important:</strong> Nameserver propagation can take anywhere from 5 minutes to 24 hours. Cloudflare will send you an email once your domain is active on their network. During this waiting period, your website will continue to work normally — there's no downtime during the switch.</p>
+
+      <h2>Step 4: Enabling the Orange Cloud Proxy</h2>
+
+      <p>Once your domain is active on Cloudflare, go to the <strong>DNS</strong> section of your dashboard. You'll see your DNS records listed with a cloud icon next to each one. This icon can be either <strong>orange (proxied)</strong> or <strong>gray (DNS only)</strong>.</p>
+
+      <p>For your main website records (A and CNAME records for your root domain and www), make sure the cloud icon is <strong>orange</strong>. This means traffic flows through Cloudflare's network, giving you the benefits of caching, DDoS protection, and SSL. When the cloud is gray, Cloudflare only provides DNS resolution — no security or performance benefits.</p>
+
+      <p>Records that should typically be <strong>orange (proxied)</strong>:</p>
+
+      <ul>
+        <li>A record for your root domain (@)</li>
+        <li>CNAME record for www</li>
+        <li>Any other subdomains serving web content</li>
+      </ul>
+
+      <p>Records that should remain <strong>gray (DNS only)</strong>:</p>
+
+      <ul>
+        <li>MX records (email must connect directly)</li>
+        <li>TXT records (used for verification, not proxied)</li>
+        <li>Records for mail server subdomains (e.g., mail.yourdomain.com)</li>
+      </ul>
+
+      <h2>Step 5: Configuring SSL to Full (Strict)</h2>
+
+      <p>This is one of the most important steps, and it's where many Philippine business owners make a critical mistake. Go to <strong>SSL/TLS</strong> in your Cloudflare dashboard and set the encryption mode to <strong>Full (Strict)</strong>.</p>
+
+      <p>Here's why this matters. Cloudflare offers four SSL modes:</p>
+
+      <ul>
+        <li><strong>Off</strong> — no encryption at all. Never use this.</li>
+        <li><strong>Flexible</strong> — encrypts traffic between visitors and Cloudflare, but sends unencrypted traffic from Cloudflare to your server. This is <strong>dangerous</strong> because it creates a false sense of security.</li>
+        <li><strong>Full</strong> — encrypts both legs of the connection, but doesn't validate your origin server's certificate. Better, but still not ideal.</li>
+        <li><strong>Full (Strict)</strong> — encrypts both legs and validates your origin server's certificate. <strong>This is what you want.</strong></li>
+      </ul>
+
+      <p>For Full (Strict) to work, your origin server needs a valid SSL certificate. If your hosting provider doesn't offer one, you can generate a free <strong>Cloudflare Origin Certificate</strong> from the SSL/TLS section and install it on your server. This certificate is trusted by Cloudflare and lasts up to 15 years.</p>
+
+      <p>Also enable <strong>"Always Use HTTPS"</strong> under the Edge Certificates tab. This automatically redirects all HTTP requests to HTTPS, ensuring your visitors never access an unencrypted version of your site.</p>
+
+      <h2>Step 6: Setting Up Page Rules for Caching</h2>
+
+      <p>Cloudflare's free plan includes three page rules, which let you customize caching and security behavior for specific URL patterns. Here are the three most useful page rules for Philippine business websites:</p>
+
+      <p><strong>Rule 1: Cache Everything for Static Pages</strong></p>
+
+      <p>URL pattern: <code>yourdomain.com.ph/*</code><br/>
+      Setting: Cache Level = Cache Everything, Edge Cache TTL = 1 month</p>
+
+      <p>This tells Cloudflare to cache all content at the edge, dramatically reducing load on your origin server and speeding up page loads for Filipino visitors.</p>
+
+      <p><strong>Rule 2: Bypass Cache for Admin Pages</strong></p>
+
+      <p>URL pattern: <code>yourdomain.com.ph/admin/*</code> (or <code>/wp-admin/*</code> for WordPress)<br/>
+      Setting: Cache Level = Bypass, Security Level = High</p>
+
+      <p>This ensures your admin panel is never cached (which could cause issues with dynamic content) and adds extra security to your login area.</p>
+
+      <p><strong>Rule 3: Force HTTPS on All Pages</strong></p>
+
+      <p>URL pattern: <code>http://yourdomain.com.ph/*</code><br/>
+      Setting: Always Use HTTPS</p>
+
+      <p>While you should also enable "Always Use HTTPS" in global settings, this page rule acts as a belt-and-suspenders approach to ensure no traffic ever goes through unencrypted.</p>
+
+      <p>For deeper insights into how caching impacts your website's performance, check out our article on <a href="/blog/understanding-cdn-cache-hit-rates.html">understanding CDN cache hit rates</a>.</p>
+
+      <h2>Step 7: Connecting Your Zone to Luzerge for Monitoring</h2>
+
+      <p>Now that Cloudflare is set up, you need a way to monitor that everything stays healthy. That's where <a href="/">Luzerge</a> comes in. Our platform integrates directly with Cloudflare to give you real-time monitoring of your domain's uptime, SSL status, and security configuration.</p>
+
+      <p>Here's how to connect your Cloudflare zone to Luzerge:</p>
+
+      <ol>
+        <li><strong>Scan your domain</strong> using our <a href="/#scanner">free website scanner</a> to get an instant health check of your Cloudflare configuration</li>
+        <li><strong>Create a Luzerge account</strong> and add your domain to your dashboard</li>
+        <li><strong>Connect your Cloudflare API token</strong> — generate a read-only API token in your Cloudflare dashboard and add it to Luzerge. This lets us pull analytics, security events, and configuration data</li>
+        <li><strong>Configure alerts</strong> — set up notifications for SSL expiration warnings, uptime incidents, and security anomalies</li>
+      </ol>
+
+      <p>With Luzerge monitoring your Cloudflare zone, you'll get alerted the moment something goes wrong — whether it's an SSL misconfiguration, a spike in bot traffic, or an unexpected outage. Check our <a href="/#pricing">pricing plans</a> to find the right monitoring tier for your business.</p>
+
+      <h2>Common Mistakes to Avoid</h2>
+
+      <p>After helping dozens of Philippine businesses set up Cloudflare, we've seen the same mistakes come up repeatedly. Avoid these pitfalls:</p>
+
+      <h3>Gray Cloud on A Records</h3>
+
+      <p>If your main A record has a gray cloud icon instead of orange, Cloudflare is only providing DNS resolution. You get none of the CDN, security, or SSL benefits. Always ensure your primary web-serving records are proxied (orange cloud).</p>
+
+      <h3>Using Flexible SSL</h3>
+
+      <p>Flexible SSL is the most dangerous setting in Cloudflare because it gives visitors a padlock icon in their browser while the connection between Cloudflare and your server is completely unencrypted. Any attacker between Cloudflare and your origin can intercept sensitive data. <strong>Always use Full (Strict).</strong></p>
+
+      <h3>Forgetting MX Records</h3>
+
+      <p>When setting up DNS in Cloudflare, make sure your MX records are present and set to gray cloud (DNS only). If you accidentally proxy your MX records or forget to add them, you'll stop receiving email.</p>
+
+      <h3>Not Enabling HTTPS Redirects</h3>
+
+      <p>Even with SSL configured, your site might still be accessible over HTTP if you don't enable "Always Use HTTPS." This means some visitors could be browsing without encryption. Enable this setting and verify it's working by visiting your domain with http:// and confirming it redirects to https://.</p>
+
+      <h3>Ignoring the "Under Attack Mode" Feature</h3>
+
+      <p>If your site comes under a DDoS attack, Cloudflare has an <strong>"Under Attack Mode"</strong> that presents a JavaScript challenge to visitors before allowing them through. Know where this setting is so you can activate it quickly during an emergency. Learn more about automated threats in our <a href="/blog/how-bot-fight-mode-protects-your-website.html">Bot Fight Mode guide</a>.</p>
+
+      <h2>What to Do After Setup</h2>
+
+      <p>Once your Cloudflare setup is complete and verified, here's your ongoing checklist:</p>
+
+      <ul>
+        <li><strong>Monitor your cache hit rate</strong> — aim for 80% or higher. If it's lower, review your caching rules and check for resources that are bypassing the cache. Our <a href="/blog/understanding-cdn-cache-hit-rates.html">cache hit rate guide</a> explains how to interpret these numbers</li>
+        <li><strong>Review Cloudflare Analytics weekly</strong> — check for unusual traffic patterns, blocked threats, and bandwidth savings</li>
+        <li><strong>Keep your origin server updated</strong> — Cloudflare adds a security layer, but it doesn't patch vulnerabilities on your server</li>
+        <li><strong>Test your SSL configuration</strong> — use our <a href="/#scanner">free scanner</a> periodically to verify your SSL is properly configured</li>
+        <li><strong>Set up <a href="/blog/what-is-always-online-and-why-your-site-needs-it.html">Always Online</a></strong> — this Cloudflare feature serves cached copies of your pages when your origin server goes down, keeping your site accessible during outages</li>
+        <li><strong>Enable Luzerge monitoring</strong> — continuous monitoring catches issues that periodic checks miss. Get alerts before your customers notice problems</li>
+      </ul>
+
+      <p>Setting up Cloudflare is one of the smartest investments a Philippine business owner can make for their website. It costs nothing to start, takes less than 30 minutes, and immediately improves your site's speed, security, and reliability. Combined with ongoing monitoring through Luzerge, you'll have enterprise-grade infrastructure protecting your online presence — without the enterprise price tag.</p>
+    </article>
+
+    <div class="post-tags">
+      <span class="post-tag">Cloudflare</span>
+      <span class="post-tag">DNS</span>
+      <span class="post-tag">Philippines</span>
+      <span class="post-tag">SSL</span>
+    </div>
+
+    <div class="post-share">
+      <span class="post-share__label">Share</span>
+      <a class="post-share__btn" href="https://x.com/intent/tweet?text=Setting%20Up%20Cloudflare%20for%20Your%20Philippine%20Business&url=https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html" target="_blank" rel="noopener noreferrer" aria-label="Share on X"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a class="post-share__btn" href="https://www.facebook.com/sharer/sharer.php?u=https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+      <a class="post-share__btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+    </div>
+
+    <section class="post-faq">
+      <h2>Frequently Asked Questions</h2>
+      <div class="post-faq__item">
+        <div class="post-faq__q">Is Cloudflare free for small businesses? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">Yes. Cloudflare offers a generous free plan that includes CDN caching, basic DDoS protection, universal SSL certificates, and DNS hosting. For most Philippine small businesses, the free plan is more than enough to get started. You only need to upgrade to a paid plan if you require advanced features like Web Application Firewall (WAF) custom rules, image optimization, or priority support.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">How long does it take to set up Cloudflare? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">The initial setup — creating an account, adding your domain, and updating nameservers — takes about 15 to 30 minutes. However, nameserver propagation can take anywhere from a few minutes to 24 hours, depending on your domain registrar. Once propagation completes, Cloudflare activates automatically and your site starts benefiting from its CDN and security features.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">Will Cloudflare slow down my website? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">No — Cloudflare will almost certainly make your website faster. Cloudflare operates data centers in over 300 cities worldwide, including multiple locations across Asia. By caching your static content at edge servers closer to your visitors, Cloudflare reduces latency and load times. Philippine businesses typically see a 30-60% improvement in page load speeds after enabling Cloudflare.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">Do I need to change my hosting provider to use Cloudflare? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">No. Cloudflare works as a reverse proxy that sits between your visitors and your hosting provider. You keep your existing hosting — whether it's shared hosting, a VPS, or a dedicated server. You only need to update your domain's nameservers to point to Cloudflare. Your hosting setup, files, and databases remain exactly where they are.</div>
+      </div>
+    </section>
+
+    <div class="post-cta">
+      <p class="post-cta__title">Get your Cloudflare site monitored</p>
+      <p class="post-cta__desc">Luzerge monitors your Cloudflare zone 24/7 — uptime, SSL, DNS, and security configuration. Free for 1 domain.</p>
+      <a href="/#contact" class="post-cta__btn">Get Started <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+
+    <section class="post-related">
+      <p class="post-related__title">Related Articles</p>
+      <div class="post-related__grid">
+        <a href="/blog/why-website-security-starts-with-monitoring.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--security">Security</p>
+          <p class="post-related__name">Why Website Security Starts with Monitoring</p>
+          <span class="post-related__time">6 min read</span>
+        </a>
+        <a href="/blog/what-is-always-online-and-why-your-site-needs-it.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--guide">Guide</p>
+          <p class="post-related__name">What Is Always Online and Why Your Site Needs It</p>
+          <span class="post-related__time">5 min read</span>
+        </a>
+        <a href="/blog/understanding-cdn-cache-hit-rates.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--performance">Performance</p>
+          <p class="post-related__name">Understanding CDN Cache Hit Rates</p>
+          <span class="post-related__time">6 min read</span>
+        </a>
+      </div>
+    </section>
+
+    <a href="/blog.html" class="post-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to all articles
+    </a>
+  </main>
+
+  <script>
+    // FAQ accordion
+    document.querySelectorAll('.post-faq__q').forEach(q => {
+      q.addEventListener('click', () => q.parentElement.classList.toggle('open'))
+    })
+    // Google Fonts
+    const gf = document.getElementById('googleFonts'); if (gf) gf.media = 'all'
+    // Nav toggle
+    ;(function(){const t=document.querySelector('.nav__toggle'),l=document.querySelector('.nav__links');if(!t||!l)return;t.addEventListener('click',()=>{const o=t.getAttribute('aria-expanded')==='true';t.setAttribute('aria-expanded',!o);l.classList.toggle('nav__links--open')});document.querySelectorAll('.nav__dropdown-btn').forEach(b=>{b.addEventListener('click',e=>{e.stopPropagation();const o=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',!o);b.closest('.nav__dropdown').classList.toggle('nav__dropdown--open')})});document.addEventListener('click',()=>{document.querySelectorAll('.nav__dropdown--open').forEach(d=>{d.classList.remove('nav__dropdown--open');d.querySelector('.nav__dropdown-btn').setAttribute('aria-expanded','false')})})})()
+  </script>
+  <script src="/js/app.js" defer></script>
+</body>
+</html>
