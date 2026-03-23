@@ -7,7 +7,7 @@
 /* ── Hero Container ───────────────────────────────────────────── */
 .post-hero {
   margin: -0.5rem 0 2.5rem;
-  padding: 2.5rem 2rem;
+  padding: 2rem 1.5rem;
   border-radius: 16px;
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.06);
@@ -16,9 +16,16 @@
   justify-content: center;
   overflow: hidden;
   position: relative;
-  min-height: 200px;
+  min-height: 180px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
-.post-hero svg { width: 100%; max-width: 560px; height: auto; }
+.post-hero svg {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
 .post-hero::before {
   content: '';
   position: absolute;
