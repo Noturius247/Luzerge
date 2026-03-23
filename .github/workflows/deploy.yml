@@ -119,9 +119,18 @@ jobs:
           [ -f admin.html ] && cp admin.html dist/ || true
           [ -f privacy.html ] && cp privacy.html dist/ || true
           [ -f status.html ] && cp status.html dist/ || true
+          [ -f security.html ] && cp security.html dist/ || true
+          [ -f about.html ] && cp about.html dist/ || true
+          [ -f setup.html ] && cp setup.html dist/ || true
+          [ -f changelog.html ] && cp changelog.html dist/ || true
+          [ -f blog.html ] && cp blog.html dist/ || true
+          [ -d blog ] && cp -r blog dist/ || true
+          [ -f rss.xml ] && cp rss.xml dist/ || true
           [ -f robots.txt ] && cp robots.txt dist/ || true
           [ -f sitemap.xml ] && cp sitemap.xml dist/ || true
           [ -d img ] && cp -r img dist/ || true
+          # Health check endpoint (bypasses Cloudflare security for CI)
+          echo "OK" > dist/health.txt
 
           # Generate config.js from secrets (the file is gitignored)
           cat > dist/js/config.js <<JSEOF
@@ -217,13 +226,14 @@ jobs:
 
       - name: Test site is live
         run: |
-          STATUS=$(curl -o /dev/null -s -w "%{http_code}" https://luzerge.com)
-          echo "Site status: $STATUS"
+          # Use health endpoint to avoid Cloudflare bot challenges on root
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" -A "LuzergeSmokeTest/1.0" https://luzerge.com/health.txt)
+          echo "Health check status: $STATUS"
           if [ "$STATUS" != "200" ]; then
-            echo "FAIL: Site returned $STATUS"
+            echo "FAIL: Health check returned $STATUS"
             exit 1
           fi
-          echo "PASS: Site is live"
+          echo "PASS: Site is live (health check OK)"
 
 
       - name: Check SSL certificate
@@ -234,7 +244,7 @@ jobs:
 
       - name: Check security headers
         run: |
-          HEADERS=$(curl -sI https://luzerge.com)
+          HEADERS=$(curl -sI -A "LuzergeSmokeTest/1.0" https://luzerge.com/health.txt)
           echo "$HEADERS"
           FAIL=0
           for HEADER in "x-content-type-options" "x-frame-options" "strict-transport-security" "content-security-policy" "referrer-policy" "permissions-policy" "x-permitted-cross-domain-policies"; do
