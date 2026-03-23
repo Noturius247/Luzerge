@@ -115,7 +115,29 @@
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
   <style>
-    .post { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
+    .post { min-width: 0; }
+    @media (max-width: 860px) {
+      .post-wrapper { grid-template-columns: 1fr; gap: 0; }
+      .post-toc { display: none; }
+    }
+
+    /* Table of Contents sidebar */
+    .post-toc { position: sticky; top: 2rem; max-height: calc(100vh - 4rem); overflow-y: auto; }
+    .post-toc__title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+    .post-toc__title svg { color: #3b82f6; }
+    .post-toc__list { list-style: none; margin: 0; padding: 0; border-left: 1px solid rgba(255,255,255,0.06); }
+    .post-toc__list li { margin: 0; }
+    .post-toc__link {
+      display: block; padding: 0.35rem 0 0.35rem 1rem; margin-left: -1px;
+      font-size: 0.78rem; color: #64748b; text-decoration: none;
+      border-left: 2px solid transparent; transition: all 0.2s; line-height: 1.4;
+    }
+    .post-toc__link:hover { color: #94a3b8; }
+    .post-toc__link--active { color: #60a5fa; border-left-color: #3b82f6; }
+    .post-toc__link--h3 { padding-left: 1.75rem; font-size: 0.72rem; }
+    .post-toc__progress { width: 100%; height: 2px; background: rgba(255,255,255,0.06); border-radius: 1px; margin-top: 1.25rem; overflow: hidden; }
+    .post-toc__progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 1px; transition: width 0.1s; }
     .post-breadcrumbs { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #475569; margin-bottom: 2rem; flex-wrap: wrap; }
     .post-breadcrumbs a { color: #64748b; text-decoration: none; transition: color 0.2s; }
     .post-breadcrumbs a:hover { color: #93bbfd; }
@@ -206,7 +228,7 @@
     </div>
   </nav>
 
-  <main class="post">
+  <div class="post-wrapper"><main class="post">
     <nav class="post-breadcrumbs" aria-label="Breadcrumb">
       <a href="/">Home</a> <span class="sep">/</span>
       <a href="/blog.html">Blog</a> <span class="sep">/</span>
@@ -466,6 +488,17 @@
     </a>
   </main>
 
+  <!-- Table of Contents sidebar -->
+  <aside class="post-toc" aria-label="Table of contents">
+    <p class="post-toc__title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h14"/></svg>
+      In this article
+    </p>
+    <ul class="post-toc__list" id="tocList"></ul>
+    <div class="post-toc__progress"><div class="post-toc__progress-bar" id="tocProgress"></div></div>
+  </aside>
+  </div><!-- /.post-wrapper -->
+
   <script>
     // FAQ accordion
     document.querySelectorAll('.post-faq__q').forEach(q => {
@@ -473,6 +506,63 @@
     })
     // Google Fonts
     const gf = document.getElementById('googleFonts'); if (gf) gf.media = 'all'
+
+    // Auto-generate TOC from headings
+    ;(function () {
+      const content = document.querySelector('.post-content')
+      const tocList = document.getElementById('tocList')
+      const progressBar = document.getElementById('tocProgress')
+      if (!content || !tocList) return
+
+      const headings = content.querySelectorAll('h2, h3')
+      if (headings.length === 0) return
+
+      headings.forEach((h, i) => {
+        // Add id to heading if missing
+        if (!h.id) h.id = 'section-' + i
+        const li = document.createElement('li')
+        const a = document.createElement('a')
+        a.href = '#' + h.id
+        a.textContent = h.textContent
+        a.className = 'post-toc__link' + (h.tagName === 'H3' ? ' post-toc__link--h3' : '')
+        a.addEventListener('click', (e) => {
+          e.preventDefault()
+          h.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          history.replaceState(null, '', '#' + h.id)
+        })
+        li.appendChild(a)
+        tocList.appendChild(li)
+      })
+
+      // Scroll spy: highlight active section + update progress
+      const tocLinks = tocList.querySelectorAll('.post-toc__link')
+      let ticking = false
+      function onScroll() {
+        if (ticking) return
+        ticking = true
+        requestAnimationFrame(() => {
+          // Progress bar
+          const contentTop = content.offsetTop
+          const contentHeight = content.scrollHeight
+          const scrolled = Math.max(0, window.scrollY - contentTop)
+          const progress = Math.min(100, (scrolled / (contentHeight - window.innerHeight)) * 100)
+          if (progressBar) progressBar.style.width = progress + '%'
+
+          // Active heading
+          let activeIdx = 0
+          headings.forEach((h, i) => {
+            if (h.getBoundingClientRect().top <= 100) activeIdx = i
+          })
+          tocLinks.forEach((link, i) => {
+            link.classList.toggle('post-toc__link--active', i === activeIdx)
+          })
+          ticking = false
+        })
+      }
+      window.addEventListener('scroll', onScroll, { passive: true })
+      onScroll()
+    })()
+
     // Nav toggle
     ;(function(){const t=document.querySelector('.nav__toggle'),l=document.querySelector('.nav__links');if(!t||!l)return;t.addEventListener('click',()=>{const o=t.getAttribute('aria-expanded')==='true';t.setAttribute('aria-expanded',!o);l.classList.toggle('nav__links--open')});document.querySelectorAll('.nav__dropdown-btn').forEach(b=>{b.addEventListener('click',e=>{e.stopPropagation();const o=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',!o);b.closest('.nav__dropdown').classList.toggle('nav__dropdown--open')})});document.addEventListener('click',()=>{document.querySelectorAll('.nav__dropdown--open').forEach(d=>{d.classList.remove('nav__dropdown--open');d.querySelector('.nav__dropdown-btn').setAttribute('aria-expanded','false')})})})()
   </script>
