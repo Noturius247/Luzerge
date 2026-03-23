@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block AI scrapers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+Sitemap: https://luzerge.com/sitemap.xml

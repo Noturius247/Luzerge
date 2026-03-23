@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Understanding CDN Cache Hit Rates and How to Improve Them | Luzerge Blog</title>
+  <meta name="description" content="Your cache hit rate directly affects page load speed and bandwidth costs. Learn how Cloudflare tiered caching works and five tips to push your hit rate above 95%." />
+  <meta name="keywords" content="CDN cache hit rate, Cloudflare caching, tiered cache, cache-control headers, website performance, page speed" />
+  <link rel="canonical" href="https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+  <meta name="author" content="Luzerge Team" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Luzerge" />
+  <meta property="og:url" content="https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html" />
+  <meta property="og:title" content="Understanding CDN Cache Hit Rates and How to Improve Them" />
+  <meta property="og:description" content="Your cache hit rate directly affects page load speed and bandwidth costs. Learn how Cloudflare tiered caching works and five tips to push your hit rate above 95%." />
+  <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
+  <meta property="og:locale" content="en_PH" />
+  <meta property="article:published_time" content="2026-03-15" />
+  <meta property="article:section" content="Performance" />
+  <meta property="article:tag" content="CDN" />
+  <meta property="article:tag" content="Caching" />
+  <meta property="article:tag" content="Speed" />
+  <meta property="article:tag" content="Performance" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Understanding CDN Cache Hit Rates and How to Improve Them" />
+  <meta name="twitter:description" content="Your cache hit rate directly affects page load speed and bandwidth costs. Learn how Cloudflare tiered caching works and five tips to push your hit rate above 95%." />
+  <meta name="twitter:image" content="https://luzerge.com/img/og-image.png" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Understanding CDN Cache Hit Rates and How to Improve Them",
+    "description": "Your cache hit rate directly affects page load speed and bandwidth costs. Learn how Cloudflare tiered caching works and five tips to push your hit rate above 95%.",
+    "datePublished": "2026-03-15",
+    "dateModified": "2026-03-15",
+    "url": "https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html",
+    "wordCount": 1400,
+    "articleSection": "Performance",
+    "keywords": ["CDN cache hit rate", "Cloudflare caching", "tiered cache", "cache-control headers", "website performance", "page speed"],
+    "author": { "@type": "Organization", "name": "Luzerge", "url": "https://luzerge.com" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Luzerge",
+      "url": "https://luzerge.com",
+      "logo": { "@type": "ImageObject", "url": "https://luzerge.com/img/luzerge-logo.svg" }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://luzerge.com" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://luzerge.com/blog.html" },
+      { "@type": "ListItem", "position": 3, "name": "Understanding CDN Cache Hit Rates and How to Improve Them", "item": "https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html" }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is a good cache hit rate?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A good cache hit rate is generally above 90%, and an excellent one is above 95%. For mostly static websites (blogs, landing pages, portfolios), you should aim for 95% or higher. Dynamic sites with personalized content may see lower rates, but you can still push cacheable assets above 90% with the right Cache-Control headers and page rules."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why is my cache hit rate low?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Common causes of low cache hit rates include: missing or incorrect Cache-Control headers on your origin server, too many query string variations creating unique cache keys, frequent full cache purges that clear everything unnecessarily, short TTL values that cause assets to expire too quickly, and not having tiered caching enabled — which means fewer edge nodes share cached content."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What does CF-Cache-Status: DYNAMIC mean?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "CF-Cache-Status: DYNAMIC means Cloudflare determined the resource is not eligible for caching based on its default rules. This typically applies to HTML pages, API responses, and any content served with Cache-Control: no-cache or private headers. You can override this behavior using Cloudflare Page Rules with 'Cache Everything' to force caching of specific URLs."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does caching affect SEO?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, caching positively affects SEO. Faster page load times are a confirmed Google ranking factor, and a high cache hit rate directly reduces load times by serving content from edge servers close to the visitor. Additionally, caching reduces origin server load, which means your server can handle Googlebot crawls more efficiently without slowdowns — improving crawl budget utilization."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/blog-interactive.css" />
+  <style>
+    .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
+    .post { min-width: 0; overflow: hidden; }
+    @media (max-width: 860px) {
+      .post-wrapper { grid-template-columns: 1fr; gap: 0; }
+      .post-toc { display: none; }
+    }
+
+    /* Table of Contents sidebar */
+    .post-toc { position: sticky; top: 2rem; max-height: calc(100vh - 4rem); overflow-y: auto; }
+    .post-toc__title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+    .post-toc__title svg { color: #3b82f6; }
+    .post-toc__list { list-style: none; margin: 0; padding: 0; border-left: 1px solid rgba(255,255,255,0.06); }
+    .post-toc__list li { margin: 0; }
+    .post-toc__link {
+      display: block; padding: 0.35rem 0 0.35rem 1rem; margin-left: -1px;
+      font-size: 0.78rem; color: #64748b; text-decoration: none;
+      border-left: 2px solid transparent; transition: all 0.2s; line-height: 1.4;
+    }
+    .post-toc__link:hover { color: #94a3b8; }
+    .post-toc__link--active { color: #60a5fa; border-left-color: #3b82f6; }
+    .post-toc__link--h3 { padding-left: 1.75rem; font-size: 0.72rem; }
+    .post-toc__progress { width: 100%; height: 2px; background: rgba(255,255,255,0.06); border-radius: 1px; margin-top: 1.25rem; overflow: hidden; }
+    .post-toc__progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 1px; transition: width 0.1s; }
+
+    .post-breadcrumbs { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #475569; margin-bottom: 2rem; flex-wrap: wrap; }
+    .post-breadcrumbs a { color: #64748b; text-decoration: none; transition: color 0.2s; }
+    .post-breadcrumbs a:hover { color: #93bbfd; }
+    .post-breadcrumbs .sep { color: #334155; }
+    .post-header { margin-bottom: 2.5rem; }
+    .post-category { display: inline-block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #fbbf24; margin-bottom: 0.75rem; }
+    .post-title { font-size: 2.25rem; font-weight: 800; color: #fff; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    .post-meta { display: flex; align-items: center; gap: 1.5rem; font-size: 0.8rem; color: #64748b; flex-wrap: wrap; }
+    .post-meta__author { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .post-meta__avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .post-content { font-size: 1.05rem; color: #cbd5e1; line-height: 1.9; }
+    .post-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin: 2.5rem 0 1rem; letter-spacing: -0.01em; }
+    .post-content h3 { font-size: 1.15rem; font-weight: 600; color: #e2e8f0; margin: 2rem 0 0.75rem; }
+    .post-content p { margin-bottom: 1.25rem; }
+    .post-content ul, .post-content ol { margin: 0 0 1.25rem 1.5rem; }
+    .post-content li { margin-bottom: 0.5rem; }
+    .post-content strong { color: #f1f5f9; }
+    .post-content a { color: #60a5fa; text-decoration: underline; text-underline-offset: 2px; }
+    .post-content a:hover { color: #93bbfd; }
+    .post-content blockquote { border-left: 3px solid #3b82f6; margin: 1.5rem 0; padding: 1rem 1.5rem; background: rgba(59,130,246,0.05); border-radius: 0 8px 8px 0; color: #94a3b8; font-style: italic; }
+    .post-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 2.5rem 0; }
+    .post-tag { background: rgba(255,255,255,0.05); border-radius: 4px; padding: 0.2rem 0.6rem; font-size: 0.75rem; color: #64748b; }
+    .post-share { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 0; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 2.5rem; }
+    .post-share__label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+    .post-share__btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: #64748b; text-decoration: none; transition: all 0.2s; }
+    .post-share__btn:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.25); color: #60a5fa; }
+    .post-faq { margin: 3rem 0; }
+    .post-faq h2 { font-size: 1.3rem; font-weight: 700; color: #f1f5f9; margin-bottom: 1.5rem; }
+    .post-faq__item { border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; }
+    .post-faq__q { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; cursor: pointer; color: #e2e8f0; font-size: 0.95rem; font-weight: 600; background: rgba(255,255,255,0.02); -webkit-user-select: none; user-select: none; }
+    .post-faq__q:hover { background: rgba(255,255,255,0.04); }
+    .post-faq__q svg { flex-shrink: 0; transition: transform 0.2s; color: #475569; }
+    .post-faq__item.open .post-faq__q svg { transform: rotate(180deg); }
+    .post-faq__a { padding: 0 1.25rem; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; color: #94a3b8; font-size: 0.9rem; line-height: 1.7; }
+    .post-faq__item.open .post-faq__a { max-height: 300px; padding: 0 1.25rem 1.25rem; }
+    .post-related { margin-top: 3rem; }
+    .post-related__title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; margin-bottom: 1rem; }
+    .post-related__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .post-related__card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.25rem; text-decoration: none; transition: border-color 0.2s, transform 0.2s; display: block; }
+    .post-related__card:hover { border-color: rgba(59,130,246,0.25); transform: translateY(-2px); }
+    .post-related__cat { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+    .post-related__cat--security { color: #f87171; }
+    .post-related__cat--guide { color: #34d399; }
+    .post-related__cat--tools { color: #38bdf8; }
+    .post-related__cat--performance { color: #fbbf24; }
+    .post-related__cat--product { color: #a78bfa; }
+    .post-related__name { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; line-height: 1.4; margin-bottom: 0.35rem; }
+    .post-related__time { font-size: 0.7rem; color: #475569; }
+    .post-cta { text-align: center; margin: 3rem 0; padding: 2.5rem 2rem; background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.06)); border: 1px solid rgba(59,130,246,0.15); border-radius: 16px; }
+    .post-cta__title { font-size: 1.25rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.5rem; }
+    .post-cta__desc { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.25rem; line-height: 1.6; }
+    .post-cta__btn { display: inline-flex; align-items: center; gap: 6px; padding: 0.7rem 1.5rem; background: #3b82f6; color: #fff; border-radius: 8px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+    .post-cta__btn:hover { background: #2563eb; }
+    .post-back { display: inline-flex; align-items: center; gap: 6px; color: #60a5fa; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin-top: 2rem; transition: gap 0.2s; }
+    .post-back:hover { gap: 10px; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav__container">
+      <a href="/" class="nav__logo" aria-label="Luzerge home">
+        <svg class="nav__logo-icon nav-lumi-logo" width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden="true"><defs><radialGradient id="nv-s" cx="38%" cy="32%" r="58%"><stop offset="0%" stop-color="#122a4a"/><stop offset="60%" stop-color="#0a1628"/><stop offset="100%" stop-color="#060c18"/></radialGradient><radialGradient id="nv-h" cx="32%" cy="22%" r="38%"><stop offset="0%" stop-color="rgba(6,182,212,0.3)"/><stop offset="100%" stop-color="rgba(6,182,212,0)"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#nv-s)"/><circle cx="32" cy="32" r="30" fill="url(#nv-h)"/><circle cx="32" cy="32" r="29" fill="none" stroke="#0ea5e9" stroke-width="1.5" opacity="0.5"/><path d="M38 4L17 35h15l-3 25L51 28H35l3-24z" fill="#3b82f6" stroke="#93c5fd" stroke-width="1" class="nav-lumi-bolt"/><circle cx="11" cy="15" r="1.5" fill="#06b6d4" opacity="0.8"/><circle cx="53" cy="13" r="1.2" fill="#3b82f6" opacity="0.7"/><circle cx="51" cy="51" r="1" fill="#8b5cf6" opacity="0.6"/></svg>
+        Luzerge
+      </a>
+      <ul class="nav__links" role="list">
+        <li><a href="/#scanner">Free Scanner</a></li>
+        <li><a href="/#services">Services</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="/#faq">FAQ</a></li>
+        <li class="nav__dropdown">
+          <button type="button" class="nav__dropdown-btn" aria-expanded="false">More <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <ul class="nav__dropdown-menu" role="list">
+            <li><a href="/setup.html">Setup Guide</a></li>
+            <li><a href="/blog.html" class="active">Blog</a></li>
+            <li><a href="/changelog.html">Changelog</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/security.html">Security</a></li>
+            <li><a href="/status.html">Status</a></li>
+          </ul>
+        </li>
+        <li><a href="/#contact" class="btn btn--outline">Get Started</a></li>
+        <li><a href="/login.html" class="btn btn--primary">Dashboard</a></li>
+      </ul>
+      <button type="button" class="nav__toggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="post-wrapper">
+  <main class="post">
+    <nav class="post-breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a> <span class="sep">/</span>
+      <a href="/blog.html">Blog</a> <span class="sep">/</span>
+      <span>Understanding CDN Cache Hit Rates and How to Improve Them</span>
+    </nav>
+
+    <header class="post-header">
+      <span class="post-category">Performance</span>
+      <h1 class="post-title">Understanding CDN Cache Hit Rates and How to Improve Them</h1>
+      <div class="post-meta">
+        <span class="post-meta__author">
+          <span class="post-meta__avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          Luzerge Team
+        </span>
+        <time datetime="2026-03-15">March 15, 2026</time>
+        <span>6 min read</span>
+      </div>
+    </header>
+
+<div class="post-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Globe -->
+    <g transform="translate(300,100)">
+      <circle r="55" fill="rgba(251,191,36,0.04)" stroke="#fbbf24" stroke-width="1" opacity="0.4"/>
+      <ellipse rx="55" ry="20" fill="none" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/>
+      <ellipse rx="20" ry="55" fill="none" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/>
+      <line x1="-55" y1="0" x2="55" y2="0" stroke="#fbbf24" stroke-width="0.5" opacity="0.2"/>
+      <line x1="0" y1="-55" x2="0" y2="55" stroke="#fbbf24" stroke-width="0.5" opacity="0.2"/>
+    </g>
+    <!-- Cache HIT nodes on globe -->
+    <g transform="translate(265,65)">
+      <circle r="6" fill="#34d399" style="animation: hero-pulse 2s ease-in-out infinite"/>
+      <text x="12" y="4" fill="#34d399" font-size="7" font-weight="600">HIT</text>
+    </g>
+    <g transform="translate(340,80)">
+      <circle r="5" fill="#34d399" style="animation: hero-pulse 2s ease-in-out infinite; animation-delay: 0.5s"/>
+      <text x="10" y="3" fill="#34d399" font-size="7" font-weight="600">HIT</text>
+    </g>
+    <g transform="translate(280,130)">
+      <circle r="5" fill="#34d399" style="animation: hero-pulse 2s ease-in-out infinite; animation-delay: 1s"/>
+      <text x="10" y="3" fill="#34d399" font-size="7" font-weight="600">HIT</text>
+    </g>
+    <!-- Cache MISS -->
+    <g transform="translate(330,125)">
+      <circle r="4" fill="#f87171" style="animation: hero-pulse 2s ease-in-out infinite; animation-delay: 1.5s"/>
+      <text x="8" y="3" fill="#f87171" font-size="6" font-weight="600">MISS</text>
+    </g>
+    <!-- User arrow -->
+    <g transform="translate(100,100)" style="animation: hero-float 3s ease-in-out infinite">
+      <circle r="12" fill="rgba(255,255,255,0.05)" stroke="#94a3b8" stroke-width="1"/>
+      <circle cy="-3" r="3.5" fill="none" stroke="#94a3b8" stroke-width="1"/>
+      <path d="M-7 7 a7 5 0 0 1 14 0" fill="none" stroke="#94a3b8" stroke-width="1"/>
+    </g>
+    <path d="M120 100 L240 100" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="6 3" style="animation: hero-dash 2s linear infinite; stroke-dashoffset: 18"/>
+    <!-- Big stat -->
+    <text x="490" y="90" fill="#fbbf24" font-size="36" font-weight="800" text-anchor="middle" opacity="0.2">95%</text>
+    <text x="490" y="115" fill="#fbbf24" font-size="10" font-weight="600" text-anchor="middle" opacity="0.4">Cache Hit Rate</text>
+  </svg>
+</div>
+
+    <article class="post-content">
+      <p>Every time a visitor loads your website, the browser makes dozens of requests for HTML, CSS, JavaScript, images, and fonts. If those assets are served from a CDN edge server close to the visitor, the page loads fast. If every request has to travel all the way back to your origin server, the page loads slowly and your server bears the full cost of every single request.</p>
+
+      <p>The metric that captures this difference is your <strong>cache hit rate</strong> — and it is one of the most important numbers you should be tracking for website performance.</p>
+
+      <h2>What Is a Cache Hit Rate and Why It Matters</h2>
+
+      <p>Your cache hit rate is the percentage of total requests that are served directly from the CDN's edge cache, without needing to contact your origin server. The formula is straightforward:</p>
+
+      <blockquote>Cache Hit Rate = (Requests Served from Cache / Total Requests) x 100%</blockquote>
+
+      <p>If your site receives 10,000 requests in a day and 9,200 of them are served from cache, your cache hit rate is 92%. The remaining 800 requests went back to your origin server — these are called <strong>cache misses</strong>.</p>
+
+      <p>Why does this matter? Three reasons:</p>
+
+<div class="stat-counter-group">
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--green" data-target="95" data-suffix="%">0%</div>
+    <div class="stat-counter-card__label">Target Hit Rate</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--amber" data-target="20" data-suffix="ms">0ms</div>
+    <div class="stat-counter-card__label">Edge Response</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--red" data-target="500" data-suffix="ms">0ms</div>
+    <div class="stat-counter-card__label">Origin Response</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value" data-target="25" data-suffix="x">0x</div>
+    <div class="stat-counter-card__label">Speed Improvement</div>
+  </div>
+</div>
+
+      <ul>
+        <li><strong>Speed</strong> — A cache hit is served from a server geographically close to the visitor, often in under 20 milliseconds. A cache miss might take 200-500ms or more, depending on how far the origin server is. For visitors in the Philippines hitting a US-hosted origin, that round trip adds significant latency.</li>
+        <li><strong>Bandwidth costs</strong> — Every cache miss means your origin server has to process the request and transfer the data. If you are on a hosting plan with bandwidth limits, a low cache hit rate burns through your allocation faster. CDN-served requests typically do not count against your origin bandwidth.</li>
+        <li><strong>Origin server load</strong> — The fewer requests that reach your origin, the less CPU, memory, and I/O it needs to handle. A high cache hit rate means your origin server can handle traffic spikes without crashing, because the CDN absorbs most of the load.</li>
+      </ul>
+
+      <h2>How Cloudflare's CDN Caching Works</h2>
+
+      <p>Cloudflare operates a global network of over 300 data centers, including nodes in Manila, Cebu, and other locations across Asia. When you put your site behind Cloudflare, here is what happens for each request:</p>
+
+      <ol>
+        <li><strong>Visitor makes a request</strong> — their browser sends a request for a resource, say <code>/img/hero.webp</code>.</li>
+        <li><strong>Request hits the nearest edge server</strong> — Cloudflare routes the request to the closest data center using Anycast. For a visitor in Manila, that would be the Manila edge node.</li>
+        <li><strong>Edge checks its cache</strong> — if the edge server already has a fresh copy of <code>hero.webp</code>, it serves it directly. This is a <strong>cache hit</strong>.</li>
+        <li><strong>Cache miss triggers an origin pull</strong> — if the edge does not have the file (first request, expired cache, or the file was never cached), Cloudflare fetches it from your origin server. It then caches the response at the edge for future requests.</li>
+      </ol>
+
+      <p>By default, Cloudflare caches static assets based on file extension: images (<code>.jpg</code>, <code>.png</code>, <code>.webp</code>), stylesheets (<code>.css</code>), scripts (<code>.js</code>), fonts (<code>.woff2</code>), and other common static file types. It does <strong>not</strong> cache HTML pages by default — those are treated as dynamic content unless you explicitly tell Cloudflare otherwise.</p>
+
+      <h2>Understanding CF-Cache-Status Headers</h2>
+
+      <p>Cloudflare adds a <code>CF-Cache-Status</code> header to every response, telling you exactly what happened with caching for that request. Understanding these values is essential for diagnosing cache performance issues. You can inspect these headers using your browser's developer tools or by reading our <a href="/blog/how-to-read-http-response-headers.html">guide to HTTP response headers</a>.</p>
+
+      <p>Here are the most common values:</p>
+
+      <ul>
+        <li><strong>HIT</strong> — The resource was found in Cloudflare's edge cache and served directly. This is what you want to see for static assets.</li>
+        <li><strong>MISS</strong> — The resource was not in the edge cache, so Cloudflare fetched it from your origin. The response is now cached for future requests. You will typically see MISS on the first request to a particular edge node.</li>
+        <li><strong>EXPIRED</strong> — The resource was in the cache but its TTL (time to live) had expired. Cloudflare fetched a fresh copy from the origin. If your TTL values are too short, you will see EXPIRED frequently, which hurts your cache hit rate.</li>
+        <li><strong>DYNAMIC</strong> — Cloudflare determined that this resource should not be cached. This is the default for HTML pages, API endpoints, and anything served with <code>Cache-Control: no-cache</code> or <code>private</code> headers. DYNAMIC responses are always fetched from the origin.</li>
+        <li><strong>REVALIDATED</strong> — The cached resource was stale, but Cloudflare checked with the origin (using <code>If-Modified-Since</code> or <code>If-None-Match</code>) and the origin confirmed the cached version is still valid. This saves bandwidth because only headers are exchanged, not the full file.</li>
+        <li><strong>BYPASS</strong> — Caching was explicitly bypassed, usually by a Cloudflare Page Rule or Worker that sets <code>Cache-Control: bypass</code>.</li>
+      </ul>
+
+      <h2>What Is Tiered Caching and How It Reduces Origin Load</h2>
+
+      <p>Without tiered caching, every Cloudflare edge node that gets a cache miss will independently contact your origin server. If your site gets traffic from 50 different Cloudflare data centers, a cold cache scenario means 50 separate origin pulls for the same resource.</p>
+
+      <p>Tiered caching adds a middle layer. Instead of every edge node going directly to your origin, cache misses are first routed to a larger, regional "upper-tier" data center. If that upper-tier node has the resource cached, it serves it to the edge — and your origin never sees the request.</p>
+
+      <p>The result is significant:</p>
+
+      <ul>
+        <li><strong>Fewer origin pulls</strong> — instead of 50 edge nodes each hitting your origin, only a handful of upper-tier nodes do. Origin requests can drop by 70-90%.</li>
+        <li><strong>Better cache hit rates at the edge</strong> — because upper-tier nodes aggregate traffic from multiple edge nodes, they build and maintain cache more efficiently.</li>
+        <li><strong>Faster cache fills</strong> — when an edge node misses, it fetches from a nearby upper-tier node instead of a potentially distant origin server. The edge-to-upper-tier connection is optimized and faster than edge-to-origin.</li>
+      </ul>
+
+      <p>Tiered caching is available on all Cloudflare plans, including the free plan. You can enable it in the Cloudflare dashboard under <strong>Caching > Tiered Cache</strong>. For a full walkthrough, see our <a href="/blog/setting-up-cloudflare-for-your-philippine-business.html">Cloudflare setup guide</a>.</p>
+
+      <h2>Five Practical Tips to Improve Your Cache Hit Rate</h2>
+
+      <h3>1. Set Proper Cache-Control Headers</h3>
+
+      <p>Your origin server's <code>Cache-Control</code> headers tell Cloudflare how long to cache each resource. If you are not setting these headers, Cloudflare falls back to its default behavior, which may not be optimal for your site.</p>
+
+      <p>For static assets like images, CSS, and JavaScript files, set long cache durations. A common configuration is:</p>
+
+      <ul>
+        <li><strong>Static assets</strong> (images, CSS, JS, fonts): <code>Cache-Control: public, max-age=31536000, immutable</code> — one year. Use versioned filenames or query strings to bust the cache when files change.</li>
+        <li><strong>HTML pages</strong> (if you want them cached): <code>Cache-Control: public, max-age=3600, s-maxage=86400</code> — the <code>s-maxage</code> directive tells CDNs to cache for 24 hours, while browsers cache for 1 hour.</li>
+        <li><strong>API responses</strong>: Usually <code>Cache-Control: no-store</code> or <code>private</code> unless the responses are truly static.</li>
+      </ul>
+
+      <p>The <code>s-maxage</code> directive is particularly useful because it lets you set different cache durations for CDN edge servers versus end-user browsers.</p>
+
+      <h3>2. Use Cloudflare Page Rules for Aggressive Caching</h3>
+
+      <p>By default, Cloudflare does not cache HTML. If your site is mostly static — a blog, a portfolio, a landing page — you are leaving performance on the table. Cloudflare Page Rules let you override the default behavior for specific URL patterns.</p>
+
+      <p>Create a Page Rule for your static pages with <strong>Cache Level: Cache Everything</strong> and set an <strong>Edge Cache TTL</strong> of 1-7 days. This tells Cloudflare to cache HTML responses at the edge, dramatically improving load times for returning visitors and reducing origin load.</p>
+
+      <p>Be careful with this on pages that have user-specific content (dashboards, account pages). Only use "Cache Everything" on truly static or public pages.</p>
+
+      <h3>3. Minimize Query String Variations</h3>
+
+      <p>Cloudflare treats each unique URL as a separate cache entry. That means <code>/page?utm_source=facebook</code> and <code>/page?utm_source=twitter</code> are cached as two different resources, even though the content is identical.</p>
+
+      <p>Marketing campaign URLs with UTM parameters, session IDs in query strings, and analytics tracking parameters all fragment your cache. Each variation creates a new cache key, which means more cache misses and more origin pulls.</p>
+
+      <p>Solutions include:</p>
+
+      <ul>
+        <li>Use Cloudflare's <strong>Cache Key</strong> settings to ignore specific query string parameters</li>
+        <li>Strip tracking parameters on the server side before they reach the cache layer</li>
+        <li>Move tracking to JavaScript-based solutions that do not modify the URL</li>
+      </ul>
+
+      <h3>4. Enable Tiered Caching</h3>
+
+      <p>As discussed above, tiered caching is one of the simplest and most impactful changes you can make. It reduces origin pulls significantly by adding a shared cache layer between edge nodes and your origin. If you have not enabled it yet, do so now — it is free and takes less than a minute.</p>
+
+      <p>Go to your Cloudflare dashboard, navigate to <strong>Caching > Tiered Cache</strong>, and select <strong>Smart Tiered Caching Topology</strong>. Cloudflare will automatically route cache misses through the optimal upper-tier nodes for your traffic patterns.</p>
+
+      <h3>5. Purge Cache Strategically, Not Blanket Purges</h3>
+
+      <p>When you update your site, you need to purge the old cached content. Many site owners reach for the "Purge Everything" button in Cloudflare. This works, but it is a sledgehammer approach. Every single cached asset across all edge nodes is cleared, and every subsequent request becomes a cache miss until the cache is rebuilt.</p>
+
+      <p>Instead, use <strong>targeted cache purges</strong>:</p>
+
+      <ul>
+        <li><strong>Purge by URL</strong> — only clear the specific files you updated. Changed your homepage? Purge <code>/index.html</code> and nothing else.</li>
+        <li><strong>Purge by tag</strong> — if you use <code>Cache-Tag</code> headers (available on Business and Enterprise plans), you can purge all resources tagged with a specific label, like <code>blog-posts</code> or <code>product-images</code>.</li>
+        <li><strong>Purge by prefix</strong> — clear all cached content under a specific path, like <code>/blog/</code>.</li>
+      </ul>
+
+      <p>By purging only what changed, you keep the rest of your cache warm and your hit rate high. A blanket purge after every deploy can tank your cache hit rate for hours.</p>
+
+      <h2>How to Monitor Your Cache Hit Rate with Luzerge</h2>
+
+      <p><a href="/">Luzerge</a> integrates directly with Cloudflare to give you real-time visibility into your CDN performance. Instead of manually checking Cloudflare analytics or inspecting response headers one by one, Luzerge pulls your cache analytics into a single dashboard alongside uptime, SSL status, and performance metrics.</p>
+
+      <p>With Luzerge's Cloudflare integration, you can:</p>
+
+      <ul>
+        <li><strong>Track your cache hit rate over time</strong> — spot trends and see whether your optimizations are working</li>
+        <li><strong>Monitor bandwidth saved by caching</strong> — see exactly how much data Cloudflare serves from the edge versus what hits your origin</li>
+        <li><strong>Get alerts when performance degrades</strong> — if your cache hit rate drops suddenly, it could indicate a misconfiguration, a cache purge, or a change in traffic patterns</li>
+        <li><strong>Correlate caching with uptime</strong> — understand how origin load relates to response times and availability</li>
+      </ul>
+
+      <p>A high cache hit rate is not something you set and forget. Traffic patterns change, content updates invalidate cache, and misconfigurations can silently degrade performance. Continuous monitoring ensures you catch problems before your visitors do.</p>
+    </article>
+
+    <div class="post-tags">
+      <span class="post-tag">CDN</span>
+      <span class="post-tag">Caching</span>
+      <span class="post-tag">Speed</span>
+      <span class="post-tag">Performance</span>
+    </div>
+
+    <div class="post-share">
+      <span class="post-share__label">Share</span>
+      <a class="post-share__btn" href="https://x.com/intent/tweet?text=Understanding%20CDN%20Cache%20Hit%20Rates%20and%20How%20to%20Improve%20Them&url=https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html" target="_blank" rel="noopener noreferrer" aria-label="Share on X"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a class="post-share__btn" href="https://www.facebook.com/sharer/sharer.php?u=https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+      <a class="post-share__btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+    </div>
+
+    <section class="post-faq">
+      <h2>Frequently Asked Questions</h2>
+      <div class="post-faq__item">
+        <div class="post-faq__q">What is a good cache hit rate? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">A good cache hit rate is generally above 90%, and an excellent one is above 95%. For mostly static websites like blogs, landing pages, and portfolios, you should aim for 95% or higher. Dynamic sites with personalized content may see lower rates, but you can still push cacheable assets above 90% with the right Cache-Control headers and page rules.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">Why is my cache hit rate low? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">Common causes of low cache hit rates include: missing or incorrect Cache-Control headers on your origin server, too many query string variations creating unique cache keys, frequent full cache purges that clear everything unnecessarily, short TTL values that cause assets to expire too quickly, and not having tiered caching enabled — which means fewer edge nodes share cached content.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">What does CF-Cache-Status: DYNAMIC mean? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">CF-Cache-Status: DYNAMIC means Cloudflare determined the resource is not eligible for caching based on its default rules. This typically applies to HTML pages, API responses, and any content served with Cache-Control: no-cache or private headers. You can override this behavior using Cloudflare Page Rules with "Cache Everything" to force caching of specific URLs.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">Does caching affect SEO? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">Yes, caching positively affects SEO. Faster page load times are a confirmed Google ranking factor, and a high cache hit rate directly reduces load times by serving content from edge servers close to the visitor. Additionally, caching reduces origin server load, which means your server can handle Googlebot crawls more efficiently without slowdowns.</div>
+      </div>
+    </section>
+
+    <div class="post-cta">
+      <p class="post-cta__title">Monitor your CDN performance</p>
+      <p class="post-cta__desc">Track your cache hit rate, bandwidth savings, and origin load in real time. Luzerge integrates directly with Cloudflare to give you full visibility.</p>
+      <a href="/#contact" class="post-cta__btn">Monitor your CDN performance <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+
+    <section class="post-related">
+      <p class="post-related__title">Related Articles</p>
+      <div class="post-related__grid">
+        <a href="/blog/setting-up-cloudflare-for-your-philippine-business.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--guide">Guide</p>
+          <p class="post-related__name">Setting Up Cloudflare for Your Philippine Business</p>
+          <span class="post-related__time">8 min read</span>
+        </a>
+        <a href="/blog/how-to-read-http-response-headers.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--tools">Tools</p>
+          <p class="post-related__name">How to Read HTTP Response Headers for Security and Performance</p>
+          <span class="post-related__time">7 min read</span>
+        </a>
+        <a href="/blog/what-is-always-online-and-why-your-site-needs-it.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--guide">Guide</p>
+          <p class="post-related__name">What Is Always Online and Why Your Site Needs It</p>
+          <span class="post-related__time">5 min read</span>
+        </a>
+      </div>
+    </section>
+
+    <a href="/blog.html" class="post-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to all articles
+    </a>
+  </main>
+
+  <!-- Table of Contents sidebar -->
+  <aside class="post-toc" aria-label="Table of contents">
+    <p class="post-toc__title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h14"/></svg>
+      In this article
+    </p>
+    <ul class="post-toc__list" id="tocList"></ul>
+    <div class="post-toc__progress"><div class="post-toc__progress-bar" id="tocProgress"></div></div>
+  </aside>
+  </div><!-- /.post-wrapper -->
+
+  <script>
+// Stat counter animation
+;(function () {
+  const counters = document.querySelectorAll('[data-target]')
+  if (!counters.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      const el = entry.target
+      const target = parseFloat(el.dataset.target)
+      const decimals = parseInt(el.dataset.decimals || '0')
+      const prefix = el.dataset.prefix || ''
+      const suffix = el.dataset.suffix || ''
+      const duration = 1500
+      const start = performance.now()
+      function update(now) {
+        const progress = Math.min((now - start) / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        const current = (target * eased).toFixed(decimals)
+        el.textContent = prefix + current + suffix
+        if (progress < 1) requestAnimationFrame(update)
+      }
+      requestAnimationFrame(update)
+      observer.unobserve(el)
+    })
+  }, { threshold: 0.5 })
+  counters.forEach(c => observer.observe(c))
+})()
+
+// Animated code blocks
+;(function () {
+  const blocks = document.querySelectorAll('.code-animated')
+  if (!blocks.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      entry.target.classList.add('visible')
+      const lines = entry.target.querySelectorAll('.code-animated__line')
+      lines.forEach((line, i) => { line.style.transitionDelay = (i * 0.12) + 's' })
+      observer.unobserve(entry.target)
+    })
+  }, { threshold: 0.3 })
+  blocks.forEach(b => observer.observe(b))
+})()
+
+// Interactive checklist
+;(function () {
+  document.querySelectorAll('.interactive-checklist__item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('checked')
+      const list = item.closest('.interactive-checklist') || item.parentElement
+      const all = list.querySelectorAll('.interactive-checklist__item')
+      const done = list.querySelectorAll('.interactive-checklist__item.checked')
+      const bar = list.parentElement.querySelector('.checklist-progress__bar') || list.nextElementSibling?.querySelector('.checklist-progress__bar')
+      const label = list.parentElement.querySelector('.checklist-progress__label') || list.nextElementSibling?.nextElementSibling
+      if (bar) bar.style.width = ((done.length / all.length) * 100) + '%'
+      if (label) label.textContent = done.length + ' of ' + all.length + ' completed'
+    })
+  })
+})()
+
+    // FAQ accordion
+    document.querySelectorAll('.post-faq__q').forEach(q => {
+      q.addEventListener('click', () => q.parentElement.classList.toggle('open'))
+    })
+    // Google Fonts
+    const gf = document.getElementById('googleFonts'); if (gf) gf.media = 'all'
+
+    // Auto-generate TOC from headings
+    ;(function () {
+      const content = document.querySelector('.post-content')
+      const tocList = document.getElementById('tocList')
+      const progressBar = document.getElementById('tocProgress')
+      if (!content || !tocList) return
+
+      const headings = content.querySelectorAll('h2, h3')
+      if (headings.length === 0) return
+
+      headings.forEach((h, i) => {
+        // Add id to heading if missing
+        if (!h.id) h.id = 'section-' + i
+        const li = document.createElement('li')
+        const a = document.createElement('a')
+        a.href = '#' + h.id
+        a.textContent = h.textContent
+        a.className = 'post-toc__link' + (h.tagName === 'H3' ? ' post-toc__link--h3' : '')
+        a.addEventListener('click', (e) => {
+          e.preventDefault()
+          h.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          history.replaceState(null, '', '#' + h.id)
+        })
+        li.appendChild(a)
+        tocList.appendChild(li)
+      })
+
+      // Scroll spy: highlight active section + update progress
+      const tocLinks = tocList.querySelectorAll('.post-toc__link')
+      let ticking = false
+      function onScroll() {
+        if (ticking) return
+        ticking = true
+        requestAnimationFrame(() => {
+          // Progress bar
+          const contentTop = content.offsetTop
+          const contentHeight = content.scrollHeight
+          const scrolled = Math.max(0, window.scrollY - contentTop)
+          const progress = Math.min(100, (scrolled / (contentHeight - window.innerHeight)) * 100)
+          if (progressBar) progressBar.style.width = progress + '%'
+
+          // Active heading
+          let activeIdx = 0
+          headings.forEach((h, i) => {
+            if (h.getBoundingClientRect().top <= 100) activeIdx = i
+          })
+          tocLinks.forEach((link, i) => {
+            link.classList.toggle('post-toc__link--active', i === activeIdx)
+          })
+          ticking = false
+        })
+      }
+      window.addEventListener('scroll', onScroll, { passive: true })
+      onScroll()
+    })()
+
+    // Nav toggle
+    ;(function(){const t=document.querySelector('.nav__toggle'),l=document.querySelector('.nav__links');if(!t||!l)return;t.addEventListener('click',()=>{const o=t.getAttribute('aria-expanded')==='true';t.setAttribute('aria-expanded',!o);l.classList.toggle('nav__links--open')});document.querySelectorAll('.nav__dropdown-btn').forEach(b=>{b.addEventListener('click',e=>{e.stopPropagation();const o=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',!o);b.closest('.nav__dropdown').classList.toggle('nav__dropdown--open')})});document.addEventListener('click',()=>{document.querySelectorAll('.nav__dropdown--open').forEach(d=>{d.classList.remove('nav__dropdown--open');d.querySelector('.nav__dropdown-btn').setAttribute('aria-expanded','false')})})})()
+  </script>
+  <script src="/js/app.js" defer></script>
+</body>
+</html>

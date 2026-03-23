@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Why Website Security Starts with Monitoring | Luzerge Blog</title>
+  <meta name="description" content="Most cyberattacks succeed because the target didn't know they were vulnerable. Learn the three pillars of proactive web security: uptime monitoring, SSL management, and DDoS protection." />
+  <meta name="keywords" content="website security, uptime monitoring, SSL certificate management, DDoS protection, website monitoring Philippines, proactive security" />
+  <link rel="canonical" href="https://luzerge.com/blog/why-website-security-starts-with-monitoring.html" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+  <meta name="author" content="Luzerge Team" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Luzerge" />
+  <meta property="og:url" content="https://luzerge.com/blog/why-website-security-starts-with-monitoring.html" />
+  <meta property="og:title" content="Why Website Security Starts with Monitoring" />
+  <meta property="og:description" content="Learn the three pillars of proactive web security and how monitoring forms your first line of defense." />
+  <meta property="og:image" content="https://luzerge.com/img/og-image.png" />
+  <meta property="og:locale" content="en_PH" />
+  <meta property="article:published_time" content="2026-03-19" />
+  <meta property="article:section" content="Security" />
+  <meta property="article:tag" content="Security" />
+  <meta property="article:tag" content="Monitoring" />
+  <meta property="article:tag" content="SSL" />
+  <meta property="article:tag" content="DDoS" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Why Website Security Starts with Monitoring" />
+  <meta name="twitter:description" content="Learn the three pillars of proactive web security and how monitoring forms your first line of defense." />
+  <meta name="twitter:image" content="https://luzerge.com/img/og-image.png" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Why Website Security Starts with Monitoring",
+    "description": "Most cyberattacks succeed because the target didn't know they were vulnerable. Learn the three pillars of proactive web security.",
+    "datePublished": "2026-03-19",
+    "dateModified": "2026-03-19",
+    "url": "https://luzerge.com/blog/why-website-security-starts-with-monitoring.html",
+    "wordCount": 1200,
+    "articleSection": "Security",
+    "keywords": ["website security", "monitoring", "SSL", "DDoS", "uptime"],
+    "author": { "@type": "Organization", "name": "Luzerge", "url": "https://luzerge.com" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Luzerge",
+      "url": "https://luzerge.com",
+      "logo": { "@type": "ImageObject", "url": "https://luzerge.com/img/luzerge-logo.svg" }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://luzerge.com/blog/why-website-security-starts-with-monitoring.html"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://luzerge.com" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://luzerge.com/blog.html" },
+      { "@type": "ListItem", "position": 3, "name": "Why Website Security Starts with Monitoring", "item": "https://luzerge.com/blog/why-website-security-starts-with-monitoring.html" }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Why is website monitoring important for security?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Website monitoring is the first line of defense because most cyberattacks succeed when the target doesn't know they're vulnerable. Monitoring detects outages, expired SSL certificates, and traffic anomalies before they cause damage — giving you time to respond before visitors are affected."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are the three pillars of proactive web security?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The three pillars are: (1) Uptime monitoring — detecting outages within seconds, (2) SSL certificate management — catching expired certificates before browsers block visitors, and (3) DDoS protection — identifying malicious traffic spikes before they overwhelm your server."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does SSL monitoring prevent security breaches?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "SSL monitoring tracks your certificate expiration dates and alerts you before they expire. An expired SSL certificate causes browsers to display security warnings, which drives away visitors and can expose data to man-in-the-middle attacks. Monitoring ensures you renew certificates on time."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can small businesses afford website security monitoring?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Luzerge offers enterprise-grade monitoring starting from free for 1 domain, with managed plans from ₱99/month. This includes uptime monitoring, SSL management, and DDoS protection — features that previously required expensive enterprise tools."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/blog-interactive.css" />
+  <style>
+    .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
+    .post { min-width: 0; overflow: hidden; }
+    @media (max-width: 860px) {
+      .post-wrapper { grid-template-columns: 1fr; gap: 0; }
+      .post-toc { display: none; }
+    }
+
+    /* Table of Contents sidebar */
+    .post-toc { position: sticky; top: 2rem; max-height: calc(100vh - 4rem); overflow-y: auto; }
+    .post-toc__title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+    .post-toc__title svg { color: #3b82f6; }
+    .post-toc__list { list-style: none; margin: 0; padding: 0; border-left: 1px solid rgba(255,255,255,0.06); }
+    .post-toc__list li { margin: 0; }
+    .post-toc__link {
+      display: block; padding: 0.35rem 0 0.35rem 1rem; margin-left: -1px;
+      font-size: 0.78rem; color: #64748b; text-decoration: none;
+      border-left: 2px solid transparent; transition: all 0.2s; line-height: 1.4;
+    }
+    .post-toc__link:hover { color: #94a3b8; }
+    .post-toc__link--active { color: #60a5fa; border-left-color: #3b82f6; }
+    .post-toc__link--h3 { padding-left: 1.75rem; font-size: 0.72rem; }
+    .post-toc__progress { width: 100%; height: 2px; background: rgba(255,255,255,0.06); border-radius: 1px; margin-top: 1.25rem; overflow: hidden; }
+    .post-toc__progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 1px; transition: width 0.1s; }
+
+    .post-breadcrumbs { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #475569; margin-bottom: 2rem; flex-wrap: wrap; }
+    .post-breadcrumbs a { color: #64748b; text-decoration: none; transition: color 0.2s; }
+    .post-breadcrumbs a:hover { color: #93bbfd; }
+    .post-breadcrumbs .sep { color: #334155; }
+    .post-header { margin-bottom: 2.5rem; }
+    .post-category { display: inline-block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #f87171; margin-bottom: 0.75rem; }
+    .post-title { font-size: 2.25rem; font-weight: 800; color: #fff; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    .post-meta { display: flex; align-items: center; gap: 1.5rem; font-size: 0.8rem; color: #64748b; flex-wrap: wrap; }
+    .post-meta__author { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .post-meta__avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .post-content { font-size: 1.05rem; color: #cbd5e1; line-height: 1.9; }
+    .post-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin: 2.5rem 0 1rem; letter-spacing: -0.01em; }
+    .post-content h3 { font-size: 1.15rem; font-weight: 600; color: #e2e8f0; margin: 2rem 0 0.75rem; }
+    .post-content p { margin-bottom: 1.25rem; }
+    .post-content ul, .post-content ol { margin: 0 0 1.25rem 1.5rem; }
+    .post-content li { margin-bottom: 0.5rem; }
+    .post-content strong { color: #f1f5f9; }
+    .post-content a { color: #60a5fa; text-decoration: underline; text-underline-offset: 2px; }
+    .post-content a:hover { color: #93bbfd; }
+    .post-content blockquote { border-left: 3px solid #3b82f6; margin: 1.5rem 0; padding: 1rem 1.5rem; background: rgba(59,130,246,0.05); border-radius: 0 8px 8px 0; color: #94a3b8; font-style: italic; }
+    .post-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 2.5rem 0; }
+    .post-tag { background: rgba(255,255,255,0.05); border-radius: 4px; padding: 0.2rem 0.6rem; font-size: 0.75rem; color: #64748b; }
+    .post-share { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 0; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 2.5rem; }
+    .post-share__label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+    .post-share__btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: #64748b; text-decoration: none; transition: all 0.2s; }
+    .post-share__btn:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.25); color: #60a5fa; }
+    .post-faq { margin: 3rem 0; }
+    .post-faq h2 { font-size: 1.3rem; font-weight: 700; color: #f1f5f9; margin-bottom: 1.5rem; }
+    .post-faq__item { border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; }
+    .post-faq__q { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; cursor: pointer; color: #e2e8f0; font-size: 0.95rem; font-weight: 600; background: rgba(255,255,255,0.02); -webkit-user-select: none; user-select: none; }
+    .post-faq__q:hover { background: rgba(255,255,255,0.04); }
+    .post-faq__q svg { flex-shrink: 0; transition: transform 0.2s; color: #475569; }
+    .post-faq__item.open .post-faq__q svg { transform: rotate(180deg); }
+    .post-faq__a { padding: 0 1.25rem; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; color: #94a3b8; font-size: 0.9rem; line-height: 1.7; }
+    .post-faq__item.open .post-faq__a { max-height: 300px; padding: 0 1.25rem 1.25rem; }
+    .post-related { margin-top: 3rem; }
+    .post-related__title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; margin-bottom: 1rem; }
+    .post-related__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .post-related__card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.25rem; text-decoration: none; transition: border-color 0.2s, transform 0.2s; display: block; }
+    .post-related__card:hover { border-color: rgba(59,130,246,0.25); transform: translateY(-2px); }
+    .post-related__cat { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+    .post-related__cat--security { color: #f87171; }
+    .post-related__cat--guide { color: #34d399; }
+    .post-related__cat--tools { color: #38bdf8; }
+    .post-related__cat--performance { color: #fbbf24; }
+    .post-related__cat--product { color: #a78bfa; }
+    .post-related__name { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; line-height: 1.4; margin-bottom: 0.35rem; }
+    .post-related__time { font-size: 0.7rem; color: #475569; }
+    .post-cta { text-align: center; margin: 3rem 0; padding: 2.5rem 2rem; background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.06)); border: 1px solid rgba(59,130,246,0.15); border-radius: 16px; }
+    .post-cta__title { font-size: 1.25rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.5rem; }
+    .post-cta__desc { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.25rem; line-height: 1.6; }
+    .post-cta__btn { display: inline-flex; align-items: center; gap: 6px; padding: 0.7rem 1.5rem; background: #3b82f6; color: #fff; border-radius: 8px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+    .post-cta__btn:hover { background: #2563eb; }
+    .post-back { display: inline-flex; align-items: center; gap: 6px; color: #60a5fa; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin-top: 2rem; transition: gap 0.2s; }
+    .post-back:hover { gap: 10px; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav__container">
+      <a href="/" class="nav__logo" aria-label="Luzerge home">
+        <svg class="nav__logo-icon nav-lumi-logo" width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden="true"><defs><radialGradient id="nv-s" cx="38%" cy="32%" r="58%"><stop offset="0%" stop-color="#122a4a"/><stop offset="60%" stop-color="#0a1628"/><stop offset="100%" stop-color="#060c18"/></radialGradient><radialGradient id="nv-h" cx="32%" cy="22%" r="38%"><stop offset="0%" stop-color="rgba(6,182,212,0.3)"/><stop offset="100%" stop-color="rgba(6,182,212,0)"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#nv-s)"/><circle cx="32" cy="32" r="30" fill="url(#nv-h)"/><circle cx="32" cy="32" r="29" fill="none" stroke="#0ea5e9" stroke-width="1.5" opacity="0.5"/><path d="M38 4L17 35h15l-3 25L51 28H35l3-24z" fill="#3b82f6" stroke="#93c5fd" stroke-width="1" class="nav-lumi-bolt"/><circle cx="11" cy="15" r="1.5" fill="#06b6d4" opacity="0.8"/><circle cx="53" cy="13" r="1.2" fill="#3b82f6" opacity="0.7"/><circle cx="51" cy="51" r="1" fill="#8b5cf6" opacity="0.6"/></svg>
+        Luzerge
+      </a>
+      <ul class="nav__links" role="list">
+        <li><a href="/#scanner">Free Scanner</a></li>
+        <li><a href="/#services">Services</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="/#faq">FAQ</a></li>
+        <li class="nav__dropdown">
+          <button type="button" class="nav__dropdown-btn" aria-expanded="false">More <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <ul class="nav__dropdown-menu" role="list">
+            <li><a href="/setup.html">Setup Guide</a></li>
+            <li><a href="/blog.html" class="active">Blog</a></li>
+            <li><a href="/changelog.html">Changelog</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/security.html">Security</a></li>
+            <li><a href="/status.html">Status</a></li>
+          </ul>
+        </li>
+        <li><a href="/#contact" class="btn btn--outline">Get Started</a></li>
+        <li><a href="/login.html" class="btn btn--primary">Dashboard</a></li>
+      </ul>
+      <button type="button" class="nav__toggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="post-wrapper">
+  <main class="post">
+    <nav class="post-breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a> <span class="sep">/</span>
+      <a href="/blog.html">Blog</a> <span class="sep">/</span>
+      <span>Why Website Security Starts with Monitoring</span>
+    </nav>
+
+    <header class="post-header">
+      <span class="post-category">Security</span>
+      <h1 class="post-title">Why Website Security Starts with Monitoring</h1>
+      <div class="post-meta">
+        <span class="post-meta__author">
+          <span class="post-meta__avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          Luzerge Team
+        </span>
+        <time datetime="2026-03-19">March 19, 2026</time>
+        <span>6 min read</span>
+      </div>
+    </header>
+
+<div class="post-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Heartbeat/monitoring pulse line -->
+    <path d="M0 100 L120 100 L140 60 L160 140 L180 80 L200 120 L220 100 L600 100" stroke="#3b82f6" stroke-width="1.5" opacity="0.3" stroke-dasharray="800" stroke-dashoffset="800" style="animation: hero-heartbeat 3s ease-in-out infinite"/>
+    <!-- Central shield -->
+    <g transform="translate(300,100)" style="animation: hero-float 4s ease-in-out infinite">
+      <path d="M0-50 L-35-30 L-35 15 C-35 45 0 60 0 60 C0 60 35 45 35 15 L35-30 Z" fill="rgba(248,113,113,0.15)" stroke="#f87171" stroke-width="2"/>
+      <path d="M-10 5 L-3 12 L12-5" stroke="#f87171" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <!-- Orbiting: Clock (Uptime) -->
+    <g transform="translate(300,100)">
+      <g style="animation: hero-orbit 8s linear infinite">
+        <circle r="16" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1.5"/>
+        <circle cx="0" cy="0" r="1.5" fill="#3b82f6"/>
+        <line x1="0" y1="0" x2="0" y2="-7" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="5" y2="2" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+    </g>
+    <!-- Orbiting: Lock (SSL) -->
+    <g transform="translate(300,100)">
+      <g style="animation: hero-orbit 8s linear infinite; animation-delay: -2.67s">
+        <circle r="16" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1.5"/>
+        <rect x="-6" y="-2" width="12" height="9" rx="2" fill="none" stroke="#34d399" stroke-width="1.5"/>
+        <path d="M-4-2 L-4-6 A4 4 0 0 1 4-6 L4-2" fill="none" stroke="#34d399" stroke-width="1.5"/>
+      </g>
+    </g>
+    <!-- Orbiting: Shield-zap (DDoS) -->
+    <g transform="translate(300,100)">
+      <g style="animation: hero-orbit 8s linear infinite; animation-delay: -5.33s">
+        <circle r="16" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="1.5"/>
+        <path d="M2-8 L-3 0 L1 0 L-2 8 L5 0 L1 0 Z" fill="#fbbf24"/>
+      </g>
+    </g>
+    <!-- Ambient dots -->
+    <circle cx="80" cy="50" r="1.5" fill="#3b82f6" style="animation: hero-pulse 3s ease-in-out infinite"/>
+    <circle cx="520" cy="150" r="1" fill="#8b5cf6" style="animation: hero-pulse 3s ease-in-out infinite; animation-delay: 1s"/>
+    <circle cx="150" cy="170" r="1.2" fill="#34d399" style="animation: hero-pulse 3s ease-in-out infinite; animation-delay: 2s"/>
+    <circle cx="480" cy="40" r="1" fill="#f87171" style="animation: hero-pulse 3s ease-in-out infinite; animation-delay: 0.5s"/>
+  </svg>
+</div>
+
+    <article class="post-content">
+      <p>Most cyberattacks don't succeed because defenses are weak. They succeed because the target <strong>didn't know they were vulnerable</strong>. A certificate expired silently. A server went down at 3 AM and nobody noticed until customers complained. A traffic spike from a botnet overwhelmed the origin server while the team was asleep.</p>
+
+      <p>These aren't hypothetical scenarios. They happen to Philippine businesses every week. The difference between a minor incident and a major breach often comes down to one thing: <strong>how quickly you detect the problem</strong>.</p>
+
+      <h2>The Three Pillars of Proactive Web Security</h2>
+
+      <p>Security isn't just about firewalls and passwords. Modern web security is built on three pillars that work together to keep your site safe:</p>
+
+<div class="info-card-grid">
+  <div class="info-card">
+    <div class="info-card__icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <p class="info-card__title">Uptime Monitoring</p>
+    <p class="info-card__desc">Detect outages within seconds. Track response times. Get alerts via email, SMS, or webhook.</p>
+    <p class="info-card__hint">Hover for details</p>
+  </div>
+  <div class="info-card">
+    <div class="info-card__icon info-card__icon--green">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <p class="info-card__title">SSL Management</p>
+    <p class="info-card__desc">Track certificate expiration. Monitor chain issues and mixed content. Prevent browser warnings.</p>
+    <p class="info-card__hint">Hover for details</p>
+  </div>
+  <div class="info-card">
+    <div class="info-card__icon info-card__icon--amber">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <p class="info-card__title">DDoS Protection</p>
+    <p class="info-card__desc">Identify traffic anomalies. Distinguish legitimate spikes from attacks. Automatic mitigation.</p>
+    <p class="info-card__hint">Hover for details</p>
+  </div>
+</div>
+
+      <h3>1. Uptime Monitoring</h3>
+
+      <p>When your website goes down, every minute counts. Downtime means lost revenue, lost trust, and potentially lost data. Uptime monitoring checks your website at regular intervals — typically every 60 seconds — and alerts you the moment something goes wrong.</p>
+
+      <p>Without monitoring, you're relying on customers to tell you your site is down. By then, you've already lost business. With monitoring, you can:</p>
+
+      <ul>
+        <li><strong>Detect outages within seconds</strong>, not hours</li>
+        <li><strong>Track response times</strong> to catch performance degradation before it becomes an outage</li>
+        <li><strong>Maintain uptime records</strong> for SLA compliance and client trust</li>
+        <li><strong>Get alerts via email, SMS, or webhook</strong> so your team can respond immediately</li>
+      </ul>
+
+      <h3>2. SSL Certificate Management</h3>
+
+      <p>An expired SSL certificate is one of the most common — and most preventable — security failures. When your certificate expires, browsers display a <strong>"Not Secure"</strong> warning that drives visitors away. Worse, it can expose your site to man-in-the-middle attacks.</p>
+
+      <p>SSL monitoring tracks your certificate's expiration date and configuration, alerting you days or weeks before expiration. This gives you time to renew without panic. It also monitors for:</p>
+
+      <ul>
+        <li><strong>Certificate chain issues</strong> that cause partial HTTPS failures</li>
+        <li><strong>Mixed content warnings</strong> from HTTP resources loaded on HTTPS pages</li>
+        <li><strong>Weak cipher suites</strong> that could be exploited</li>
+        <li><strong>Certificate transparency logs</strong> to detect unauthorized certificates issued for your domain</li>
+      </ul>
+
+      <h3>3. DDoS Protection and Traffic Monitoring</h3>
+
+      <p>Distributed Denial of Service attacks are becoming more frequent and more sophisticated. A DDoS attack floods your server with fake traffic, overwhelming it until legitimate visitors can't get through.</p>
+
+      <p>Traffic monitoring helps you distinguish between a legitimate traffic spike (like a successful marketing campaign) and a DDoS attack. Key signals include:</p>
+
+      <ul>
+        <li><strong>Sudden spikes in requests per second</strong> from unusual geographic locations</li>
+        <li><strong>Abnormal request patterns</strong> — repeated hits to the same endpoint</li>
+        <li><strong>Bandwidth consumption</strong> that exceeds normal levels by 10x or more</li>
+        <li><strong>Response time degradation</strong> indicating server strain</li>
+      </ul>
+
+      <blockquote>Security without visibility is like locking your front door but never checking if someone broke a window.</blockquote>
+
+      <h2>Why Philippine SMEs Are Especially Vulnerable</h2>
+
+      <p>Philippine small and medium businesses face a unique set of challenges when it comes to web security:</p>
+
+      <ul>
+        <li><strong>Limited IT budgets</strong> — most SMEs can't afford dedicated security teams or enterprise monitoring tools priced in dollars</li>
+        <li><strong>Shared hosting</strong> — many Philippine businesses use budget hosting where one compromised site can affect dozens of others</li>
+        <li><strong>Manual SSL management</strong> — without automated certificate renewal, expiration is just a matter of time</li>
+        <li><strong>Growing attack surface</strong> — as more Philippine businesses go online, they become targets for automated attacks</li>
+      </ul>
+
+      <h2>How Luzerge Solves This</h2>
+
+      <p>We built <a href="/">Luzerge</a> specifically for Philippine businesses that need enterprise-grade monitoring without the enterprise price tag. Our platform combines all three security pillars into a single dashboard:</p>
+
+<div class="stat-counter-group">
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value" data-target="60" data-suffix="s">0s</div>
+    <div class="stat-counter-card__label">Check Interval</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--green" data-target="99.9" data-suffix="%" data-decimals="1">0%</div>
+    <div class="stat-counter-card__label">Uptime Target</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--amber" data-target="24" data-suffix="/7">0/7</div>
+    <div class="stat-counter-card__label">Monitoring</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--purple" data-target="0" data-prefix="₱" data-suffix="">₱0</div>
+    <div class="stat-counter-card__label">Starting Price</div>
+  </div>
+</div>
+
+      <ul>
+        <li><strong>60-second uptime checks</strong> from multiple global locations</li>
+        <li><strong>SSL certificate tracking</strong> with automatic expiration alerts</li>
+        <li><strong>Cloudflare integration</strong> for built-in DDoS protection and traffic analytics</li>
+        <li><strong>Pricing in Philippine pesos</strong> starting from free for 1 domain</li>
+      </ul>
+
+      <p>You don't need a security team. You need a monitoring system that watches your site 24/7 and tells you the moment something is wrong. That's what Luzerge does.</p>
+
+      <h2>Getting Started</h2>
+
+      <p>If you're running a business website in the Philippines, start with these steps:</p>
+
+      <ol>
+        <li><strong>Scan your domain</strong> with our <a href="/#scanner">free website scanner</a> to check your current Cloudflare, DNS, and hosting setup</li>
+        <li><strong>Set up monitoring</strong> — even our free plan covers 1 domain with uptime monitoring and SSL checks</li>
+        <li><strong>Review your SSL</strong> — make sure your certificate is valid and properly configured for Full (Strict) mode. See our <a href="/blog/setting-up-cloudflare-for-your-philippine-business.html">Cloudflare setup guide</a></li>
+        <li><strong>Enable Bot Fight Mode</strong> — a free Cloudflare feature that blocks automated attacks. Read our <a href="/blog/how-bot-fight-mode-protects-your-website.html">Bot Fight Mode guide</a></li>
+      </ol>
+
+      <p>Security isn't a one-time setup. It's an ongoing process. And it all starts with knowing what's happening on your site, right now.</p>
+    </article>
+
+    <div class="post-tags">
+      <span class="post-tag">Security</span>
+      <span class="post-tag">Monitoring</span>
+      <span class="post-tag">Best Practices</span>
+      <span class="post-tag">SSL</span>
+      <span class="post-tag">DDoS</span>
+    </div>
+
+    <div class="post-share">
+      <span class="post-share__label">Share</span>
+      <a class="post-share__btn" href="https://x.com/intent/tweet?text=Why%20Website%20Security%20Starts%20with%20Monitoring&url=https://luzerge.com/blog/why-website-security-starts-with-monitoring.html" target="_blank" rel="noopener noreferrer" aria-label="Share on X"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a class="post-share__btn" href="https://www.facebook.com/sharer/sharer.php?u=https://luzerge.com/blog/why-website-security-starts-with-monitoring.html" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+      <a class="post-share__btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://luzerge.com/blog/why-website-security-starts-with-monitoring.html" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+    </div>
+
+    <section class="post-faq">
+      <h2>Frequently Asked Questions</h2>
+      <div class="post-faq__item">
+        <div class="post-faq__q">Why is website monitoring important for security? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">Website monitoring is the first line of defense because most cyberattacks succeed when the target doesn't know they're vulnerable. Monitoring detects outages, expired SSL certificates, and traffic anomalies before they cause damage — giving you time to respond before visitors are affected.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">What are the three pillars of proactive web security? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">The three pillars are: (1) Uptime monitoring — detecting outages within seconds, (2) SSL certificate management — catching expired certificates before browsers block visitors, and (3) DDoS protection — identifying malicious traffic spikes before they overwhelm your server.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">How does SSL monitoring prevent security breaches? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">SSL monitoring tracks your certificate expiration dates and alerts you before they expire. An expired SSL certificate causes browsers to display security warnings, which drives away visitors and can expose data to man-in-the-middle attacks. Monitoring ensures you renew certificates on time.</div>
+      </div>
+      <div class="post-faq__item">
+        <div class="post-faq__q">Can small businesses afford website security monitoring? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="post-faq__a">Yes. Luzerge offers enterprise-grade monitoring starting from free for 1 domain, with managed plans from ₱99/month. This includes uptime monitoring, SSL management, and DDoS protection — features that previously required expensive enterprise tools.</div>
+      </div>
+    </section>
+
+    <div class="post-cta">
+      <p class="post-cta__title">Start monitoring your website today</p>
+      <p class="post-cta__desc">Free for 1 domain. No credit card required. Uptime monitoring, SSL checks, and Cloudflare integration included.</p>
+      <a href="/#contact" class="post-cta__btn">Get Started Free <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+
+    <section class="post-related">
+      <p class="post-related__title">Related Articles</p>
+      <div class="post-related__grid">
+        <a href="/blog/how-bot-fight-mode-protects-your-website.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--security">Security</p>
+          <p class="post-related__name">How Bot Fight Mode Protects Your Website from Automated Threats</p>
+          <span class="post-related__time">5 min read</span>
+        </a>
+        <a href="/blog/setting-up-cloudflare-for-your-philippine-business.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--guide">Guide</p>
+          <p class="post-related__name">Setting Up Cloudflare for Your Philippine Business</p>
+          <span class="post-related__time">8 min read</span>
+        </a>
+        <a href="/blog/how-to-read-http-response-headers.html" class="post-related__card">
+          <p class="post-related__cat post-related__cat--tools">Tools</p>
+          <p class="post-related__name">How to Read HTTP Response Headers for Security and Performance</p>
+          <span class="post-related__time">7 min read</span>
+        </a>
+      </div>
+    </section>
+
+    <a href="/blog.html" class="post-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to all articles
+    </a>
+  </main>
+
+  <!-- Table of Contents sidebar -->
+  <aside class="post-toc" aria-label="Table of contents">
+    <p class="post-toc__title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h14"/></svg>
+      In this article
+    </p>
+    <ul class="post-toc__list" id="tocList"></ul>
+    <div class="post-toc__progress"><div class="post-toc__progress-bar" id="tocProgress"></div></div>
+  </aside>
+  </div><!-- /.post-wrapper -->
+
+  <script>
+// Stat counter animation
+;(function () {
+  const counters = document.querySelectorAll('[data-target]')
+  if (!counters.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      const el = entry.target
+      const target = parseFloat(el.dataset.target)
+      const decimals = parseInt(el.dataset.decimals || '0')
+      const prefix = el.dataset.prefix || ''
+      const suffix = el.dataset.suffix || ''
+      const duration = 1500
+      const start = performance.now()
+      function update(now) {
+        const progress = Math.min((now - start) / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        const current = (target * eased).toFixed(decimals)
+        el.textContent = prefix + current + suffix
+        if (progress < 1) requestAnimationFrame(update)
+      }
+      requestAnimationFrame(update)
+      observer.unobserve(el)
+    })
+  }, { threshold: 0.5 })
+  counters.forEach(c => observer.observe(c))
+})()
+
+// Animated code blocks
+;(function () {
+  const blocks = document.querySelectorAll('.code-animated')
+  if (!blocks.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      const block = entry.target
+      block.classList.add('visible')
+      const lines = block.querySelectorAll('.code-animated__line')
+      lines.forEach((line, i) => {
+        line.style.transitionDelay = (i * 0.12) + 's'
+      })
+      observer.unobserve(block)
+    })
+  }, { threshold: 0.3 })
+  blocks.forEach(b => observer.observe(b))
+})()
+
+// Interactive checklist
+;(function () {
+  document.querySelectorAll('.interactive-checklist__item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('checked')
+      const list = item.closest('.interactive-checklist') || item.parentElement
+      const all = list.querySelectorAll('.interactive-checklist__item')
+      const done = list.querySelectorAll('.interactive-checklist__item.checked')
+      const bar = list.parentElement.querySelector('.checklist-progress__bar') || list.nextElementSibling?.querySelector('.checklist-progress__bar')
+      const label = list.parentElement.querySelector('.checklist-progress__label') || list.nextElementSibling?.nextElementSibling
+      if (bar) bar.style.width = ((done.length / all.length) * 100) + '%'
+      if (label) label.textContent = done.length + ' of ' + all.length + ' completed'
+    })
+  })
+})()
+
+    // FAQ accordion
+    document.querySelectorAll('.post-faq__q').forEach(q => {
+      q.addEventListener('click', () => q.parentElement.classList.toggle('open'))
+    })
+    // Google Fonts
+    const gf = document.getElementById('googleFonts'); if (gf) gf.media = 'all'
+
+    // Auto-generate TOC from headings
+    ;(function () {
+      const content = document.querySelector('.post-content')
+      const tocList = document.getElementById('tocList')
+      const progressBar = document.getElementById('tocProgress')
+      if (!content || !tocList) return
+
+      const headings = content.querySelectorAll('h2, h3')
+      if (headings.length === 0) return
+
+      headings.forEach((h, i) => {
+        // Add id to heading if missing
+        if (!h.id) h.id = 'section-' + i
+        const li = document.createElement('li')
+        const a = document.createElement('a')
+        a.href = '#' + h.id
+        a.textContent = h.textContent
+        a.className = 'post-toc__link' + (h.tagName === 'H3' ? ' post-toc__link--h3' : '')
+        a.addEventListener('click', (e) => {
+          e.preventDefault()
+          h.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          history.replaceState(null, '', '#' + h.id)
+        })
+        li.appendChild(a)
+        tocList.appendChild(li)
+      })
+
+      // Scroll spy: highlight active section + update progress
+      const tocLinks = tocList.querySelectorAll('.post-toc__link')
+      let ticking = false
+      function onScroll() {
+        if (ticking) return
+        ticking = true
+        requestAnimationFrame(() => {
+          // Progress bar
+          const contentTop = content.offsetTop
+          const contentHeight = content.scrollHeight
+          const scrolled = Math.max(0, window.scrollY - contentTop)
+          const progress = Math.min(100, (scrolled / (contentHeight - window.innerHeight)) * 100)
+          if (progressBar) progressBar.style.width = progress + '%'
+
+          // Active heading
+          let activeIdx = 0
+          headings.forEach((h, i) => {
+            if (h.getBoundingClientRect().top <= 100) activeIdx = i
+          })
+          tocLinks.forEach((link, i) => {
+            link.classList.toggle('post-toc__link--active', i === activeIdx)
+          })
+          ticking = false
+        })
+      }
+      window.addEventListener('scroll', onScroll, { passive: true })
+      onScroll()
+    })()
+
+    // Nav toggle
+    ;(function(){const t=document.querySelector('.nav__toggle'),l=document.querySelector('.nav__links');if(!t||!l)return;t.addEventListener('click',()=>{const o=t.getAttribute('aria-expanded')==='true';t.setAttribute('aria-expanded',!o);l.classList.toggle('nav__links--open')});document.querySelectorAll('.nav__dropdown-btn').forEach(b=>{b.addEventListener('click',e=>{e.stopPropagation();const o=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',!o);b.closest('.nav__dropdown').classList.toggle('nav__dropdown--open')})});document.addEventListener('click',()=>{document.querySelectorAll('.nav__dropdown--open').forEach(d=>{d.classList.remove('nav__dropdown--open');d.querySelector('.nav__dropdown-btn').setAttribute('aria-expanded','false')})})})()
+  </script>
+  <script src="/js/app.js" defer></script>
+</body>
+</html>

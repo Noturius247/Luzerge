@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Luzerge Control Panel</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
+</head>
+<body class="dash-page dash-page--admin">
+  <canvas id="dashStarfield" class="page-starfield" aria-hidden="true"></canvas>
+
+  <!-- ─── Top Nav ─────────────────────────────────────────────────────────── -->
+  <header class="dash-nav dash-nav--admin">
+    <div class="dash-nav__left">
+      <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="/" class="dash-nav__logo">
+        <svg width="26" height="26" viewBox="0 0 64 64" fill="none" aria-hidden="true" class="nav-lumi-logo"><defs><radialGradient id="nv-s" cx="38%" cy="32%" r="58%"><stop offset="0%" stop-color="#122a4a"/><stop offset="60%" stop-color="#0a1628"/><stop offset="100%" stop-color="#060c18"/></radialGradient><radialGradient id="nv-h" cx="32%" cy="22%" r="38%"><stop offset="0%" stop-color="rgba(6,182,212,0.3)"/><stop offset="100%" stop-color="rgba(6,182,212,0)"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#nv-s)"/><circle cx="32" cy="32" r="30" fill="url(#nv-h)"/><circle cx="32" cy="32" r="29" fill="none" stroke="#0ea5e9" stroke-width="1.5" opacity="0.5"/><path d="M38 4L17 35h15l-3 25L51 28H35l3-24z" fill="#3b82f6" stroke="#93c5fd" stroke-width="1" class="nav-lumi-bolt"/><circle cx="11" cy="15" r="1.5" fill="#06b6d4" opacity="0.8"/><circle cx="53" cy="13" r="1.2" fill="#3b82f6" opacity="0.7"/><circle cx="51" cy="51" r="1" fill="#8b5cf6" opacity="0.6"/></svg>
+        Luzerge
+        <span class="nav-badge nav-badge--admin">Admin</span>
+      </a>
+    </div>
+    <div class="dash-nav__right">
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" title="Toggle theme">
+        <svg id="themeIconDark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="themeIconLight" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <div class="dash-nav__avatar" id="navAvatar"></div>
+      <span class="dash-nav__user" id="navUser"></span>
+      <button class="btn btn--ghost btn--sm" id="logoutBtn">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- ─── Layout: Sidebar + Main ──────────────────────────────────────────── -->
+  <div class="dash-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="dash-sidebar" id="dashSidebar">
+      <nav class="sidebar-nav">
+        <button type="button" class="sidebar-item sidebar-item--add" data-panel="addDomain">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Domain
+        </button>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="overview">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Overview
+          </button>
+          <div class="sidebar-section-items" id="sectionOverview">
+            <button type="button" class="sidebar-item sidebar-item--active" data-panel="overview">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Dashboard
+            </button>
+            <a href="/setup.html" class="sidebar-item" target="_blank" rel="noopener" style="text-decoration:none">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              Setup Guide
+            </a>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="domains">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Domains
+          </button>
+          <div class="sidebar-section-items" id="sectionDomains">
+            <button type="button" class="sidebar-item" data-panel="applications">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Applications
+              <span class="sidebar-badge" id="sidebarPendingCount"></span>
+            </button>
+            <button type="button" class="sidebar-item" data-panel="active">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Active Domains
+            </button>
+            <button type="button" class="sidebar-item" data-panel="rejected">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Rejected
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="management">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Management
+          </button>
+          <div class="sidebar-section-items" id="sectionManagement">
+            <button type="button" class="sidebar-item" data-panel="users">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Users
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="monitoring">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Monitoring
+          </button>
+          <div class="sidebar-section-items" id="sectionMonitoring">
+            <button type="button" class="sidebar-item" data-panel="monAnalytics">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Analytics
+            </button>
+            <button type="button" class="sidebar-item" data-panel="monSsl">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              SSL / TLS
+            </button>
+            <button type="button" class="sidebar-item" data-panel="monDns">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
+              DNS
+            </button>
+            <button type="button" class="sidebar-item" data-panel="monWaf">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              WAF / Firewall
+            </button>
+            <button type="button" class="sidebar-item" data-panel="monImages">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Images
+            </button>
+            <button type="button" class="sidebar-item" data-panel="monMinify">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              Minification
+            </button>
+            <button type="button" class="sidebar-item" data-panel="monUptime">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Uptime
+            </button>
+            <button type="button" class="sidebar-item" data-panel="monDdos">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              DDoS
+            </button>
+            <button type="button" class="sidebar-item" data-panel="admBotFight">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><circle cx="12" cy="5" r="3"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+              Bot Fight Mode
+            </button>
+            <button type="button" class="sidebar-item" data-panel="admAlwaysOnline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Always Online
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="tools">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Tools
+          </button>
+          <div class="sidebar-section-items" id="sectionTools">
+            <button type="button" class="sidebar-item" data-panel="admHeaderInspector">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Header Inspector
+            </button>
+            <button type="button" class="sidebar-item" data-panel="admPageSpeed">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Page Speed
+            </button>
+            <button type="button" class="sidebar-item" data-panel="admWhois">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Whois Lookup
+            </button>
+            <button type="button" class="sidebar-item" data-panel="admEmailRouting">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+              Email Routing
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="reports">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Reports
+          </button>
+          <div class="sidebar-section-items" id="sectionReports">
+            <button type="button" class="sidebar-item" data-panel="admScheduledReports">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Scheduled Reports
+            </button>
+            <button type="button" class="sidebar-item" data-panel="admAuditLog">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              Audit Log
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="marketing">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Marketing
+          </button>
+          <div class="sidebar-section-items" id="sectionMarketing">
+            <button type="button" class="sidebar-item" data-panel="admEmailMarketing">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Email Marketing
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <button type="button" class="sidebar-section-label sidebar-section-toggle" aria-expanded="true" data-section="settings">
+            <svg class="sidebar-section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Settings
+          </button>
+          <div class="sidebar-section-items" id="sectionSettings">
+            <button type="button" class="sidebar-item" data-panel="settingsProfile">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Profile &amp; Account
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsGeneral">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              General
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsPlans">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              Plans &amp; Billing
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsNotifications">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Notifications
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsApi">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              API &amp; Integrations
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsUsers">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              User Management
+            </button>
+            <button type="button" class="sidebar-item" data-panel="settingsSecurity">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Security
+            </button>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="dash-main">
+
+      <!-- ═══════════════════ ADD DOMAIN PANEL ═══════════════════ -->
+      <div id="panelAddDomain" data-feature-panel hidden>
+        <section class="dash-panel dash-panel--glow" data-scroll-reveal>
+          <div class="dash-panel__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h2 class="dash-panel__title">Add a Domain</h2>
+          <p class="dash-panel__desc">Scan a domain to check its DNS, hosting, and CDN status. Then submit it on behalf of a customer or for your own use.</p>
+          <form class="submit-domain-form" id="adminAddForm" novalidate>
+            <div class="form-row form-row--inline">
+              <div class="form-group form-group--grow">
+                <label class="form-label" for="adminInputDomain">Domain Name</label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix">https://</span>
+                  <input class="form-input" id="adminInputDomain" type="text" placeholder="example.com" required autocomplete="off" />
+                </div>
+                <span class="form-hint">We'll scan the domain first, then you can submit it</span>
+              </div>
+              <button class="btn btn--primary btn--glow" type="submit" id="adminScanBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Scan Domain
+              </button>
+            </div>
+            <div id="adminAddError" class="dash-alert dash-alert--error" hidden></div>
+          </form>
+        </section>
+
+        <!-- Scan report -->
+        <section class="dash-panel domain-report-panel" id="adminReportPanel" hidden data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              Domain Report
+            </h2>
+            <button class="btn btn--ghost btn--sm" id="adminCloseReportBtn" type="button" aria-label="Close report">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="report-domain-name" id="adminReportDomainName"></div>
+          <div class="report-grid" id="adminReportGrid">
+            <div class="report-card"><span class="report-card__label">Status</span><span class="report-card__value" id="adminRptStatus">—</span></div>
+            <div class="report-card"><span class="report-card__label">Platform / DNS</span><span class="report-card__value" id="adminRptPlatform">—</span></div>
+            <div class="report-card"><span class="report-card__label">Hosting Provider</span><span class="report-card__value" id="adminRptHosting">—</span></div>
+            <div class="report-card"><span class="report-card__label">Server IP</span><span class="report-card__value" id="adminRptIP">—</span></div>
+            <div class="report-card"><span class="report-card__label">Country</span><span class="report-card__value" id="adminRptCountry">—</span></div>
+            <div class="report-card"><span class="report-card__label">Cloudflare</span><span class="report-card__value" id="adminRptCloudflare">—</span></div>
+          </div>
+          <div class="report-details">
+            <div class="report-detail-group">
+              <h4 class="report-detail-group__title">Nameservers</h4>
+              <ul class="report-ns-list" id="adminRptNameservers"></ul>
+            </div>
+            <div class="report-detail-group" id="adminRptRecordsGroup" hidden>
+              <h4 class="report-detail-group__title">DNS Records</h4>
+              <div class="report-records" id="adminRptRecords"></div>
+            </div>
+          </div>
+          <div class="report-action" id="adminRptAction"></div>
+          <div class="report-submit" id="adminSubmitSection" hidden>
+            <div class="report-submit__divider"></div>
+            <div class="report-submit__row">
+              <p class="report-submit__text">Submit <strong id="adminSubmitDomainName"></strong> to the system?</p>
+              <button class="btn btn--primary btn--glow" type="button" id="adminSubmitDomainBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Submit Domain
+              </button>
+            </div>
+            <div id="adminSubmitError" class="dash-alert dash-alert--error" hidden></div>
+            <div id="adminSubmitSuccess" class="dash-alert dash-alert--success" hidden></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ OVERVIEW PANEL ═══════════════════ -->
+      <div id="panelOverview" data-feature-panel>
+        <section class="dash-hero dash-hero--admin" data-scroll-reveal>
+          <div class="dash-hero__text">
+            <h1 class="dash-hero__title">Control Panel</h1>
+            <p class="dash-hero__sub">Manage domain submissions, configure CDN providers, and monitor all client websites.</p>
+          </div>
+          <div class="dash-hero__stats">
+            <div class="mini-stat mini-stat--amber">
+              <span class="mini-stat__value" id="statPendingAdmin">0</span>
+              <span class="mini-stat__label">Pending</span>
+            </div>
+            <div class="mini-stat mini-stat--green">
+              <span class="mini-stat__value" id="statActiveAdmin">0</span>
+              <span class="mini-stat__label">Active</span>
+            </div>
+            <div class="mini-stat mini-stat--red">
+              <span class="mini-stat__value" id="statRejectedAdmin">0</span>
+              <span class="mini-stat__label">Rejected</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__value" id="statUsersAdmin">0</span>
+              <span class="mini-stat__label">Total Users</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent pending (quick view) -->
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Recent Pending Applications</h2>
+            <button class="btn btn--outline btn--sm" type="button" id="viewAllAppsBtn">View All</button>
+          </div>
+          <div id="overviewPendingList"></div>
+          <div id="overviewPendingEmpty" class="dash-empty dash-empty--sm" hidden>No pending applications.</div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ APPLICATIONS PANEL (pending + all new) ═══════════════════ -->
+      <div id="panelApplications" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Pending Applications</h2>
+            <span class="domain-count" id="appCount"></span>
+          </div>
+          <p class="dash-panel__desc">Domain submissions awaiting review. Click a row to expand details, then configure and approve.</p>
+          <div id="appLoading" class="dash-loading">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            Loading...
+          </div>
+          <div id="appEmpty" class="dash-empty" hidden>
+            <p>No applications yet</p>
+          </div>
+          <div class="admin-table-wrap" id="appTableWrap" hidden>
+            <table class="admin-table" id="appTable">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Submitted By</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="appTableBody"></tbody>
+            </table>
+          </div>
+          <div id="appLookupResult" class="admin-expand" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ ACTIVE DOMAINS PANEL ═══════════════════ -->
+      <div id="panelActive" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Active Domains</h2>
+            <span class="domain-count" id="activeCount"></span>
+          </div>
+          <p class="dash-panel__desc">Domains that are live and connected to a CDN provider. Full details shown for each domain.</p>
+          <div id="activeEmpty" class="dash-empty" hidden>
+            <p>No active domains yet</p>
+          </div>
+          <div class="active-detail-list" id="activeDetailList" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ REJECTED PANEL ═══════════════════ -->
+      <div id="panelRejected" data-feature-panel hidden>
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Rejected Domains</h2>
+            <span class="domain-count" id="rejectedCount"></span>
+          </div>
+          <div id="rejectedEmpty" class="dash-empty" hidden>
+            <p>No rejected domains</p>
+          </div>
+          <div class="admin-table-wrap" id="rejectedTableWrap" hidden>
+            <table class="admin-table" id="rejectedTable">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Submitted By</th>
+                  <th>Date</th>
+                  <th>Reason</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rejectedTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ USERS PANEL ═══════════════════ -->
+      <div id="panelUsers" data-feature-panel hidden>
+
+        <!-- Admin accounts -->
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Administrators
+            </h2>
+            <span class="domain-count" id="adminCount"></span>
+          </div>
+          <div id="adminsEmpty" class="dash-empty dash-empty--sm" hidden>No admin accounts.</div>
+          <div class="admin-table-wrap" id="adminsTableWrap" hidden>
+            <table class="admin-table" id="adminsTable">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Plan</th>
+                  <th>Payment</th>
+                  <th>Domains</th>
+                  <th>Joined</th>
+                </tr>
+              </thead>
+              <tbody id="adminsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Regular users -->
+        <section class="dash-panel" data-scroll-reveal>
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Users
+            </h2>
+            <span class="domain-count" id="userCount"></span>
+          </div>
+          <div id="usersEmpty" class="dash-empty" hidden>
+            <p>No users found</p>
+          </div>
+          <div class="admin-table-wrap" id="usersTableWrap" hidden>
+            <table class="admin-table" id="usersTable">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Plan</th>
+                  <th>Payment</th>
+                  <th>Domains</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MONITORING: ANALYTICS ═══════════════════ -->
+      <div id="panelMonAnalytics" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Analytics</h2>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <select class="form-input form-input--sm panel-domain-select" id="admAnlDomainSelect"></select>
+              <div class="date-range-pills">
+                <button type="button" class="purge-tab" data-range="24h">24h</button>
+                <button type="button" class="purge-tab purge-tab--active" data-range="7d">7d</button>
+                <button type="button" class="purge-tab" data-range="30d">30d</button>
+                <button type="button" class="purge-tab" data-range="1y">1y</button>
+              </div>
+            </div>
+          </div>
+          <div id="admAnlLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading analytics...</div>
+          <div id="admAnlNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admAnlContent" hidden>
+            <!-- Summary stat cards -->
+            <div class="stats-row" id="admAnlStats" style="margin-bottom:1.5rem"></div>
+
+            <!-- Trend chart -->
+            <div class="anl-chart-wrap" style="margin-bottom:1.5rem">
+              <canvas id="admAnlChart" height="280"></canvas>
+            </div>
+
+            <!-- Per-domain table -->
+            <h3 class="anl-section-title">Per-Domain Breakdown</h3>
+            <div class="feature-table-wrap" style="margin-bottom:1.5rem">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>Requests</th><th>Cached</th><th>Bandwidth</th><th>Visitors</th><th>Threats</th><th>Cache Rate</th></tr></thead>
+                <tbody id="admAnlBody"></tbody>
+              </table>
+              <div class="pagination" id="admAnlPagination"></div>
+            </div>
+
+            <!-- Breakdown tables 2x2 grid -->
+            <div class="anl-breakdown-grid">
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">Top Countries</h3>
+                <table class="history-table">
+                  <thead><tr><th>Country</th><th>Requests</th><th>Bandwidth</th><th>Threats</th></tr></thead>
+                  <tbody id="admAnlCountries"></tbody>
+                </table>
+              </div>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">HTTP Status Codes</h3>
+                <table class="history-table">
+                  <thead><tr><th>Status</th><th>Requests</th><th>% of Total</th></tr></thead>
+                  <tbody id="admAnlStatus"></tbody>
+                </table>
+              </div>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">Content Types</h3>
+                <table class="history-table">
+                  <thead><tr><th>Type</th><th>Requests</th><th>Bandwidth</th></tr></thead>
+                  <tbody id="admAnlContentType"></tbody>
+                </table>
+              </div>
+              <div class="feature-table-wrap">
+                <h3 class="anl-section-title">SSL / TLS Versions</h3>
+                <table class="history-table">
+                  <thead><tr><th>Protocol</th><th>Requests</th><th>% of Total</th></tr></thead>
+                  <tbody id="admAnlSsl"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div id="admAnlError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MONITORING: SSL ═══════════════════ -->
+      <div id="panelMonSsl" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">SSL / TLS Certificates</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admSslDomainSelect"></select>
+          </div>
+          <div id="admSslLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading SSL data...</div>
+          <div id="admSslNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admSslContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Host</th><th>Status</th><th>Issuer</th><th>Type</th><th>Expires</th></tr></thead>
+                <tbody id="admSslBody"></tbody>
+              </table>
+              <div class="pagination" id="admSslPagination"></div>
+            </div>
+          </div>
+          <div id="admSslError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MONITORING: DNS ═══════════════════ -->
+      <div id="panelMonDns" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">DNS Records</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admDnsDomainSelect"></select>
+          </div>
+          <div id="admDnsLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading DNS records...</div>
+          <div id="admDnsNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admDnsContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Type</th><th>Name</th><th>Value</th><th>TTL</th><th>Proxied</th></tr></thead>
+                <tbody id="admDnsBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination" id="admDnsPagination"></div>
+          </div>
+          <div id="admDnsError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MONITORING: WAF ═══════════════════ -->
+      <div id="panelMonWaf" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">WAF / Firewall</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admWafDomainSelect"></select>
+          </div>
+          <div id="admWafLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading security settings...</div>
+          <div id="admWafNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admWafContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>Security Level</th><th>Browser Check</th><th>Email Obfuscation</th><th>Hotlink Protection</th></tr></thead>
+                <tbody id="admWafBody"></tbody>
+              </table>
+              <div class="pagination" id="admWafPagination"></div>
+            </div>
+          </div>
+          <div id="admWafError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MONITORING: IMAGES ═══════════════════ -->
+      <div id="panelMonImages" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Image Optimization</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admImgDomainSelect"></select>
+          </div>
+          <div id="admImgLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading image settings...</div>
+          <div id="admImgNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admImgContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>Mirage</th><th>Polish</th><th>WebP</th><th>Rocket Loader</th></tr></thead>
+                <tbody id="admImgBody"></tbody>
+              </table>
+              <div class="pagination" id="admImgPagination"></div>
+            </div>
+          </div>
+          <div id="admImgError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MONITORING: MINIFICATION ═══════════════════ -->
+      <div id="panelMonMinify" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Minification</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admMinifyDomainSelect"></select>
+          </div>
+          <div id="admMinifyLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading minification settings...</div>
+          <div id="admMinifyNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admMinifyContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>HTML</th><th>CSS</th><th>JavaScript</th></tr></thead>
+                <tbody id="admMinifyBody"></tbody>
+              </table>
+              <div class="pagination" id="admMinifyPagination"></div>
+            </div>
+          </div>
+          <div id="admMinifyError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MONITORING: UPTIME ═══════════════════ -->
+      <div id="panelMonUptime" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Uptime Monitoring</h2>
+            <button class="btn btn--outline btn--sm" id="admUptimeRefreshBtn" type="button">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Check Now
+            </button>
+          </div>
+          <div id="admUptimeLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Checking uptime...</div>
+          <div id="admUptimeNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains to monitor</div>
+          <div id="admUptimeContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Owner</th><th>Provider</th><th>Status</th><th>HTTPS</th><th>HTTP</th><th>Latency</th></tr></thead>
+                <tbody id="admUptimeBody"></tbody>
+              </table>
+              <div class="pagination" id="admUptimePagination"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ MONITORING: DDOS ═══════════════════ -->
+      <div id="panelMonDdos" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">DDoS Protection</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admDdosDomainSelect"></select>
+          </div>
+          <div id="admDdosLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading threat data...</div>
+          <div id="admDdosNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admDdosContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Provider</th><th>Threats (30d)</th><th>Requests (30d)</th><th>Bandwidth (30d)</th></tr></thead>
+                <tbody id="admDdosBody"></tbody>
+              </table>
+              <div class="pagination" id="admDdosPagination"></div>
+            </div>
+          </div>
+          <div id="admDdosError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ BOT FIGHT MODE PANEL ═══════════════════ -->
+      <div id="panelAdmBotFight" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Bot Fight Mode</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admBotFightDomainSelect"></select>
+          </div>
+          <p class="dash-panel__desc">Challenge bots and crawlers detected by Cloudflare. Helps reduce spam, credential stuffing, and inventory hoarding.<br><small style="opacity:.7">Note: Bot Fight Mode is read-only — toggle it directly in the Cloudflare dashboard.</small></p>
+          <div id="admBotFightLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading bot fight settings...</div>
+          <div id="admBotFightNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admBotFightContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="admBotFightBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="admBotFightError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ ALWAYS ONLINE PANEL ═══════════════════ -->
+      <div id="panelAdmAlwaysOnline" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Always Online</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admAlwaysOnlineDomainSelect"></select>
+          </div>
+          <p class="dash-panel__desc">Serve a cached version of your site when the origin server goes down.</p>
+          <div id="admAlwaysOnlineLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading settings...</div>
+          <div id="admAlwaysOnlineNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admAlwaysOnlineContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Domain</th><th>Always Online</th><th>Status</th></tr></thead>
+                <tbody id="admAlwaysOnlineBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="admAlwaysOnlineError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ EMAIL ROUTING PANEL ═══════════════════ -->
+      <div id="panelAdmEmailRouting" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Email Routing</h2>
+            <select class="form-input form-input--sm panel-domain-select" id="admEmailRoutingDomainSelect"></select>
+          </div>
+          <p class="dash-panel__desc">Create custom email addresses for domains and forward them to existing inboxes.</p>
+          <div id="admEmailRoutingLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading email routing...</div>
+          <div id="admEmailRoutingNoDomains" class="dash-empty dash-empty--sm" hidden>No active domains</div>
+          <div id="admEmailRoutingContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Custom Address</th><th>Forwards To</th><th>Domain</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="admEmailRoutingBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="admEmailRoutingError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ HEADER INSPECTOR PANEL ═══════════════════ -->
+      <div id="panelAdmHeaderInspector" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">HTTP Header Inspector</h2>
+          <p class="dash-panel__desc">Inspect HTTP response headers for any URL. Debug cache, security headers, and redirects.</p>
+          <form class="form-row form-row--inline" id="admHeaderInspectorForm" style="gap:8px;margin:1rem 0">
+            <input type="url" class="form-input form-input--sm" id="admHeaderInspectorUrl" placeholder="https://example.com" style="flex:1" required />
+            <button class="btn btn--primary btn--sm" type="submit">Inspect</button>
+          </form>
+          <div id="admHeaderInspectorLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Fetching headers...</div>
+          <div id="admHeaderInspectorContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Header</th><th>Value</th></tr></thead>
+                <tbody id="admHeaderInspectorBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="admHeaderInspectorError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ PAGE SPEED INSIGHTS PANEL ═══════════════════ -->
+      <div id="panelAdmPageSpeed" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Page Speed Insights</h2>
+          <p class="dash-panel__desc">Analyze website performance using Google PageSpeed Insights.</p>
+          <form class="form-row form-row--inline" id="admPageSpeedForm" style="gap:8px;margin:1rem 0">
+            <input type="url" class="form-input form-input--sm" id="admPageSpeedUrl" placeholder="https://yourdomain.com" style="flex:1" required />
+            <select class="form-input form-input--sm" id="admPageSpeedStrategy" style="width:auto">
+              <option value="mobile">Mobile</option>
+              <option value="desktop">Desktop</option>
+            </select>
+            <button class="btn btn--primary btn--sm" type="submit">Analyze</button>
+          </form>
+          <div id="admPageSpeedLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Analyzing...</div>
+          <div id="admPageSpeedContent" hidden>
+            <div class="stats-row" id="admPageSpeedScores" style="margin-bottom:1rem"></div>
+            <div id="admPageSpeedAudits"></div>
+          </div>
+          <div id="admPageSpeedError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ WHOIS LOOKUP PANEL ═══════════════════ -->
+      <div id="panelAdmWhois" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Whois Lookup</h2>
+          <p class="dash-panel__desc">Look up domain registration details including registrar, creation date, expiry, and nameservers.</p>
+          <form class="form-row form-row--inline" id="admWhoisForm" style="gap:8px;margin:1rem 0">
+            <input type="text" class="form-input form-input--sm" id="admWhoisDomain" placeholder="example.com" style="flex:1" required />
+            <button class="btn btn--primary btn--sm" type="submit">Lookup</button>
+          </form>
+          <div id="admWhoisLoading" class="dash-loading" hidden><div class="loading-dots"><span></span><span></span><span></span></div>Looking up domain...</div>
+          <div id="admWhoisContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Field</th><th>Value</th></tr></thead>
+                <tbody id="admWhoisBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="admWhoisError" class="dash-alert dash-alert--error" hidden></div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SCHEDULED REPORTS PANEL ═══════════════════ -->
+      <div id="panelAdmScheduledReports" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Scheduled Reports</h2>
+          <p class="dash-panel__desc">Configure automated email reports for all users or specific domains.</p>
+          <div id="admScheduledReportsContent">
+            <div class="settings-group">
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Weekly Performance Report</span>
+                  <span class="settings-row__desc">Platform-wide weekly summary of cache hit rates, requests, and bandwidth</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="admReportWeeklyPerf" aria-label="Weekly performance report" />
+                  <span class="toggle-switch__slider"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Daily Uptime Report</span>
+                  <span class="settings-row__desc">Daily uptime and latency summaries for all monitored domains</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="admReportDailyUptime" aria-label="Daily uptime report" />
+                  <span class="toggle-switch__slider"></span>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row__info">
+                  <span class="settings-row__label">Monthly Security Report</span>
+                  <span class="settings-row__desc">Monthly overview of threats blocked, DDoS events, and firewall activity</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="admReportMonthlySecurity" aria-label="Monthly security report" />
+                  <span class="toggle-switch__slider"></span>
+                </label>
+              </div>
+            </div>
+            <button class="btn btn--primary" id="admSaveReportSettingsBtn" type="button">Save Report Settings</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ AUDIT LOG PANEL ═══════════════════ -->
+      <div id="panelAdmAuditLog" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">Audit Log</h2>
+            <button class="btn btn--outline btn--sm" id="admAuditRefreshBtn" type="button">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Refresh
+            </button>
+          </div>
+          <p class="dash-panel__desc">Track all admin and user actions. Purges, setting changes, domain approvals, and login events.</p>
+          <div id="admAuditLogLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading audit log...</div>
+          <div id="admAuditLogContent" hidden>
+            <div class="feature-table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Details</th><th>IP Address</th></tr></thead>
+                <tbody id="admAuditLogBody"></tbody>
+              </table>
+              <div class="pagination" id="admAuditLogPagination"></div>
+            </div>
+          </div>
+          <div id="admAuditLogEmpty" class="dash-empty dash-empty--sm" hidden>No audit log entries yet.</div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ EMAIL MARKETING PANEL ═══════════════════ -->
+      <div id="panelAdmEmailMarketing" data-feature-panel hidden>
+        <section class="dash-panel">
+          <div class="dash-panel__header">
+            <h2 class="dash-panel__title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px;color:#3b82f6"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Email Marketing
+            </h2>
+          </div>
+          <p class="dash-panel__desc">Manage subscribers, compose campaigns, and track delivery. CAN-SPAM / RA 10173 compliant.</p>
+
+          <!-- Stats Cards -->
+          <div class="em-stats-grid">
+            <div class="em-stat-card">
+              <div class="em-stat-card__icon em-stat-card__icon--blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="em-stat-card__body">
+                <span class="em-stat-card__value" id="emStatTotal">--</span>
+                <span class="em-stat-card__label">Total Subscribers</span>
+              </div>
+            </div>
+            <div class="em-stat-card">
+              <div class="em-stat-card__icon em-stat-card__icon--green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div class="em-stat-card__body">
+                <span class="em-stat-card__value" id="emStatActive">--</span>
+                <span class="em-stat-card__label">Active</span>
+              </div>
+            </div>
+            <div class="em-stat-card">
+              <div class="em-stat-card__icon em-stat-card__icon--red">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+              </div>
+              <div class="em-stat-card__body">
+                <span class="em-stat-card__value" id="emStatUnsub">--</span>
+                <span class="em-stat-card__label">Unsubscribed</span>
+              </div>
+            </div>
+            <div class="em-stat-card">
+              <div class="em-stat-card__icon em-stat-card__icon--purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div class="em-stat-card__body">
+                <span class="em-stat-card__value" id="emStatCampaigns">--</span>
+                <span class="em-stat-card__label">Campaigns Sent</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="em-tab-bar">
+            <button type="button" class="em-tab-btn em-tab-btn--active" data-emtab="subscribers">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              Subscribers
+            </button>
+            <button type="button" class="em-tab-btn" data-emtab="compose">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+              Compose
+            </button>
+            <button type="button" class="em-tab-btn" data-emtab="campaigns">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Campaigns
+            </button>
+          </div>
+
+          <!-- Subscribers Tab -->
+          <div id="emTabSubscribers">
+            <!-- Add Subscriber -->
+            <div class="em-add-row">
+              <input type="email" class="form-input form-input--sm" id="emSubEmail" placeholder="Email address" style="flex:1;min-width:180px" />
+              <input type="text" class="form-input form-input--sm" id="emSubName" placeholder="Name (optional)" style="width:150px" />
+              <button type="button" class="btn btn--primary btn--sm" id="emAddSubBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add
+              </button>
+            </div>
+
+            <!-- Import Actions -->
+            <div class="em-import-row">
+              <label class="btn btn--outline btn--sm em-import-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Import CSV
+                <input type="file" id="emCsvFile" accept=".csv" hidden />
+              </label>
+              <button type="button" class="btn btn--outline btn--sm" id="emImportUsersBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Import Platform Users
+              </button>
+              <span id="emImportStatus" class="em-status-text"></span>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div class="em-drop-zone" id="emDropZone">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#3b82f6;margin-bottom:6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span class="em-drop-zone__text">Drag & drop a CSV file here, or paste emails below</span>
+              <textarea class="form-input form-input--sm em-bulk-textarea" id="emBulkEmails" placeholder="Bulk add: one email per line" rows="3"></textarea>
+              <button type="button" class="btn btn--outline btn--sm" id="emBulkAddBtn">Bulk Add</button>
+            </div>
+
+            <!-- Search & Filter Bar -->
+            <div class="em-filter-bar">
+              <div class="em-search-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="em-search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" class="form-input form-input--sm em-search-input" id="emSearchInput" placeholder="Search subscribers..." />
+              </div>
+              <div class="em-filter-pills">
+                <button type="button" class="em-filter-pill em-filter-pill--active" data-emfilter="all">All</button>
+                <button type="button" class="em-filter-pill" data-emfilter="active">Active</button>
+                <button type="button" class="em-filter-pill" data-emfilter="unsubscribed">Unsubscribed</button>
+              </div>
+              <div class="em-filter-actions">
+                <span id="emSelectedCount" class="em-selected-badge" hidden>0 selected</span>
+                <button type="button" class="btn btn--outline btn--xs" id="emExportBtn">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export CSV
+                </button>
+              </div>
+            </div>
+
+            <div id="emSubLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading subscribers...</div>
+            <div id="emSubContent" hidden>
+              <div class="em-sub-header">
+                <span id="emSubCount" class="em-sub-count"></span>
+              </div>
+              <div class="feature-table-wrap">
+                <table class="history-table em-table">
+                  <thead><tr><th style="width:36px"><input type="checkbox" id="emSelectAll" /></th><th>Email</th><th>Name</th><th>Status</th><th>Added</th><th style="width:80px">Action</th></tr></thead>
+                  <tbody id="emSubBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="emSubEmpty" class="dash-empty dash-empty--sm" hidden>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#3b82f6;margin-bottom:8px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              <p>No subscribers yet</p>
+              <span>Add your first subscriber above or import from CSV.</span>
+            </div>
+          </div>
+
+          <!-- Compose Tab -->
+          <div id="emTabCompose" hidden>
+            <div class="em-compose-layout">
+              <!-- Editor Side -->
+              <div class="em-compose-editor">
+                <div class="em-compose-field">
+                  <label class="em-label">From</label>
+                  <select class="form-input form-input--sm" id="emFromProvider" style="max-width:320px">
+                    <option value="resend">Resend (noreply@luzerge.com)</option>
+                    <option value="gmail">Gmail (luzergeservices@gmail.com)</option>
+                  </select>
+                </div>
+                <div class="em-compose-field">
+                  <label class="em-label">Recipients</label>
+                  <select class="form-input form-input--sm" id="emRecipients" style="max-width:320px">
+                    <option value="all">All active subscribers</option>
+                    <option value="selected">Selected subscribers only</option>
+                  </select>
+                </div>
+                <div class="em-compose-field">
+                  <label class="em-label">Subject</label>
+                  <input type="text" class="form-input form-input--sm" id="emSubject" placeholder="Email subject line" style="max-width:100%" />
+                </div>
+                <div class="em-compose-field" style="flex:1;display:flex;flex-direction:column">
+                  <div class="em-label-row">
+                    <label class="em-label">Body (plain text)</label>
+                    <span id="emWordCount" class="em-word-count">0 words / 0 chars</span>
+                  </div>
+                  <textarea class="form-input em-body-textarea" id="emBody" rows="14" placeholder="Write your email content here...&#10;&#10;Plain text only. No HTML.&#10;An unsubscribe link and company footer will be added automatically."></textarea>
+                </div>
+                <div class="em-compose-actions">
+                  <button type="button" class="btn btn--primary btn--sm" id="emSendBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Send Campaign
+                  </button>
+                  <div class="em-test-group">
+                    <input type="email" class="form-input form-input--sm" id="emTestEmail" placeholder="Test email address" style="width:200px;max-width:200px" />
+                    <button type="button" class="btn btn--outline btn--sm" id="emTestBtn">Send Test</button>
+                  </div>
+                  <span id="emSendStatus" class="em-status-text"></span>
+                </div>
+              </div>
+
+              <!-- Preview Side -->
+              <div class="em-compose-preview">
+                <div class="em-preview-header">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Live Preview
+                </div>
+                <div class="em-preview-email">
+                  <div class="em-preview-meta">
+                    <div class="em-preview-from"><strong>From:</strong> <span id="emPreviewFrom">noreply@luzerge.com</span></div>
+                    <div class="em-preview-subject"><strong>Subject:</strong> <span id="emPreviewSubject" class="em-preview-placeholder">Your subject line</span></div>
+                  </div>
+                  <div class="em-preview-body" id="emPreviewBody">
+                    <p class="em-preview-placeholder">Your email content will appear here as you type...</p>
+                  </div>
+                  <div class="em-preview-footer">
+                    <div class="em-preview-footer__divider"></div>
+                    <div class="em-preview-footer__content">
+                      <div class="em-preview-footer__logo">
+                        <svg width="32" height="32" viewBox="0 0 64 64" fill="none" class="em-footer-lumi">
+                          <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(6,182,212,0.35)" stroke-width="1.5"/>
+                          <path d="M38 2L18 34h16l-3 26 20-34H33l5-24z" fill="rgba(59,130,246,0.6)" stroke="#3b82f6" stroke-width="1.2" class="em-footer-bolt"/>
+                          <circle cx="10" cy="14" r="1.2" fill="#06b6d4" opacity="0.7"/>
+                          <circle cx="54" cy="12" r="1" fill="#3b82f6" opacity="0.6"/>
+                          <circle cx="52" cy="52" r="0.8" fill="#a855f7" opacity="0.5"/>
+                        </svg>
+                        <span class="em-preview-footer__brand">Luzerge</span>
+                      </div>
+                      <p class="em-preview-footer__tagline">Website Monitoring & CDN Management</p>
+                      <p class="em-preview-footer__link">luzerge.com | luzergeservices@gmail.com</p>
+                      <p class="em-preview-footer__unsub">Unsubscribe</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campaigns Tab -->
+          <div id="emTabCampaigns" hidden>
+            <div id="emCampLoading" class="dash-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Loading campaigns...</div>
+            <div id="emCampContent" hidden>
+              <div class="feature-table-wrap">
+                <table class="history-table em-table">
+                  <thead><tr><th>Date</th><th>Subject</th><th>Provider</th><th>Recipients</th><th>Status</th><th style="width:50px"></th></tr></thead>
+                  <tbody id="emCampBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="emCampEmpty" class="dash-empty dash-empty--sm" hidden>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#3b82f6;margin-bottom:8px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <p>No campaigns sent yet</p>
+              <span>Compose and send your first campaign from the Compose tab.</span>
+            </div>
+          </div>
+
+          <div id="emError" class="dash-alert dash-alert--error" style="margin-top:12px" hidden></div>
+        </section>
+      </div>
+
+      <!-- Email Marketing Confirmation Modal -->
+      <div class="em-modal-overlay" id="emModal" hidden>
+        <div class="em-modal">
+          <div class="em-modal__header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#f59e0b"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <h3 id="emModalTitle">Confirm Action</h3>
+          </div>
+          <p id="emModalMessage" class="em-modal__message"></p>
+          <div class="em-modal__actions">
+            <button type="button" class="btn btn--outline btn--sm" id="emModalCancel">Cancel</button>
+            <button type="button" class="btn btn--primary btn--sm" id="emModalConfirm">Confirm</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: GENERAL ═══════════════════ -->
+      <div id="panelSettingsGeneral" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">General Settings</h2>
+          <p class="dash-panel__desc">Platform-wide configuration for Luzerge.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Platform</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Platform Name</span>
+                <span class="settings-row__desc">Displayed in navigation and emails</span>
+              </div>
+              <input class="form-input form-input--sm" id="settPlatformName" type="text" value="Luzerge" style="max-width:220px" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Support Email</span>
+                <span class="settings-row__desc">Contact email shown to users</span>
+              </div>
+              <input class="form-input form-input--sm" id="settSupportEmail" type="email" value="luzergeservices@gmail.com" style="max-width:260px" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Maintenance Mode</span>
+                <span class="settings-row__desc">Disable user access temporarily</span>
+              </div>
+              <label class="toggle-switch" id="settMaintenance"><input type="checkbox" aria-label="Toggle maintenance mode"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Domain Defaults</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Default CDN Provider</span>
+                <span class="settings-row__desc">Provider assigned to new managed domains</span>
+              </div>
+              <select class="form-input form-input--sm" id="settDefaultProvider" style="max-width:200px">
+                <option value="cloudflare" selected>Cloudflare</option>
+                <option value="cloudfront">AWS CloudFront</option>
+                <option value="fastly">Fastly</option>
+                <option value="none">None (monitoring)</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Auto-Approve Self-Managed</span>
+                <span class="settings-row__desc">Self-managed domains go active immediately without admin review</span>
+              </div>
+              <label class="toggle-switch toggle-switch--on" id="settAutoApprove"><input type="checkbox" checked aria-label="Toggle auto-approve domains"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Default Auto-Purge Interval</span>
+                <span class="settings-row__desc">Default purge schedule for new domains</span>
+              </div>
+              <select class="form-input form-input--sm" id="settDefaultPurgeInterval" style="max-width:180px">
+                <option value="hourly">Every hour</option>
+                <option value="every6h">Every 6 hours</option>
+                <option value="every12h">Every 12 hours</option>
+                <option value="daily" selected>Once a day</option>
+                <option value="weekly">Once a week</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="settGeneralSaveBtn" type="button">Save Settings</button>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: PLANS & BILLING ═══════════════════ -->
+      <div id="panelSettingsPlans" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Plans &amp; Billing</h2>
+          <p class="dash-panel__desc">Manage pricing plans and domain limits.</p>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="settPlansTable">
+              <thead>
+                <tr>
+                  <th>Plan</th>
+                  <th>Self-Managed Price</th>
+                  <th>Managed Price</th>
+                  <th>Domain Limit</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Free</strong></td><td>₱0/mo</td><td>—</td><td>1</td><td><span class="status-badge status-badge--active">Active</span></td></tr>
+                <tr><td><strong>Solo</strong></td><td>—</td><td>₱99/mo</td><td>1</td><td><span class="status-badge status-badge--active">Active</span></td></tr>
+                <tr><td><strong>Starter</strong></td><td>₱299/mo</td><td>₱699/mo</td><td>3</td><td><span class="status-badge status-badge--active">Active</span></td></tr>
+                <tr><td><strong>Pro</strong></td><td>₱999/mo</td><td>₱1,999/mo</td><td>10</td><td><span class="status-badge status-badge--active">Active</span></td></tr>
+                <tr><td><strong>Business</strong></td><td>₱1,999/mo</td><td>₱3,999/mo</td><td>50</td><td><span class="status-badge status-badge--active">Active</span></td></tr>
+                <tr><td><strong>Enterprise</strong></td><td>₱3,499/mo</td><td>₱6,999/mo</td><td>Unlimited</td><td><span class="status-badge status-badge--active">Active</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="settings-group" style="margin-top:1.5rem">
+            <h3 class="settings-group__title">Revenue Overview</h3>
+            <div class="stats-row" id="settRevenueStats">
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
+                <span class="stat-box__value" id="settTotalPaidUsers">--</span>
+                <span class="stat-box__label">Paid Users</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+                <span class="stat-box__value" id="settMRR">--</span>
+                <span class="stat-box__label">Est. MRR</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg></span>
+                <span class="stat-box__value" id="settTotalDomains">--</span>
+                <span class="stat-box__label">Total Domains</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <span class="stat-box__value" id="settFreeUsers">--</span>
+                <span class="stat-box__label">Free Users</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: NOTIFICATIONS ═══════════════════ -->
+      <div id="panelSettingsNotifications" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Notification Settings</h2>
+          <p class="dash-panel__desc">Configure when and how you receive alerts.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Email Alerts</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">New Domain Submission</span>
+                <span class="settings-row__desc">Get notified when a user submits a domain for managed setup</span>
+              </div>
+              <label class="toggle-switch toggle-switch--on" id="settNotifNewDomain"><input type="checkbox" checked aria-label="Toggle new domain notifications"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Domain Goes Down</span>
+                <span class="settings-row__desc">Alert when an uptime check fails for any active domain</span>
+              </div>
+              <label class="toggle-switch toggle-switch--on" id="settNotifDowntime"><input type="checkbox" checked aria-label="Toggle downtime notifications"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">SSL Expiry Warning</span>
+                <span class="settings-row__desc">Alert 14 days before a certificate expires</span>
+              </div>
+              <label class="toggle-switch toggle-switch--on" id="settNotifSslExpiry"><input type="checkbox" checked aria-label="Toggle SSL expiry notifications"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">New User Signup</span>
+                <span class="settings-row__desc">Notification when a new user registers</span>
+              </div>
+              <label class="toggle-switch" id="settNotifNewUser"><input type="checkbox" aria-label="Toggle new user notifications"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">DDoS Threat Spike</span>
+                <span class="settings-row__desc">Alert when threats exceed 1,000 in 24 hours</span>
+              </div>
+              <label class="toggle-switch toggle-switch--on" id="settNotifDdos"><input type="checkbox" checked aria-label="Toggle DDoS alert notifications"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Alert Recipients</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Admin Email</span>
+                <span class="settings-row__desc">Primary email for all admin alerts</span>
+              </div>
+              <input class="form-input form-input--sm" id="settAlertEmail" type="email" value="" placeholder="admin@luzerge.com" style="max-width:260px" />
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="settNotifSaveBtn" type="button">Save Notification Settings</button>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: API & INTEGRATIONS ═══════════════════ -->
+      <div id="panelSettingsApi" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">API &amp; Integrations</h2>
+          <p class="dash-panel__desc">Manage CDN provider credentials and external service connections.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Default Cloudflare Credentials</h3>
+            <p class="settings-group__desc">Used for managed domains when no per-domain credentials are set.</p>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Global API Token</span>
+                <span class="settings-row__desc">Cloudflare API token with zone read/edit permissions</span>
+              </div>
+              <input class="form-input form-input--sm" id="settCfGlobalToken" type="password" placeholder="Cloudflare API token" style="max-width:300px" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Account ID</span>
+                <span class="settings-row__desc">Your Cloudflare account identifier</span>
+              </div>
+              <input class="form-input form-input--sm" id="settCfAccountId" type="text" placeholder="Cloudflare Account ID" style="max-width:300px" />
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Supabase</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Project URL</span>
+                <span class="settings-row__desc">Your Supabase project endpoint</span>
+              </div>
+              <input class="form-input form-input--sm" id="settSupabaseUrl" type="text" value="byzuraeyhrxxpztredri.supabase.co" disabled style="max-width:320px" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Edge Functions</span>
+                <span class="settings-row__desc">Deployed edge functions status</span>
+              </div>
+              <div id="settEdgeFunctions">
+                <span class="status-badge status-badge--active">cf-proxy</span>
+                <span class="status-badge status-badge--active">domain-lookup</span>
+                <span class="status-badge status-badge--active">purge-cache</span>
+                <span class="status-badge status-badge--active">domain-stats</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Supported CDN Providers</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Cloudflare</span>
+                <span class="settings-row__desc">Full features: analytics, SSL, DNS, WAF, images, minification, cache purge</span>
+              </div>
+              <span class="status-badge status-badge--active">Enabled</span>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">AWS CloudFront</span>
+                <span class="settings-row__desc">Uptime, DNS, SSL monitoring. Cache invalidation via AWS Console.</span>
+              </div>
+              <span class="status-badge status-badge--active">Enabled</span>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Fastly</span>
+                <span class="settings-row__desc">Analytics, uptime, DNS, SSL, cache purge</span>
+              </div>
+              <span class="status-badge status-badge--active">Enabled</span>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">None (Monitoring Only)</span>
+                <span class="settings-row__desc">Uptime, DNS lookup, SSL check via free public services</span>
+              </div>
+              <span class="status-badge status-badge--active">Enabled</span>
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="settApiSaveBtn" type="button">Save API Settings</button>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: PROFILE & ACCOUNT ═══════════════════ -->
+      <div id="panelSettingsProfile" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Profile &amp; Account</h2>
+          <p class="dash-panel__desc">Manage your admin account information.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Personal Information</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Full Name</span>
+                <span class="settings-row__desc">Your display name across the platform</span>
+              </div>
+              <input type="text" class="form-input form-input--sm settings-input" id="admSettFullName" placeholder="Admin name" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Email Address</span>
+                <span class="settings-row__desc">Admin login email</span>
+              </div>
+              <input type="email" class="form-input form-input--sm settings-input" id="admSettEmail" disabled />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Avatar URL</span>
+                <span class="settings-row__desc">Link to your profile picture</span>
+              </div>
+              <input type="url" class="form-input form-input--sm settings-input" id="admSettAvatar" placeholder="https://..." />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Role</span>
+                <span class="settings-row__desc">Your account role</span>
+              </div>
+              <span class="status-badge status-badge--active">Admin</span>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Change Password</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">New Password</span>
+                <span class="settings-row__desc">Leave blank to keep current password</span>
+              </div>
+              <input type="password" class="form-input form-input--sm settings-input" id="admSettNewPass" placeholder="••••••••" />
+            </div>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Confirm Password</span>
+                <span class="settings-row__desc">Re-enter your new password</span>
+              </div>
+              <input type="password" class="form-input form-input--sm settings-input" id="admSettConfirmPass" placeholder="••••••••" />
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="admSettProfileSaveBtn" type="button">Save Profile</button>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: USER MANAGEMENT ═══════════════════ -->
+      <div id="panelSettingsUsers" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">User Management</h2>
+          <p class="dash-panel__desc">Manage all registered users, their roles, plans, and account status.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Platform Stats</h3>
+            <div class="stats-row stats-row--mb">
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <span class="stat-box__value" id="admTotalUsers">--</span>
+                <span class="stat-box__label">Total Users</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                <span class="stat-box__value" id="admActiveUsers">--</span>
+                <span class="stat-box__label">Active Users</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                <span class="stat-box__value" id="admAdminCount">--</span>
+                <span class="stat-box__label">Admins</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-box__icon stat-box__icon--amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></span>
+                <span class="stat-box__value" id="admSuspendedUsers">--</span>
+                <span class="stat-box__label">Suspended</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">All Users</h3>
+            <div class="admin-table-wrap">
+              <table class="admin-table" id="admUsersTable">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Plan</th>
+                    <th>Domains</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admUsersTableBody">
+                  <tr><td colspan="7" class="text-center" style="padding:2rem;color:rgba(255,255,255,0.4)">Loading users...</td></tr>
+                </tbody>
+              </table>
+              <div class="pagination" id="admUsersPagination"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══════════════════ SETTINGS: SECURITY ═══════════════════ -->
+      <div id="panelSettingsSecurity" data-feature-panel hidden>
+        <section class="dash-panel">
+          <h2 class="dash-panel__title">Security</h2>
+          <p class="dash-panel__desc">Admin account security and session management.</p>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Two-Factor Authentication</h3>
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">2FA Status</span>
+                <span class="settings-row__desc">Add an extra layer of security to your admin account</span>
+              </div>
+              <div class="settings-row__action">
+                <span class="settings-badge settings-badge--off" id="admSett2faStatus">Disabled</span>
+                <button class="btn btn--outline btn--sm" id="admSett2faToggle" type="button">Enable 2FA</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Active Sessions</h3>
+            <div id="admSettSessionsList" class="sessions-list">
+              <div class="session-item session-item--current">
+                <div class="session-item__info">
+                  <span class="session-item__device" id="admSettCurrentDevice">Current Browser</span>
+                  <span class="session-item__meta" id="admSettCurrentMeta">This session</span>
+                </div>
+                <span class="settings-badge settings-badge--on">Active</span>
+              </div>
+            </div>
+            <button class="btn btn--outline btn--sm" id="admSettRevokeAllBtn" type="button" style="margin-top:0.75rem">Revoke All Other Sessions</button>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Login History</h3>
+            <div class="login-history">
+              <div class="login-history__item">
+                <span class="login-history__date" id="admSettLastLogin">—</span>
+                <span class="login-history__detail">Last successful login</span>
+              </div>
+              <div class="login-history__item">
+                <span class="login-history__date" id="admSettAccountCreated">—</span>
+                <span class="login-history__detail">Account created</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="settings-group__title">Security Log</h3>
+            <p class="settings-group__desc">Recent security events for admin accounts.</p>
+            <div id="admSecurityLog" class="security-log">
+              <p class="settings-empty">No security events recorded yet.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Domain setup modal -->
+  <div class="modal-backdrop" id="setupModal" hidden>
+    <div class="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="setupModalTitle">
+      <div class="modal__header">
+        <h3 class="modal__title" id="setupModalTitle">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Configure Domain
+        </h3>
+        <button class="btn btn--ghost btn--sm" id="setupCloseBtn" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="setup-domain-info">
+        <span class="setup-domain-name" id="setupDomainName"></span>
+        <span class="setup-domain-user" id="setupDomainUser"></span>
+        <span class="setup-domain-date" id="setupDomainDate"></span>
+      </div>
+
+      <!-- Setup guide accordion -->
+      <details class="setup-guide" id="setupGuide">
+        <summary class="setup-guide__toggle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          How to get these credentials
+        </summary>
+        <div class="setup-guide__content">
+          <div class="setup-guide__section">
+            <h4 class="setup-guide__heading"><span class="setup-guide__step">1</span> Get the Zone ID</h4>
+            <ol class="setup-guide__steps">
+              <li>Go to <strong>dash.cloudflare.com</strong> and log in</li>
+              <li>Click on the <strong>domain</strong> you want to configure</li>
+              <li>On the <strong>Overview</strong> page, scroll down the right sidebar</li>
+              <li>Find <strong>"API"</strong> section — copy the <strong>Zone ID</strong></li>
+            </ol>
+          </div>
+          <div class="setup-guide__section">
+            <h4 class="setup-guide__heading"><span class="setup-guide__step">2</span> Create an API Token</h4>
+            <ol class="setup-guide__steps">
+              <li>Go to <strong>dash.cloudflare.com/profile/api-tokens</strong></li>
+              <li>Click <strong>"Create Token"</strong></li>
+              <li>Choose <strong>"Create Custom Token"</strong></li>
+              <li>Set the <strong>Token name</strong> (e.g., "Luzerge - domainname.com")</li>
+              <li>Add these <strong>permissions</strong>:
+                <ul>
+                  <li><strong>Zone &rarr; Cache Purge &rarr; Purge</strong></li>
+                  <li><strong>Zone &rarr; Zone &rarr; Read</strong></li>
+                  <li><strong>Zone &rarr; DNS &rarr; Read</strong></li>
+                  <li><strong>Zone &rarr; Analytics &rarr; Read</strong></li>
+                </ul>
+              </li>
+              <li>Under <strong>Zone Resources</strong>, select <strong>"Specific zone"</strong> &rarr; pick the domain</li>
+              <li>Click <strong>"Continue to summary"</strong> &rarr; <strong>"Create Token"</strong></li>
+              <li>Copy the token immediately — <strong>you won't see it again!</strong></li>
+            </ol>
+          </div>
+        </div>
+      </details>
+
+      <form id="setupForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="setupProvider">CDN Provider</label>
+          <select class="form-input" id="setupProvider">
+            <option value="cloudflare">Cloudflare</option>
+            <option value="cloudfront">AWS CloudFront</option>
+            <option value="fastly">Fastly</option>
+            <option value="none">None (monitoring only)</option>
+          </select>
+        </div>
+
+        <!-- Cloudflare fields -->
+        <div id="setupCfFields">
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label class="form-label" for="setupZoneId">Cloudflare Zone ID</label>
+              <input class="form-input" id="setupZoneId" type="text" placeholder="abc123def456..." />
+              <span class="form-hint">Dashboard &rarr; domain &rarr; Overview &rarr; right sidebar &rarr; API</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="setupApiToken">Cloudflare API Token</label>
+              <input class="form-input" id="setupApiToken" type="password" placeholder="Zone-level API token" />
+              <span class="form-hint">Profile &rarr; API Tokens &rarr; Create Custom Token</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CloudFront / Fastly fields -->
+        <div id="setupGenericFields" hidden>
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label class="form-label" for="setupDistId" id="setupLabelDistId">Distribution ID</label>
+              <input class="form-input" id="setupDistId" type="text" placeholder="E1A2B3C4D5E6F7" />
+              <span class="form-hint" id="setupHintDistId">Found in your CDN dashboard</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="setupCdnApiKey" id="setupLabelCdnApiKey">API Key</label>
+              <input class="form-input" id="setupCdnApiKey" type="password" placeholder="API key or token" />
+              <span class="form-hint" id="setupHintCdnApiKey">Your CDN API key or access token</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- None provider message -->
+        <div id="setupNoneMsg" class="setup-none-msg" hidden>
+          No credentials needed. This domain will be monitored for uptime, DNS, and SSL only.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="setupNotes">Admin Notes <span class="form-optional">(optional)</span></label>
+          <textarea class="form-input form-textarea" id="setupNotes" rows="2" placeholder="Internal notes about this domain setup..."></textarea>
+        </div>
+
+        <div id="setupError" class="dash-alert dash-alert--error" hidden></div>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--danger" id="setupRejectBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Reject
+          </button>
+          <div class="modal__actions-right">
+            <button type="button" class="btn btn--outline" id="setupCancelBtn">Cancel</button>
+            <button type="submit" class="btn btn--primary btn--glow" id="setupApproveBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Approve &amp; Activate
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete confirm modal -->
+  <div class="modal-backdrop" id="deleteModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+      <div class="modal__icon modal__icon--danger">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </div>
+      <h3 class="modal__title" id="deleteModalTitle">Delete Domain?</h3>
+      <p class="modal__desc" id="deleteModalDesc"></p>
+      <div class="modal__actions">
+        <button class="btn btn--outline" id="deleteCancelBtn">Cancel</button>
+        <button class="btn btn--danger" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2FA Setup modal -->
+  <div class="modal-backdrop" id="admTfaModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="admTfaModalTitle">
+      <h3 class="modal__title" id="admTfaModalTitle">Set Up Two-Factor Authentication</h3>
+      <p class="modal__desc">Scan this QR code with your authenticator app:</p>
+      <div style="text-align:center;margin:1rem 0">
+        <img id="admTfaQrImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="2FA QR Code" style="border-radius:8px;background:#fff;padding:8px;max-width:200px" />
+      </div>
+      <p class="modal__desc" style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Or enter manually: <code id="admTfaSecret" style="user-select:all"></code></p>
+      <div class="form-group" style="margin-top:1rem">
+        <label class="form-label" for="admTfaCode">Enter the 6-digit code</label>
+        <input class="form-input" id="admTfaCode" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+      </div>
+      <div id="admTfaError" class="dash-alert dash-alert--error" hidden></div>
+      <div class="modal__actions">
+        <button class="btn btn--outline" id="admTfaCancelBtn" type="button">Cancel</button>
+        <button class="btn btn--primary" id="admTfaVerifyBtn" type="button">Verify &amp; Enable</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/admin.js"></script>
+  <link rel="stylesheet" href="/css/lumi.css" />
+  <script src="/js/lumi.js" defer></script>
+</body>
+</html>

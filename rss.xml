@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Luzerge Blog</title>
+    <link>https://luzerge.com/blog.html</link>
+    <description>Website monitoring, CDN management, and web security insights for Philippine businesses.</description>
+    <language>en</language>
+    <lastBuildDate>Wed, 19 Mar 2026 08:00:00 +0800</lastBuildDate>
+    <atom:link href="https://luzerge.com/rss.xml" rel="self" type="application/rss+xml" />
+
+    <item>
+      <title>Why Website Security Starts with Monitoring</title>
+      <link>https://luzerge.com/blog/why-website-security-starts-with-monitoring.html</link>
+      <description>Most cyberattacks succeed not because defenses are weak, but because the target didn't know they were vulnerable. Uptime monitoring, SSL management, and DDoS protection form the first line of defense.</description>
+      <pubDate>Wed, 19 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog/why-website-security-starts-with-monitoring.html</guid>
+    </item>
+
+    <item>
+      <title>How Bot Fight Mode Protects Your Website from Automated Threats</title>
+      <link>https://luzerge.com/blog/how-bot-fight-mode-protects-your-website.html</link>
+      <description>Bots account for nearly half of all internet traffic. Cloudflare's Bot Fight Mode uses machine learning to detect and challenge malicious bots in real time.</description>
+      <pubDate>Tue, 18 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog/how-bot-fight-mode-protects-your-website.html</guid>
+    </item>
+
+    <item>
+      <title>Setting Up Cloudflare for Your Philippine Business</title>
+      <link>https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html</link>
+      <description>A step-by-step walkthrough for Filipino business owners. Create a Cloudflare account, transfer DNS, enable caching, configure SSL, and connect to Luzerge.</description>
+      <pubDate>Mon, 17 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog/setting-up-cloudflare-for-your-philippine-business.html</guid>
+    </item>
+
+    <item>
+      <title>What Is Always Online and Why Your Site Needs It</title>
+      <link>https://luzerge.com/blog/what-is-always-online-and-why-your-site-needs-it.html</link>
+      <description>Server outages happen. Always Online serves a cached snapshot of your site during downtime so visitors still see content instead of error pages.</description>
+      <pubDate>Sun, 16 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog/what-is-always-online-and-why-your-site-needs-it.html</guid>
+    </item>
+
+    <item>
+      <title>Understanding CDN Cache Hit Rates and How to Improve Them</title>
+      <link>https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html</link>
+      <description>Your cache hit rate directly affects page load speed and bandwidth costs. Five practical tips to push your Cloudflare cache hit rate above 95%.</description>
+      <pubDate>Sat, 15 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog/understanding-cdn-cache-hit-rates.html</guid>
+    </item>
+
+    <item>
+      <title>Email Routing with Cloudflare: Free Custom Email for Your Domain</title>
+      <link>https://luzerge.com/blog/email-routing-with-cloudflare.html</link>
+      <description>Create unlimited custom email addresses like info@yourdomain.com and forward them to Gmail or Outlook for free using Cloudflare Email Routing.</description>
+      <pubDate>Fri, 14 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog/email-routing-with-cloudflare.html</guid>
+    </item>
+
+    <item>
+      <title>How to Read HTTP Response Headers for Security and Performance</title>
+      <link>https://luzerge.com/blog/how-to-read-http-response-headers.html</link>
+      <description>Every HTTP response contains headers that reveal how your server is configured. Learn what good security and cache headers look like.</description>
+      <pubDate>Thu, 13 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog/how-to-read-http-response-headers.html</guid>
+    </item>
+
+    <item>
+      <title>Introducing Luzerge: Website Monitoring Built for Philippine SMEs</title>
+      <link>https://luzerge.com/blog/introducing-luzerge.html</link>
+      <description>We built Luzerge because Philippine businesses deserve affordable, enterprise-grade website monitoring. Priced in pesos, built on Cloudflare's global network.</description>
+      <pubDate>Wed, 12 Mar 2026 08:00:00 +0800</pubDate>
+      <guid>https://luzerge.com/blog/introducing-luzerge.html</guid>
+    </item>
+  </channel>
+</rss>
