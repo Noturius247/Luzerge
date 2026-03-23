@@ -114,6 +114,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/blog-interactive.css" />
   <style>
     .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
     .post { min-width: 0; }
@@ -249,6 +250,47 @@
       </div>
     </header>
 
+<div class="post-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Heartbeat/monitoring pulse line -->
+    <path d="M0 100 L120 100 L140 60 L160 140 L180 80 L200 120 L220 100 L600 100" stroke="#3b82f6" stroke-width="1.5" opacity="0.3" stroke-dasharray="800" stroke-dashoffset="800" style="animation: hero-heartbeat 3s ease-in-out infinite"/>
+    <!-- Central shield -->
+    <g transform="translate(300,100)" style="animation: hero-float 4s ease-in-out infinite">
+      <path d="M0-50 L-35-30 L-35 15 C-35 45 0 60 0 60 C0 60 35 45 35 15 L35-30 Z" fill="rgba(248,113,113,0.15)" stroke="#f87171" stroke-width="2"/>
+      <path d="M-10 5 L-3 12 L12-5" stroke="#f87171" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <!-- Orbiting: Clock (Uptime) -->
+    <g transform="translate(300,100)">
+      <g style="animation: hero-orbit 8s linear infinite">
+        <circle r="16" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1.5"/>
+        <circle cx="0" cy="0" r="1.5" fill="#3b82f6"/>
+        <line x1="0" y1="0" x2="0" y2="-7" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="5" y2="2" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+    </g>
+    <!-- Orbiting: Lock (SSL) -->
+    <g transform="translate(300,100)">
+      <g style="animation: hero-orbit 8s linear infinite; animation-delay: -2.67s">
+        <circle r="16" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1.5"/>
+        <rect x="-6" y="-2" width="12" height="9" rx="2" fill="none" stroke="#34d399" stroke-width="1.5"/>
+        <path d="M-4-2 L-4-6 A4 4 0 0 1 4-6 L4-2" fill="none" stroke="#34d399" stroke-width="1.5"/>
+      </g>
+    </g>
+    <!-- Orbiting: Shield-zap (DDoS) -->
+    <g transform="translate(300,100)">
+      <g style="animation: hero-orbit 8s linear infinite; animation-delay: -5.33s">
+        <circle r="16" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" stroke-width="1.5"/>
+        <path d="M2-8 L-3 0 L1 0 L-2 8 L5 0 L1 0 Z" fill="#fbbf24"/>
+      </g>
+    </g>
+    <!-- Ambient dots -->
+    <circle cx="80" cy="50" r="1.5" fill="#3b82f6" style="animation: hero-pulse 3s ease-in-out infinite"/>
+    <circle cx="520" cy="150" r="1" fill="#8b5cf6" style="animation: hero-pulse 3s ease-in-out infinite; animation-delay: 1s"/>
+    <circle cx="150" cy="170" r="1.2" fill="#34d399" style="animation: hero-pulse 3s ease-in-out infinite; animation-delay: 2s"/>
+    <circle cx="480" cy="40" r="1" fill="#f87171" style="animation: hero-pulse 3s ease-in-out infinite; animation-delay: 0.5s"/>
+  </svg>
+</div>
+
     <article class="post-content">
       <p>Most cyberattacks don't succeed because defenses are weak. They succeed because the target <strong>didn't know they were vulnerable</strong>. A certificate expired silently. A server went down at 3 AM and nobody noticed until customers complained. A traffic spike from a botnet overwhelmed the origin server while the team was asleep.</p>
 
@@ -257,6 +299,33 @@
       <h2>The Three Pillars of Proactive Web Security</h2>
 
       <p>Security isn't just about firewalls and passwords. Modern web security is built on three pillars that work together to keep your site safe:</p>
+
+<div class="info-card-grid">
+  <div class="info-card">
+    <div class="info-card__icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <p class="info-card__title">Uptime Monitoring</p>
+    <p class="info-card__desc">Detect outages within seconds. Track response times. Get alerts via email, SMS, or webhook.</p>
+    <p class="info-card__hint">Hover for details</p>
+  </div>
+  <div class="info-card">
+    <div class="info-card__icon info-card__icon--green">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <p class="info-card__title">SSL Management</p>
+    <p class="info-card__desc">Track certificate expiration. Monitor chain issues and mixed content. Prevent browser warnings.</p>
+    <p class="info-card__hint">Hover for details</p>
+  </div>
+  <div class="info-card">
+    <div class="info-card__icon info-card__icon--amber">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <p class="info-card__title">DDoS Protection</p>
+    <p class="info-card__desc">Identify traffic anomalies. Distinguish legitimate spikes from attacks. Automatic mitigation.</p>
+    <p class="info-card__hint">Hover for details</p>
+  </div>
+</div>
 
       <h3>1. Uptime Monitoring</h3>
 
@@ -313,6 +382,25 @@
       <h2>How Luzerge Solves This</h2>
 
       <p>We built <a href="/">Luzerge</a> specifically for Philippine businesses that need enterprise-grade monitoring without the enterprise price tag. Our platform combines all three security pillars into a single dashboard:</p>
+
+<div class="stat-counter-group">
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value" data-target="60" data-suffix="s">0s</div>
+    <div class="stat-counter-card__label">Check Interval</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--green" data-target="99.9" data-suffix="%" data-decimals="1">0%</div>
+    <div class="stat-counter-card__label">Uptime Target</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--amber" data-target="24" data-suffix="/7">0/7</div>
+    <div class="stat-counter-card__label">Monitoring</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--purple" data-target="0" data-prefix="₱" data-suffix="">₱0</div>
+    <div class="stat-counter-card__label">Starting Price</div>
+  </div>
+</div>
 
       <ul>
         <li><strong>60-second uptime checks</strong> from multiple global locations</li>
@@ -417,6 +505,69 @@
   </div><!-- /.post-wrapper -->
 
   <script>
+// Stat counter animation
+;(function () {
+  const counters = document.querySelectorAll('[data-target]')
+  if (!counters.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      const el = entry.target
+      const target = parseFloat(el.dataset.target)
+      const decimals = parseInt(el.dataset.decimals || '0')
+      const prefix = el.dataset.prefix || ''
+      const suffix = el.dataset.suffix || ''
+      const duration = 1500
+      const start = performance.now()
+      function update(now) {
+        const progress = Math.min((now - start) / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        const current = (target * eased).toFixed(decimals)
+        el.textContent = prefix + current + suffix
+        if (progress < 1) requestAnimationFrame(update)
+      }
+      requestAnimationFrame(update)
+      observer.unobserve(el)
+    })
+  }, { threshold: 0.5 })
+  counters.forEach(c => observer.observe(c))
+})()
+
+// Animated code blocks
+;(function () {
+  const blocks = document.querySelectorAll('.code-animated')
+  if (!blocks.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      const block = entry.target
+      block.classList.add('visible')
+      const lines = block.querySelectorAll('.code-animated__line')
+      lines.forEach((line, i) => {
+        line.style.transitionDelay = (i * 0.12) + 's'
+      })
+      observer.unobserve(block)
+    })
+  }, { threshold: 0.3 })
+  blocks.forEach(b => observer.observe(b))
+})()
+
+// Interactive checklist
+;(function () {
+  document.querySelectorAll('.interactive-checklist__item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('checked')
+      const list = item.closest('.interactive-checklist') || item.parentElement
+      const all = list.querySelectorAll('.interactive-checklist__item')
+      const done = list.querySelectorAll('.interactive-checklist__item.checked')
+      const bar = list.parentElement.querySelector('.checklist-progress__bar') || list.nextElementSibling?.querySelector('.checklist-progress__bar')
+      const label = list.parentElement.querySelector('.checklist-progress__label') || list.nextElementSibling?.nextElementSibling
+      if (bar) bar.style.width = ((done.length / all.length) * 100) + '%'
+      if (label) label.textContent = done.length + ' of ' + all.length + ' completed'
+    })
+  })
+})()
+
     // FAQ accordion
     document.querySelectorAll('.post-faq__q').forEach(q => {
       q.addEventListener('click', () => q.parentElement.classList.toggle('open'))

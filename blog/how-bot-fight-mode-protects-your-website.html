@@ -114,6 +114,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/blog-interactive.css" />
   <style>
     .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
     .post { min-width: 0; }
@@ -249,6 +250,49 @@
       </div>
     </header>
 
+    <div class="post-hero" aria-hidden="true">
+      <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Shield/Firewall barrier -->
+        <rect x="270" y="30" width="60" height="140" rx="8" fill="rgba(59,130,246,0.1)" stroke="#3b82f6" stroke-width="2" style="animation: hero-glow 3s ease-in-out infinite; color: #3b82f6"/>
+        <path d="M300 60 L300 140" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
+        <!-- Bot 1 approaching -->
+        <g style="animation: hero-deflect 3s ease-in-out infinite">
+          <rect x="80" y="80" width="28" height="28" rx="6" fill="rgba(248,113,113,0.15)" stroke="#f87171" stroke-width="1.5"/>
+          <circle cx="90" cy="90" r="2" fill="#f87171"/><circle cx="100" cy="90" r="2" fill="#f87171"/>
+          <path d="M88 98 L102 98" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+        <!-- Bot 2 approaching (delayed) -->
+        <g style="animation: hero-deflect 3s ease-in-out infinite; animation-delay: 1s">
+          <rect x="60" y="120" width="24" height="24" rx="5" fill="rgba(248,113,113,0.12)" stroke="#f87171" stroke-width="1.2"/>
+          <circle cx="68" cy="128" r="1.5" fill="#f87171"/><circle cx="78" cy="128" r="1.5" fill="#f87171"/>
+          <path d="M67 135 L79 135" stroke="#f87171" stroke-width="1.2" stroke-linecap="round"/>
+        </g>
+        <!-- Bot 3 approaching (delayed) -->
+        <g style="animation: hero-deflect 3s ease-in-out infinite; animation-delay: 2s">
+          <rect x="100" y="50" width="22" height="22" rx="4" fill="rgba(248,113,113,0.1)" stroke="#f87171" stroke-width="1"/>
+          <circle cx="107" cy="57" r="1.5" fill="#f87171"/><circle cx="116" cy="57" r="1.5" fill="#f87171"/>
+        </g>
+        <!-- Legitimate user passing through -->
+        <g style="animation: hero-pass-through 4s ease-in-out infinite; animation-delay: 0.5s">
+          <circle cx="140" cy="100" r="14" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1.5"/>
+          <circle cx="140" cy="95" r="4" fill="none" stroke="#34d399" stroke-width="1.5"/>
+          <path d="M132 108 a8 6 0 0 1 16 0" fill="none" stroke="#34d399" stroke-width="1.5"/>
+        </g>
+        <!-- Checkmark on right side -->
+        <g transform="translate(440,100)" style="animation: hero-pulse 2s ease-in-out infinite; animation-delay: 2s">
+          <circle r="18" fill="rgba(52,211,153,0.1)" stroke="#34d399" stroke-width="1.5"/>
+          <path d="M-6 0 L-2 4 L7-5" stroke="#34d399" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <!-- Labels -->
+        <text x="90" y="175" fill="#f87171" font-size="9" font-weight="600" text-anchor="middle" opacity="0.7">Bots</text>
+        <text x="300" y="185" fill="#3b82f6" font-size="9" font-weight="600" text-anchor="middle" opacity="0.7">Bot Fight Mode</text>
+        <text x="440" y="140" fill="#34d399" font-size="8" font-weight="600" text-anchor="middle" opacity="0.7">Verified</text>
+        <!-- Ambient dots -->
+        <circle cx="500" cy="50" r="1" fill="#3b82f6" style="animation: hero-pulse 3s ease-in-out infinite"/>
+        <circle cx="540" cy="150" r="1.2" fill="#8b5cf6" style="animation: hero-pulse 3s ease-in-out infinite; animation-delay: 1.5s"/>
+      </svg>
+    </div>
+
     <article class="post-content">
       <p>According to recent industry reports, bots account for <strong>nearly half of all internet traffic</strong>. Not all of them are harmless. While some bots serve legitimate purposes — search engine crawlers indexing your pages, uptime monitors checking availability — a significant portion exists to exploit, scrape, and attack websites automatically and at scale.</p>
 
@@ -323,6 +367,33 @@
       </ul>
 
       <p>For comprehensive protection, you need both. Cloudflare enables WAF Managed Rules alongside Bot Fight Mode, and if you're using <a href="/">Luzerge</a> to manage your Cloudflare setup, both features are configured as part of your security baseline.</p>
+
+      <div class="comparison-panel">
+        <div class="comparison-panel__side comparison-panel__side--before">
+          <p class="comparison-panel__label comparison-panel__label--before">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+            Without Bot Fight Mode
+          </p>
+          <ul class="comparison-panel__list">
+            <li><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Credential stuffing attacks succeed</li>
+            <li><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Content scraped by automated bots</li>
+            <li><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Server resources wasted on bot traffic</li>
+            <li><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Manual firewall rules required</li>
+          </ul>
+        </div>
+        <div class="comparison-panel__side comparison-panel__side--after">
+          <p class="comparison-panel__label comparison-panel__label--after">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            With Bot Fight Mode
+          </p>
+          <ul class="comparison-panel__list">
+            <li><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ML-powered bot detection in real time</li>
+            <li><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Content protected from scraping</li>
+            <li><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Server resources reserved for real users</li>
+            <li><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Zero-config automatic protection</li>
+          </ul>
+        </div>
+      </div>
 
       <h2>How to Enable Bot Fight Mode Through Luzerge</h2>
 
@@ -462,6 +533,66 @@
   </div><!-- /.post-wrapper -->
 
   <script>
+    // Stat counter animation
+    ;(function () {
+      const counters = document.querySelectorAll('[data-target]')
+      if (!counters.length) return
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return
+          const el = entry.target
+          const target = parseFloat(el.dataset.target)
+          const decimals = parseInt(el.dataset.decimals || '0')
+          const prefix = el.dataset.prefix || ''
+          const suffix = el.dataset.suffix || ''
+          const duration = 1500
+          const start = performance.now()
+          function update(now) {
+            const progress = Math.min((now - start) / duration, 1)
+            const eased = 1 - Math.pow(1 - progress, 3)
+            const current = (target * eased).toFixed(decimals)
+            el.textContent = prefix + current + suffix
+            if (progress < 1) requestAnimationFrame(update)
+          }
+          requestAnimationFrame(update)
+          observer.unobserve(el)
+        })
+      }, { threshold: 0.5 })
+      counters.forEach(c => observer.observe(c))
+    })()
+
+    // Animated code blocks
+    ;(function () {
+      const blocks = document.querySelectorAll('.code-animated')
+      if (!blocks.length) return
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return
+          entry.target.classList.add('visible')
+          const lines = entry.target.querySelectorAll('.code-animated__line')
+          lines.forEach((line, i) => { line.style.transitionDelay = (i * 0.12) + 's' })
+          observer.unobserve(entry.target)
+        })
+      }, { threshold: 0.3 })
+      blocks.forEach(b => observer.observe(b))
+    })()
+
+    // Interactive checklist
+    ;(function () {
+      document.querySelectorAll('.interactive-checklist__item').forEach(item => {
+        item.addEventListener('click', () => {
+          item.classList.toggle('checked')
+          const list = item.closest('.interactive-checklist') || item.parentElement
+          const all = list.querySelectorAll('.interactive-checklist__item')
+          const done = list.querySelectorAll('.interactive-checklist__item.checked')
+          const bar = list.parentElement.querySelector('.checklist-progress__bar') || list.nextElementSibling?.querySelector('.checklist-progress__bar')
+          const label = list.parentElement.querySelector('.checklist-progress__label') || list.nextElementSibling?.nextElementSibling
+          if (bar) bar.style.width = ((done.length / all.length) * 100) + '%'
+          if (label) label.textContent = done.length + ' of ' + all.length + ' completed'
+        })
+      })
+    })()
+
     // FAQ accordion
     document.querySelectorAll('.post-faq__q').forEach(q => {
       q.addEventListener('click', () => q.parentElement.classList.toggle('open'))

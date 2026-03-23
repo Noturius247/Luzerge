@@ -114,6 +114,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/blog-interactive.css" />
   <style>
     .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
     .post { min-width: 0; }
@@ -248,6 +249,65 @@
       </div>
     </header>
 
+<div class="post-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Philippine map outline (simplified) -->
+    <g transform="translate(300,100)" opacity="0.3">
+      <!-- Luzon -->
+      <path d="M-5-60 C5-65 15-55 10-40 C12-30 8-20 0-15" stroke="#34d399" stroke-width="1.5" fill="none"/>
+      <!-- Visayas -->
+      <ellipse cx="0" cy="0" rx="25" ry="8" stroke="#34d399" stroke-width="1" fill="none" stroke-dasharray="3 3"/>
+      <!-- Mindanao -->
+      <path d="M-10 15 C-15 25 -5 40 5 35 C15 30 10 20 5 15" stroke="#34d399" stroke-width="1.5" fill="none"/>
+    </g>
+    <!-- Manila node -->
+    <g transform="translate(295,60)">
+      <circle r="5" fill="#34d399" style="animation: hero-pulse 2s ease-in-out infinite"/>
+      <circle r="5" fill="none" stroke="#34d399" stroke-width="1" style="animation: node-ping 2s ease-out infinite"/>
+      <text x="12" y="4" fill="#34d399" font-size="8" font-weight="600">Manila</text>
+    </g>
+    <!-- Cebu node -->
+    <g transform="translate(305,100)">
+      <circle r="5" fill="#3b82f6" style="animation: hero-pulse 2s ease-in-out infinite; animation-delay: 0.5s"/>
+      <circle r="5" fill="none" stroke="#3b82f6" stroke-width="1" style="animation: node-ping 2s ease-out infinite; animation-delay: 0.5s"/>
+      <text x="12" y="4" fill="#3b82f6" font-size="8" font-weight="600">Cebu</text>
+    </g>
+    <!-- Website icon (left) -->
+    <g transform="translate(100,100)" style="animation: hero-float 4s ease-in-out infinite">
+      <rect x="-20" y="-15" width="40" height="30" rx="4" fill="rgba(255,255,255,0.05)" stroke="#94a3b8" stroke-width="1.5"/>
+      <line x1="-20" y1="-5" x2="20" y2="-5" stroke="#94a3b8" stroke-width="1" opacity="0.5"/>
+      <circle cx="-14" cy="-10" r="2" fill="#f87171"/><circle cx="-8" cy="-10" r="2" fill="#fbbf24"/><circle cx="-2" cy="-10" r="2" fill="#34d399"/>
+      <text x="0" y="26" fill="#94a3b8" font-size="8" text-anchor="middle">Your Site</text>
+    </g>
+    <!-- Connection lines with animated data flow -->
+    <path d="M130 100 Q200 60 290 65" stroke="#34d399" stroke-width="1" stroke-dasharray="4 4" style="animation: hero-dash 2s linear infinite; stroke-dashoffset: 20"/>
+    <path d="M130 100 Q200 100 295 100" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 4" style="animation: hero-dash 2s linear infinite; animation-delay: 0.5s; stroke-dashoffset: 20"/>
+    <!-- Users on right -->
+    <g transform="translate(470,60)" style="animation: hero-fade-in 1s ease-out; animation-delay: 0.5s; animation-fill-mode: both">
+      <circle r="10" fill="rgba(255,255,255,0.05)" stroke="#94a3b8" stroke-width="1"/>
+      <circle cy="-3" r="3" fill="none" stroke="#94a3b8" stroke-width="1"/>
+      <path d="M-6 7 a6 4 0 0 1 12 0" fill="none" stroke="#94a3b8" stroke-width="1"/>
+    </g>
+    <g transform="translate(490,100)" style="animation: hero-fade-in 1s ease-out; animation-delay: 1s; animation-fill-mode: both">
+      <circle r="10" fill="rgba(255,255,255,0.05)" stroke="#94a3b8" stroke-width="1"/>
+      <circle cy="-3" r="3" fill="none" stroke="#94a3b8" stroke-width="1"/>
+      <path d="M-6 7 a6 4 0 0 1 12 0" fill="none" stroke="#94a3b8" stroke-width="1"/>
+    </g>
+    <g transform="translate(470,140)" style="animation: hero-fade-in 1s ease-out; animation-delay: 1.5s; animation-fill-mode: both">
+      <circle r="10" fill="rgba(255,255,255,0.05)" stroke="#94a3b8" stroke-width="1"/>
+      <circle cy="-3" r="3" fill="none" stroke="#94a3b8" stroke-width="1"/>
+      <path d="M-6 7 a6 4 0 0 1 12 0" fill="none" stroke="#94a3b8" stroke-width="1"/>
+    </g>
+    <!-- Connection from nodes to users -->
+    <path d="M315 65 Q400 55 460 60" stroke="#34d399" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>
+    <path d="M315 100 Q400 100 480 100" stroke="#3b82f6" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>
+    <path d="M315 100 Q400 130 460 140" stroke="#8b5cf6" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>
+    <text x="480" y="175" fill="#94a3b8" font-size="8" text-anchor="middle">Visitors</text>
+    <!-- Cloudflare label -->
+    <text x="300" y="155" fill="#34d399" font-size="9" font-weight="600" text-anchor="middle" opacity="0.6">Cloudflare Edge Network</text>
+  </svg>
+</div>
+
     <article class="post-content">
       <p>If you run a business website in the Philippines, chances are your visitors are experiencing slower load times than they should be. Your origin server might be located in the US or Singapore, your site might lack proper SSL encryption, and you could be one bad bot attack away from an outage. <strong>Cloudflare fixes all of these problems</strong> — and the best part is that it's free to get started.</p>
 
@@ -371,6 +431,39 @@
       <p>Now that Cloudflare is set up, you need a way to monitor that everything stays healthy. That's where <a href="/">Luzerge</a> comes in. Our platform integrates directly with Cloudflare to give you real-time monitoring of your domain's uptime, SSL status, and security configuration.</p>
 
       <p>Here's how to connect your Cloudflare zone to Luzerge:</p>
+
+      <ul class="interactive-checklist">
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 1</p><p class="interactive-checklist__text">Create a free Cloudflare account at cloudflare.com</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 2</p><p class="interactive-checklist__text">Add your domain and let Cloudflare scan your DNS records</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 3</p><p class="interactive-checklist__text">Update nameservers at your domain registrar</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 4</p><p class="interactive-checklist__text">Enable the orange cloud proxy for your DNS records</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 5</p><p class="interactive-checklist__text">Set SSL mode to Full (Strict)</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 6</p><p class="interactive-checklist__text">Configure page rules for caching static assets</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 7</p><p class="interactive-checklist__text">Connect your zone to Luzerge for monitoring</p></div>
+  </li>
+</ul>
+<div class="checklist-progress"><div class="checklist-progress__bar"></div></div>
+<p class="checklist-progress__label">0 of 7 completed</p>
 
       <ol>
         <li><strong>Scan your domain</strong> using our <a href="/#scanner">free website scanner</a> to get an instant health check of your Cloudflare configuration</li>
@@ -500,6 +593,22 @@
   </div><!-- /.post-wrapper -->
 
   <script>
+    // Interactive checklist
+    ;(function () {
+      document.querySelectorAll('.interactive-checklist__item').forEach(item => {
+        item.addEventListener('click', () => {
+          item.classList.toggle('checked')
+          const list = item.closest('.interactive-checklist') || item.parentElement
+          const all = list.querySelectorAll('.interactive-checklist__item')
+          const done = list.querySelectorAll('.interactive-checklist__item.checked')
+          const bar = list.parentElement.querySelector('.checklist-progress__bar') || list.nextElementSibling?.querySelector('.checklist-progress__bar')
+          const label = list.parentElement.querySelector('.checklist-progress__label') || list.nextElementSibling?.nextElementSibling
+          if (bar) bar.style.width = ((done.length / all.length) * 100) + '%'
+          if (label) label.textContent = done.length + ' of ' + all.length + ' completed'
+        })
+      })
+    })()
+
     // FAQ accordion
     document.querySelectorAll('.post-faq__q').forEach(q => {
       q.addEventListener('click', () => q.parentElement.classList.toggle('open'))

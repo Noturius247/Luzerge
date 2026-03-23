@@ -106,6 +106,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/blog-interactive.css" />
   <style>
     .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
     .post { min-width: 0; }
@@ -240,6 +241,44 @@
       </div>
     </header>
 
+<div class="post-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Envelope (left) -->
+    <g transform="translate(100,100)" style="animation: hero-float 3s ease-in-out infinite">
+      <rect x="-25" y="-18" width="50" height="36" rx="4" fill="rgba(56,189,248,0.1)" stroke="#38bdf8" stroke-width="1.5"/>
+      <path d="M-25-18 L0 2 L25-18" fill="none" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="0" y="35" fill="#38bdf8" font-size="7" font-weight="600" text-anchor="middle">info@yourdomain.com</text>
+    </g>
+    <!-- Animated envelope particles -->
+    <g style="animation: hero-envelope 3s ease-in-out infinite">
+      <rect x="150" y="92" width="16" height="12" rx="2" fill="rgba(56,189,248,0.3)" stroke="#38bdf8" stroke-width="1"/>
+      <path d="M150 92 L158 100 L166 92" fill="none" stroke="#38bdf8" stroke-width="0.8"/>
+    </g>
+    <g style="animation: hero-envelope 3s ease-in-out infinite; animation-delay: 1s">
+      <rect x="150" y="105" width="14" height="10" rx="2" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="0.8"/>
+    </g>
+    <!-- Cloudflare router (center) -->
+    <g transform="translate(300,100)">
+      <circle r="35" fill="rgba(59,130,246,0.06)" stroke="#3b82f6" stroke-width="1.5" style="animation: hero-pulse 3s ease-in-out infinite"/>
+      <path d="M-12-5 L0-15 L12-5 L8 10 L-8 10 Z" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="0" y="55" fill="#3b82f6" font-size="8" font-weight="600" text-anchor="middle" opacity="0.6">Cloudflare Router</text>
+    </g>
+    <!-- Gmail inbox (top right) -->
+    <g transform="translate(480,65)" style="animation: hero-fade-in 1s ease-out; animation-delay: 0.5s; animation-fill-mode: both">
+      <rect x="-22" y="-16" width="44" height="32" rx="4" fill="rgba(248,113,113,0.08)" stroke="#f87171" stroke-width="1"/>
+      <text x="0" y="4" fill="#f87171" font-size="8" font-weight="700" text-anchor="middle">Gmail</text>
+    </g>
+    <!-- Outlook inbox (bottom right) -->
+    <g transform="translate(480,135)" style="animation: hero-fade-in 1s ease-out; animation-delay: 1s; animation-fill-mode: both">
+      <rect x="-22" y="-16" width="44" height="32" rx="4" fill="rgba(59,130,246,0.08)" stroke="#3b82f6" stroke-width="1"/>
+      <text x="0" y="4" fill="#3b82f6" font-size="8" font-weight="700" text-anchor="middle">Outlook</text>
+    </g>
+    <!-- Routing arrows -->
+    <path d="M340 90 Q400 65 455 65" stroke="#f87171" stroke-width="1" stroke-dasharray="4 3" style="animation: hero-dash 1.5s linear infinite; stroke-dashoffset: 14"/>
+    <path d="M340 110 Q400 135 455 135" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 3" style="animation: hero-dash 1.5s linear infinite; animation-delay: 0.5s; stroke-dashoffset: 14"/>
+  </svg>
+</div>
+
     <article class="post-content">
       <p>If you are still sending emails from a generic Gmail or Yahoo address, your business is leaving credibility on the table. An email from <strong>info@yourdomain.com</strong> signals professionalism and trust. An email from <strong>yourbusiness2024@gmail.com</strong> signals that you are not serious enough to invest in your own brand.</p>
 
@@ -273,6 +312,31 @@
       </ul>
 
       <blockquote>Think of Cloudflare Email Routing as a mail forwarding service for your domain. Emails arrive at your custom address and get delivered to your personal inbox.</blockquote>
+
+<ul class="interactive-checklist">
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 1</p><p class="interactive-checklist__text">Navigate to Email Routing in Cloudflare dashboard</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 2</p><p class="interactive-checklist__text">Add your destination email (Gmail or Outlook)</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 3</p><p class="interactive-checklist__text">Verify your destination email address</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 4</p><p class="interactive-checklist__text">Create custom addresses (info@, support@, etc.)</p></div>
+  </li>
+  <li class="interactive-checklist__item">
+    <div class="interactive-checklist__check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div><p class="interactive-checklist__step">Step 5</p><p class="interactive-checklist__text">Optional: Set up catch-all routing</p></div>
+  </li>
+</ul>
+<div class="checklist-progress"><div class="checklist-progress__bar"></div></div>
+<p class="checklist-progress__label">0 of 5 completed</p>
 
       <h2>Step-by-Step Setup Guide</h2>
 
@@ -427,6 +491,66 @@
   </div><!-- /.post-wrapper -->
 
   <script>
+// Stat counter animation
+;(function () {
+  const counters = document.querySelectorAll('[data-target]')
+  if (!counters.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      const el = entry.target
+      const target = parseFloat(el.dataset.target)
+      const decimals = parseInt(el.dataset.decimals || '0')
+      const prefix = el.dataset.prefix || ''
+      const suffix = el.dataset.suffix || ''
+      const duration = 1500
+      const start = performance.now()
+      function update(now) {
+        const progress = Math.min((now - start) / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        const current = (target * eased).toFixed(decimals)
+        el.textContent = prefix + current + suffix
+        if (progress < 1) requestAnimationFrame(update)
+      }
+      requestAnimationFrame(update)
+      observer.unobserve(el)
+    })
+  }, { threshold: 0.5 })
+  counters.forEach(c => observer.observe(c))
+})()
+
+// Animated code blocks
+;(function () {
+  const blocks = document.querySelectorAll('.code-animated')
+  if (!blocks.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      entry.target.classList.add('visible')
+      const lines = entry.target.querySelectorAll('.code-animated__line')
+      lines.forEach((line, i) => { line.style.transitionDelay = (i * 0.12) + 's' })
+      observer.unobserve(entry.target)
+    })
+  }, { threshold: 0.3 })
+  blocks.forEach(b => observer.observe(b))
+})()
+
+// Interactive checklist
+;(function () {
+  document.querySelectorAll('.interactive-checklist__item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('checked')
+      const list = item.closest('.interactive-checklist') || item.parentElement
+      const all = list.querySelectorAll('.interactive-checklist__item')
+      const done = list.querySelectorAll('.interactive-checklist__item.checked')
+      const bar = list.parentElement.querySelector('.checklist-progress__bar') || list.nextElementSibling?.querySelector('.checklist-progress__bar')
+      const label = list.parentElement.querySelector('.checklist-progress__label') || list.nextElementSibling?.nextElementSibling
+      if (bar) bar.style.width = ((done.length / all.length) * 100) + '%'
+      if (label) label.textContent = done.length + ' of ' + all.length + ' completed'
+    })
+  })
+})()
+
     // FAQ accordion
     document.querySelectorAll('.post-faq__q').forEach(q => {
       q.addEventListener('click', () => q.parentElement.classList.toggle('open'))

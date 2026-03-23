@@ -114,6 +114,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/blog-interactive.css" />
   <style>
     .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
     .post { min-width: 0; }
@@ -249,6 +250,47 @@
       </div>
     </header>
 
+<div class="post-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Globe -->
+    <g transform="translate(300,100)">
+      <circle r="55" fill="rgba(251,191,36,0.04)" stroke="#fbbf24" stroke-width="1" opacity="0.4"/>
+      <ellipse rx="55" ry="20" fill="none" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/>
+      <ellipse rx="20" ry="55" fill="none" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/>
+      <line x1="-55" y1="0" x2="55" y2="0" stroke="#fbbf24" stroke-width="0.5" opacity="0.2"/>
+      <line x1="0" y1="-55" x2="0" y2="55" stroke="#fbbf24" stroke-width="0.5" opacity="0.2"/>
+    </g>
+    <!-- Cache HIT nodes on globe -->
+    <g transform="translate(265,65)">
+      <circle r="6" fill="#34d399" style="animation: hero-pulse 2s ease-in-out infinite"/>
+      <text x="12" y="4" fill="#34d399" font-size="7" font-weight="600">HIT</text>
+    </g>
+    <g transform="translate(340,80)">
+      <circle r="5" fill="#34d399" style="animation: hero-pulse 2s ease-in-out infinite; animation-delay: 0.5s"/>
+      <text x="10" y="3" fill="#34d399" font-size="7" font-weight="600">HIT</text>
+    </g>
+    <g transform="translate(280,130)">
+      <circle r="5" fill="#34d399" style="animation: hero-pulse 2s ease-in-out infinite; animation-delay: 1s"/>
+      <text x="10" y="3" fill="#34d399" font-size="7" font-weight="600">HIT</text>
+    </g>
+    <!-- Cache MISS -->
+    <g transform="translate(330,125)">
+      <circle r="4" fill="#f87171" style="animation: hero-pulse 2s ease-in-out infinite; animation-delay: 1.5s"/>
+      <text x="8" y="3" fill="#f87171" font-size="6" font-weight="600">MISS</text>
+    </g>
+    <!-- User arrow -->
+    <g transform="translate(100,100)" style="animation: hero-float 3s ease-in-out infinite">
+      <circle r="12" fill="rgba(255,255,255,0.05)" stroke="#94a3b8" stroke-width="1"/>
+      <circle cy="-3" r="3.5" fill="none" stroke="#94a3b8" stroke-width="1"/>
+      <path d="M-7 7 a7 5 0 0 1 14 0" fill="none" stroke="#94a3b8" stroke-width="1"/>
+    </g>
+    <path d="M120 100 L240 100" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="6 3" style="animation: hero-dash 2s linear infinite; stroke-dashoffset: 18"/>
+    <!-- Big stat -->
+    <text x="490" y="90" fill="#fbbf24" font-size="36" font-weight="800" text-anchor="middle" opacity="0.2">95%</text>
+    <text x="490" y="115" fill="#fbbf24" font-size="10" font-weight="600" text-anchor="middle" opacity="0.4">Cache Hit Rate</text>
+  </svg>
+</div>
+
     <article class="post-content">
       <p>Every time a visitor loads your website, the browser makes dozens of requests for HTML, CSS, JavaScript, images, and fonts. If those assets are served from a CDN edge server close to the visitor, the page loads fast. If every request has to travel all the way back to your origin server, the page loads slowly and your server bears the full cost of every single request.</p>
 
@@ -263,6 +305,25 @@
       <p>If your site receives 10,000 requests in a day and 9,200 of them are served from cache, your cache hit rate is 92%. The remaining 800 requests went back to your origin server — these are called <strong>cache misses</strong>.</p>
 
       <p>Why does this matter? Three reasons:</p>
+
+<div class="stat-counter-group">
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--green" data-target="95" data-suffix="%">0%</div>
+    <div class="stat-counter-card__label">Target Hit Rate</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--amber" data-target="20" data-suffix="ms">0ms</div>
+    <div class="stat-counter-card__label">Edge Response</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--red" data-target="500" data-suffix="ms">0ms</div>
+    <div class="stat-counter-card__label">Origin Response</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value" data-target="25" data-suffix="x">0x</div>
+    <div class="stat-counter-card__label">Speed Improvement</div>
+  </div>
+</div>
 
       <ul>
         <li><strong>Speed</strong> — A cache hit is served from a server geographically close to the visitor, often in under 20 milliseconds. A cache miss might take 200-500ms or more, depending on how far the origin server is. For visitors in the Philippines hitting a US-hosted origin, that round trip adds significant latency.</li>
@@ -467,6 +528,66 @@
   </div><!-- /.post-wrapper -->
 
   <script>
+// Stat counter animation
+;(function () {
+  const counters = document.querySelectorAll('[data-target]')
+  if (!counters.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      const el = entry.target
+      const target = parseFloat(el.dataset.target)
+      const decimals = parseInt(el.dataset.decimals || '0')
+      const prefix = el.dataset.prefix || ''
+      const suffix = el.dataset.suffix || ''
+      const duration = 1500
+      const start = performance.now()
+      function update(now) {
+        const progress = Math.min((now - start) / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        const current = (target * eased).toFixed(decimals)
+        el.textContent = prefix + current + suffix
+        if (progress < 1) requestAnimationFrame(update)
+      }
+      requestAnimationFrame(update)
+      observer.unobserve(el)
+    })
+  }, { threshold: 0.5 })
+  counters.forEach(c => observer.observe(c))
+})()
+
+// Animated code blocks
+;(function () {
+  const blocks = document.querySelectorAll('.code-animated')
+  if (!blocks.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      entry.target.classList.add('visible')
+      const lines = entry.target.querySelectorAll('.code-animated__line')
+      lines.forEach((line, i) => { line.style.transitionDelay = (i * 0.12) + 's' })
+      observer.unobserve(entry.target)
+    })
+  }, { threshold: 0.3 })
+  blocks.forEach(b => observer.observe(b))
+})()
+
+// Interactive checklist
+;(function () {
+  document.querySelectorAll('.interactive-checklist__item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('checked')
+      const list = item.closest('.interactive-checklist') || item.parentElement
+      const all = list.querySelectorAll('.interactive-checklist__item')
+      const done = list.querySelectorAll('.interactive-checklist__item.checked')
+      const bar = list.parentElement.querySelector('.checklist-progress__bar') || list.nextElementSibling?.querySelector('.checklist-progress__bar')
+      const label = list.parentElement.querySelector('.checklist-progress__label') || list.nextElementSibling?.nextElementSibling
+      if (bar) bar.style.width = ((done.length / all.length) * 100) + '%'
+      if (label) label.textContent = done.length + ' of ' + all.length + ' completed'
+    })
+  })
+})()
+
     // FAQ accordion
     document.querySelectorAll('.post-faq__q').forEach(q => {
       q.addEventListener('click', () => q.parentElement.classList.toggle('open'))

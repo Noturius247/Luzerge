@@ -106,6 +106,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" id="googleFonts" />
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/blog-interactive.css" />
   <style>
     .post-wrapper { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; grid-template-columns: 1fr 240px; gap: 3rem; align-items: start; }
     .post { min-width: 0; }
@@ -240,6 +241,39 @@
       </div>
     </header>
 
+<div class="post-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Dashboard frame -->
+    <rect x="100" y="20" width="400" height="160" rx="10" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+    <rect x="100" y="20" width="400" height="25" rx="10" fill="rgba(255,255,255,0.03)"/>
+    <circle cx="118" cy="32" r="4" fill="#f87171"/><circle cx="130" cy="32" r="4" fill="#fbbf24"/><circle cx="142" cy="32" r="4" fill="#34d399"/>
+    <text x="300" y="36" fill="#64748b" font-size="8" text-anchor="middle">Luzerge Dashboard</text>
+    <!-- Uptime graph -->
+    <g transform="translate(120,60)">
+      <text x="0" y="8" fill="#64748b" font-size="7" font-weight="600">UPTIME</text>
+      <path d="M0 35 L30 33 L60 35 L90 30 L120 32 L150 28 L180 30" stroke="#34d399" stroke-width="1.5" fill="none" stroke-dasharray="300" stroke-dashoffset="300" style="animation: hero-heartbeat 2s ease-out forwards; animation-delay: 0.5s"/>
+      <text x="190" y="33" fill="#34d399" font-size="9" font-weight="700" style="animation: hero-fade-in 0.5s ease-out; animation-delay: 2s; animation-fill-mode: both">99.9%</text>
+    </g>
+    <!-- SSL status -->
+    <g transform="translate(120,105)">
+      <text x="0" y="8" fill="#64748b" font-size="7" font-weight="600">SSL</text>
+      <rect x="0" y="15" width="80" height="24" rx="4" fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1" style="animation: hero-fade-in 0.5s ease-out; animation-delay: 1s; animation-fill-mode: both"/>
+      <text x="40" y="31" fill="#34d399" font-size="8" font-weight="600" text-anchor="middle" style="animation: hero-fade-in 0.5s ease-out; animation-delay: 1.2s; animation-fill-mode: both">Valid ✓</text>
+    </g>
+    <!-- Speed gauge -->
+    <g transform="translate(400,130)" style="animation: hero-fade-in 0.5s ease-out; animation-delay: 1.5s; animation-fill-mode: both">
+      <circle r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4"/>
+      <circle r="30" fill="none" stroke="#a78bfa" stroke-width="4" stroke-dasharray="140 188" stroke-dashoffset="140" transform="rotate(-90)" style="animation: hero-dash 1.5s ease-out forwards; animation-delay: 2s"/>
+      <text x="0" y="5" fill="#a78bfa" font-size="12" font-weight="800" text-anchor="middle">A+</text>
+      <text x="0" y="15" fill="#64748b" font-size="6" text-anchor="middle">Score</text>
+    </g>
+    <!-- Luzerge bolt -->
+    <g transform="translate(300,140)" style="animation: hero-pulse 3s ease-in-out infinite">
+      <path d="M2-8 L-3 0 L1 0 L-2 8 L5 0 L1 0 Z" fill="#3b82f6" transform="scale(1.5)"/>
+    </g>
+  </svg>
+</div>
+
     <article class="post-content">
       <p>If you run a business in the Philippines, you've probably experienced this: your website goes down in the middle of the night, and you don't find out until a customer messages you on Facebook the next morning. Or your SSL certificate expires without warning, and suddenly Google Chrome is telling visitors your site is <strong>"Not Secure."</strong> By the time you notice, you've already lost sales and trust.</p>
 
@@ -289,6 +323,25 @@
       </ul>
 
       <blockquote>We didn't build Luzerge for everyone. We built it for the sari-sari store owner who just launched an online ordering site, the Cebu resort that depends on bookings through their website, and the Manila startup that needs enterprise tools on a bootstrap budget.</blockquote>
+
+<div class="stat-counter-group">
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--purple" data-target="5" data-suffix="+">0+</div>
+    <div class="stat-counter-card__label">Core Features</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--green" data-target="99" data-prefix="₱" data-suffix="/mo">₱0/mo</div>
+    <div class="stat-counter-card__label">Starting Price</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value" data-target="60" data-suffix="s">0s</div>
+    <div class="stat-counter-card__label">Check Interval</div>
+  </div>
+  <div class="stat-counter-card">
+    <div class="stat-counter-card__value stat-counter-card__value--amber" data-target="24" data-suffix="/7">0/7</div>
+    <div class="stat-counter-card__label">Monitoring</div>
+  </div>
+</div>
 
       <h2>Simple, Transparent Pricing</h2>
 
@@ -387,6 +440,66 @@
   </div><!-- /.post-wrapper -->
 
   <script>
+// Stat counter animation
+;(function () {
+  const counters = document.querySelectorAll('[data-target]')
+  if (!counters.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      const el = entry.target
+      const target = parseFloat(el.dataset.target)
+      const decimals = parseInt(el.dataset.decimals || '0')
+      const prefix = el.dataset.prefix || ''
+      const suffix = el.dataset.suffix || ''
+      const duration = 1500
+      const start = performance.now()
+      function update(now) {
+        const progress = Math.min((now - start) / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        const current = (target * eased).toFixed(decimals)
+        el.textContent = prefix + current + suffix
+        if (progress < 1) requestAnimationFrame(update)
+      }
+      requestAnimationFrame(update)
+      observer.unobserve(el)
+    })
+  }, { threshold: 0.5 })
+  counters.forEach(c => observer.observe(c))
+})()
+
+// Animated code blocks
+;(function () {
+  const blocks = document.querySelectorAll('.code-animated')
+  if (!blocks.length) return
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return
+      entry.target.classList.add('visible')
+      const lines = entry.target.querySelectorAll('.code-animated__line')
+      lines.forEach((line, i) => { line.style.transitionDelay = (i * 0.12) + 's' })
+      observer.unobserve(entry.target)
+    })
+  }, { threshold: 0.3 })
+  blocks.forEach(b => observer.observe(b))
+})()
+
+// Interactive checklist
+;(function () {
+  document.querySelectorAll('.interactive-checklist__item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('checked')
+      const list = item.closest('.interactive-checklist') || item.parentElement
+      const all = list.querySelectorAll('.interactive-checklist__item')
+      const done = list.querySelectorAll('.interactive-checklist__item.checked')
+      const bar = list.parentElement.querySelector('.checklist-progress__bar') || list.nextElementSibling?.querySelector('.checklist-progress__bar')
+      const label = list.parentElement.querySelector('.checklist-progress__label') || list.nextElementSibling?.nextElementSibling
+      if (bar) bar.style.width = ((done.length / all.length) * 100) + '%'
+      if (label) label.textContent = done.length + ' of ' + all.length + ' completed'
+    })
+  })
+})()
+
     // FAQ accordion
     document.querySelectorAll('.post-faq__q').forEach(q => {
       q.addEventListener('click', () => q.parentElement.classList.toggle('open'))
